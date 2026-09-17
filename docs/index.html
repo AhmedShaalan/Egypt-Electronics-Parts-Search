@@ -1,0 +1,616 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Egypt Electronics Parts Search</title>
+<link rel="icon" type="image/png" href="icon.png">
+<link rel="apple-touch-icon" href="icon.png">
+<style>
+  :root {
+    --bg: #f6f5f1;
+    --surface: #ffffff;
+    --surface-2: #efede7;
+    --text: #1c1b18;
+    --muted: #6b6860;
+    --border: #e1ded5;
+    --accent: #0f6e5c;
+    --accent-text: #ffffff;
+    --accent-soft: #dcefe9;
+    --good: #1a7f45;
+    --good-soft: #e0f3e7;
+    --bad: #b3261e;
+    --bad-soft: #fbe5e3;
+    --warn: #8a5a00;
+    --warn-soft: #fcefd2;
+    --radius: 10px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #141412;
+      --surface: #1d1d1a;
+      --surface-2: #26261f;
+      --text: #ecebe6;
+      --muted: #a09d93;
+      --border: #33322c;
+      --accent: #4cc3a7;
+      --accent-text: #0b1f1a;
+      --accent-soft: #173a32;
+      --good: #5fd08f;
+      --good-soft: #173323;
+      --bad: #ff8a80;
+      --bad-soft: #3b1d1b;
+      --warn: #f2c04c;
+      --warn-soft: #3a2f14;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font: 15px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+  a { color: inherit; }
+  button, input, textarea, select { font: inherit; color: inherit; }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 0 16px 64px; }
+
+  header { position: sticky; top: 0; z-index: 5; background: var(--bg); border-bottom: 1px solid var(--border); }
+  header .wrap { display: flex; align-items: center; gap: 16px; padding-bottom: 0; flex-wrap: wrap; }
+  .brand { font-weight: 700; letter-spacing: -0.01em; padding: 14px 0; margin-right: auto; }
+  .brand { display: flex; align-items: center; gap: 7px; }
+  .brand img { display: block; }
+  nav { display: flex; gap: 4px; }
+  nav a {
+    text-decoration: none; padding: 14px 10px 12px; color: var(--muted);
+    border-bottom: 2px solid transparent; font-weight: 500;
+  }
+  nav a.active { color: var(--text); border-color: var(--accent); }
+  .gh { display: flex; align-items: center; color: var(--muted); padding: 6px; margin-right: -6px; border-radius: 8px; }
+  .gh:hover { color: var(--text); background: var(--surface-2); }
+  .gh svg { width: 22px; height: 22px; display: block; }
+  .count { font-size: 12px; background: var(--surface-2); border-radius: 99px; padding: 1px 7px; margin-left: 4px; }
+
+  section { display: none; padding-top: 20px; }
+  section.active { display: block; }
+
+  .searchbar { display: flex; gap: 8px; }
+  input[type=search], textarea, select {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 11px 12px; outline: none; min-width: 0;
+  }
+  input[type=search] { flex: 1; font-size: 16px; }
+  input:focus, textarea:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+  textarea { width: 100%; min-height: 150px; resize: vertical; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 14px; }
+
+  .btn {
+    border: 1px solid var(--border); background: var(--surface); border-radius: var(--radius);
+    padding: 10px 14px; cursor: pointer; white-space: nowrap; font-weight: 500;
+  }
+  .btn:hover { background: var(--surface-2); }
+  .btn.primary { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
+  .btn.primary:hover { filter: brightness(1.08); }
+  .btn.small { padding: 5px 10px; font-size: 13px; }
+  .btn:disabled { opacity: .55; cursor: default; }
+
+  .hint { color: var(--muted); font-size: 13px; margin: 8px 2px 0; }
+  .toolbar { display: flex; align-items: center; gap: 8px; margin: 18px 0 10px; flex-wrap: wrap; }
+  .toolbar .grow { flex: 1; color: var(--muted); font-size: 14px; }
+  .toolbar select { padding: 6px 8px; font-size: 14px; }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+  .chip { font-size: 12px; padding: 3px 9px; border-radius: 99px; background: var(--surface-2); color: var(--muted); }
+  .chip.fail { background: var(--bad-soft); color: var(--bad); }
+
+  .list { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+  .row { display: grid; grid-template-columns: 52px 1fr auto; gap: 12px; padding: 12px; align-items: center; border-top: 1px solid var(--border); }
+  .row:first-child { border-top: 0; }
+  .thumb { width: 52px; height: 52px; border-radius: 8px; background: var(--surface-2); object-fit: contain; }
+  .name { font-weight: 500; text-decoration: none; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .name:hover { text-decoration: underline; }
+  .meta { color: var(--muted); font-size: 13px; margin-top: 2px; }
+  .price { text-align: right; font-variant-numeric: tabular-nums; }
+  .price b { font-size: 16px; white-space: nowrap; }
+  .price s { display: block; color: var(--muted); font-size: 12px; }
+  .price .per { display: block; color: var(--muted); font-size: 12px; white-space: nowrap; }
+  .actions { display: flex; align-items: center; gap: 10px; }
+  .star { border: 0; background: none; font-size: 20px; cursor: pointer; color: var(--muted); padding: 4px; line-height: 1; }
+  .star.on { color: #e3a008; }
+
+  .badge { display: inline-block; font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 99px; vertical-align: 1px; }
+  .badge.good { background: var(--good-soft); color: var(--good); }
+  .badge.bad { background: var(--bad-soft); color: var(--bad); }
+  .badge.warn { background: var(--warn-soft); color: var(--warn); }
+  .badge.sale { background: var(--accent-soft); color: var(--accent); }
+
+  .empty, .loading { padding: 36px 16px; text-align: center; color: var(--muted); }
+  .loading::before {
+    content: ""; display: inline-block; width: 14px; height: 14px; margin-right: 8px; vertical-align: -2px;
+    border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .more { width: 100%; margin-top: 10px; }
+
+  .summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; margin: 18px 0; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; }
+  .card .label { color: var(--muted); font-size: 13px; }
+  .card .big { font-size: 24px; font-weight: 700; font-variant-numeric: tabular-nums; margin: 2px 0; }
+  .card .sub { font-size: 13px; color: var(--muted); }
+
+  h2 { font-size: 15px; margin: 26px 0 10px; }
+  table { width: 100%; border-collapse: collapse; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+  th, td { text-align: left; padding: 9px 12px; border-top: 1px solid var(--border); font-size: 14px; vertical-align: top; }
+  th { border-top: 0; color: var(--muted); font-weight: 500; font-size: 13px; background: var(--surface-2); }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  td .missing { color: var(--muted); font-size: 12px; }
+  tr.best td { background: var(--accent-soft); }
+
+  .line { padding: 12px; border-top: 1px solid var(--border); }
+  .line:first-child { border-top: 0; }
+  .line-head { display: flex; gap: 8px; align-items: baseline; justify-content: space-between; }
+  .line-head .q { font-weight: 600; }
+  .line-head .cost { font-variant-numeric: tabular-nums; font-weight: 600; white-space: nowrap; }
+  .line select { width: 100%; margin-top: 8px; padding: 8px; font-size: 14px; }
+  .line .meta a { color: var(--accent); }
+
+  .delta { font-size: 12px; font-weight: 600; white-space: nowrap; }
+  .delta.down { color: var(--good); }
+  .delta.up { color: var(--bad); }
+
+  .toast {
+    position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%) translateY(20px); opacity: 0;
+    background: var(--text); color: var(--bg); padding: 9px 16px; border-radius: 99px; font-size: 14px;
+    transition: all .2s; pointer-events: none; z-index: 10;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%); }
+
+  @media (max-width: 560px) {
+    header .gh { order: 1; }
+    header nav { order: 2; width: 100%; }
+    .row { grid-template-columns: 44px 1fr; }
+    .thumb { width: 44px; height: 44px; }
+    .row .actions { grid-column: 2; justify-content: space-between; }
+    .price { text-align: left; }
+    .price s, .price .per { display: inline; margin-left: 6px; }
+    .hide-sm { display: none; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="brand"><img src="icon.png" alt="" width="22" height="22"><span class="title">Egypt Electronics Parts Search</span></div>
+    <nav>
+      <a href="#search" data-tab="search">Search</a>
+      <a href="#list" data-tab="list">Parts list</a>
+      <a href="#saved" data-tab="saved">Saved<span class="count" id="saved-count">0</span></a>
+    </nav>
+    <a class="gh" href="https://github.com/AhmedShaalan/Egypt-Electronics-Parts-Search" target="_blank" rel="noopener" title="View on GitHub" aria-label="View source on GitHub">
+      <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+    </a>
+  </div>
+</header>
+
+<main class="wrap">
+  <!-- SEARCH -->
+  <section id="tab-search">
+    <form class="searchbar" id="search-form">
+      <input type="search" id="q" placeholder="Search a part, e.g. LM7805, ESP32, 10k resistor" autocomplete="off" autofocus>
+      <button class="btn primary" type="submit">Search</button>
+    </form>
+    <p class="hint" id="shops-hint">Searches all shops at once. Out-of-stock items are hidden. Saved items stay in this browser.</p>
+    <div id="search-out"></div>
+  </section>
+
+  <!-- PARTS LIST -->
+  <section id="tab-list">
+    <textarea id="list-text" placeholder="One part per line, for example:&#10;LM7805 x2&#10;ESP32&#10;10k resistor x20&#10;3x 100nf capacitor"></textarea>
+    <div class="toolbar" style="margin-top:10px">
+      <span class="grow">Quantity: <code>x2</code>, <code>2x</code> or <code>2pcs</code>. Packs are counted, e.g. 20 resistors from 10-packs = 2 packs.</span>
+      <button class="btn primary" id="list-run">Find prices</button>
+    </div>
+    <div id="list-out"></div>
+  </section>
+
+  <!-- SAVED -->
+  <section id="tab-saved">
+    <div id="saved-out"></div>
+  </section>
+</main>
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { searchAll, priceList, warmUp, getSaved, saveItem as storeItem, deleteItem, refreshItems, saveList as storeList, deleteList } from "./js/search.js";
+
+const $ = (s, el = document) => el.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const money = n => Number(n).toLocaleString("en-US", { minimumFractionDigits: n % 1 ? 2 : 0, maximumFractionDigits: 2 }) + " EGP";
+const STRONG = 70;
+
+let savedKeys = new Set();
+let search = null;          // last search response
+let showWeak = false;
+let listData = null;        // last parts-list response
+let listText = "";          // text that produced listData
+let picks = [];             // chosen candidate index per line
+
+function toast(msg) {
+  const t = $("#toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(t._h);
+  t._h = setTimeout(() => t.classList.remove("show"), 2200);
+}
+
+/* ---------- tabs ---------- */
+function showTab() {
+  const tab = (location.hash || "#search").slice(1);
+  document.querySelectorAll("nav a").forEach(a => a.classList.toggle("active", a.dataset.tab === tab));
+  document.querySelectorAll("main section").forEach(s => s.classList.toggle("active", s.id === "tab-" + tab));
+  if (tab === "saved") loadSaved();
+}
+window.addEventListener("hashchange", showTab);
+
+/* ---------- shared bits ---------- */
+const key = p => p.shop + "|" + p.ref;
+
+function thumb(p) {
+  return p.image
+    ? `<img class="thumb" src="${esc(p.image)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'thumb'}))">`
+    : `<div class="thumb"></div>`;
+}
+
+function packNote(p) {
+  return p.pack > 1 ? `<span class="per">${money(p.unit_price)}/pc</span>` : "";
+}
+
+async function saveItem(p, btn) {
+  try {
+    storeItem(p);
+    savedKeys.add(key(p));
+    if (btn) { btn.classList.add("on"); btn.textContent = "★"; }
+    updateSavedCount(savedKeys.size);
+    toast("Saved");
+  } catch (e) { toast(e.message); }
+}
+
+function updateSavedCount(n) { $("#saved-count").textContent = n; }
+
+/* ---------- search ---------- */
+$("#search-form").addEventListener("submit", e => {
+  e.preventDefault();
+  runSearch($("#q").value);
+});
+
+async function runSearch(q) {
+  q = q.trim();
+  if (q.length < 2) return;
+  const out = $("#search-out");
+  out.innerHTML = `<div class="loading">Searching all shops for “${esc(q)}”…</div>`;
+  showWeak = false;
+  try {
+    search = await searchAll(q);
+    renderSearch();
+  } catch (e) {
+    out.innerHTML = `<div class="empty">${esc(e.message)}</div>`;
+  }
+}
+
+function renderSearch() {
+  const out = $("#search-out");
+  const sort = $("#sort")?.value || "match";
+  const shop = $("#shop-filter")?.value || "";
+  let rows = search.results.filter(r => !shop || r.shop === shop);
+  const sorters = {
+    price: (a, b) => a.price - b.price,
+    unit: (a, b) => a.unit_price - b.unit_price,
+    match: (a, b) => b.score - a.score || a.price - b.price,
+  };
+  rows.sort(sorters[sort]);
+  const strong = rows.filter(r => r.score >= STRONG);
+  const weak = rows.filter(r => r.score < STRONG);
+
+  const shopsWithResults = [...new Set(search.results.map(r => r.shop))];
+  const chips = search.shops.map(s => s.ok
+    ? `<span class="chip">${esc(s.name)} · ${s.count}</span>`
+    : `<span class="chip fail" title="${esc(s.error)}">${esc(s.name)} · failed</span>`).join("");
+
+  out.innerHTML = `
+    <div class="chips">${chips}</div>
+    <div class="toolbar">
+      <span class="grow">${strong.length} match${strong.length === 1 ? "" : "es"}${search.cached ? " · from the last hour" : ""}</span>
+      <select id="shop-filter" aria-label="Shop">
+        <option value="">All shops</option>
+        ${search.shops.filter(s => shopsWithResults.includes(s.key)).map(s => `<option value="${s.key}" ${s.key === shop ? "selected" : ""}>${esc(s.name)}</option>`).join("")}
+      </select>
+      <select id="sort" aria-label="Sort">
+        <option value="match" ${sort === "match" ? "selected" : ""}>Best match, then cheapest</option>
+        <option value="price" ${sort === "price" ? "selected" : ""}>Cheapest</option>
+        <option value="unit" ${sort === "unit" ? "selected" : ""}>Cheapest per piece</option>
+      </select>
+    </div>
+    ${strong.length ? `<div class="list">${strong.map(resultRow).join("")}</div>` : `<div class="empty">No in-stock matches.${weak.length ? " There are some weaker matches below." : ""}</div>`}
+    ${weak.length ? (showWeak
+      ? `<h2>Weaker matches</h2><div class="list">${weak.map(resultRow).join("")}</div>`
+      : `<button class="btn more" id="show-weak">Show ${weak.length} weaker match${weak.length === 1 ? "" : "es"}</button>`) : ""}
+  `;
+  $("#sort").onchange = renderSearch;
+  $("#shop-filter").onchange = renderSearch;
+  $("#show-weak")?.addEventListener("click", () => { showWeak = true; renderSearch(); });
+  out.querySelectorAll("[data-save]").forEach(btn => {
+    btn.onclick = () => saveItem(search.results.find(r => key(r) === btn.dataset.save), btn);
+  });
+}
+
+function resultRow(p) {
+  const saved = savedKeys.has(key(p));
+  return `
+    <div class="row">
+      ${thumb(p)}
+      <div>
+        <a class="name" href="${esc(p.url)}" target="_blank" rel="noopener">${esc(p.name)}</a>
+        <div class="meta">${esc(p.shop_name)}${p.old_price ? ' · <span class="badge sale">Sale</span>' : ""}${p.pack > 1 ? ` · pack of ${p.pack}` : ""}</div>
+      </div>
+      <div class="actions">
+        <div class="price"><b>${money(p.price)}</b>${p.old_price ? `<s>${money(p.old_price)}</s>` : ""}${packNote(p)}</div>
+        <button class="star ${saved ? "on" : ""}" data-save="${esc(key(p))}" title="Save" aria-label="Save">${saved ? "★" : "☆"}</button>
+      </div>
+    </div>`;
+}
+
+/* ---------- parts list ---------- */
+$("#list-run").addEventListener("click", () => runList($("#list-text").value));
+
+async function runList(text) {
+  if (!text.trim()) { toast("Paste at least one part"); return; }
+  const out = $("#list-out");
+  const btn = $("#list-run");
+  btn.disabled = true;
+  const n = text.split("\n").filter(l => l.trim()).length;
+  out.innerHTML = `<div class="loading">Pricing ${n} part${n === 1 ? "" : "s"} across all shops…</div>`;
+  try {
+    listData = await priceList(text);
+    listText = text;
+    // default pick: cheapest total cost for the quantity (candidates are strong matches when any exist)
+    // default pick: among the closest matches, the cheapest for the quantity needed
+    picks = listData.lines.map(l => {
+      let best = -1;
+      l.candidates.forEach((c, i) => {
+        if (isClose(l, c) && (best < 0 || lineCost(l, c) < lineCost(l, l.candidates[best]))) best = i;
+      });
+      return best;
+    });
+    renderList();
+  } catch (e) {
+    out.innerHTML = `<div class="empty">${esc(e.message)}</div>`;
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// "close" = within 25 points of the best match for that line: L7805CV still counts for LM7805,
+// but accessories (ranked 30+ points lower) don't win on price
+const isClose = (line, c) => c.score >= Math.max(...line.candidates.map(x => x.score)) - 25;
+const packsNeeded = (line, c) => Math.ceil(line.qty / (c.pack || 1));
+const lineCost = (line, c) => packsNeeded(line, c) * c.price;
+
+function shopTotals() {
+  return listData.shops.map(shop => {
+    let total = 0;
+    const missing = [];
+    listData.lines.forEach((line, i) => {
+      if (!line.candidates.length) return;  // no shop has it, so it can't count against any shop
+      const chosen = line.candidates[picks[i]];
+      const options = line.weak ? [] : line.candidates.filter(c => c.shop === shop.key && isClose(line, c));
+      const use = chosen && chosen.shop === shop.key ? chosen
+        : options.reduce((best, c) => !best || lineCost(line, c) < lineCost(line, best) ? c : best, null);
+      if (use) total += lineCost(line, use); else missing.push(line.query);
+    });
+    return { ...shop, total, missing, found: findable() - missing.length };
+  }).filter(s => s.found > 0)
+    .sort((a, b) => a.missing.length - b.missing.length || a.total - b.total);
+}
+
+const findable = () => listData.lines.filter(l => l.candidates.length).length;
+
+function renderList() {
+  const out = $("#list-out");
+  const lines = listData.lines;
+  let mixTotal = 0;
+  const mixShops = new Set();
+  let found = 0;
+  lines.forEach((l, i) => {
+    const c = l.candidates[picks[i]];
+    if (c) { mixTotal += lineCost(l, c); mixShops.add(c.shop_name); found++; }
+  });
+  const totals = shopTotals();
+  const complete = totals.filter(s => !s.missing.length);
+  const bestShop = complete[0];
+  const failed = listData.failed_shops;
+
+  out.innerHTML = `
+    ${failed.length ? `<div class="chips">${failed.map(s => `<span class="chip fail" title="${esc(s.error)}">${esc(s.name)} · failed</span>`).join("")}</div>` : ""}
+    <div class="summary">
+      <div class="card">
+        <div class="label">Cheapest mix</div>
+        <div class="big">${money(mixTotal)}</div>
+        <div class="sub">${found}/${lines.length} parts from ${mixShops.size} shop${mixShops.size === 1 ? "" : "s"}</div>
+      </div>
+      <div class="card">
+        <div class="label">Everything from one shop</div>
+        ${bestShop
+          ? `<div class="big">${money(bestShop.total)}</div><div class="sub">${esc(bestShop.name)}${bestShop.total > mixTotal ? ` · +${money(bestShop.total - mixTotal)} vs mix` : ""}</div>`
+          : `<div class="big">—</div><div class="sub">No shop has every part${totals[0] ? `. Closest: ${esc(totals[0].name)}, missing ${totals[0].missing.length}` : ""}</div>`}
+      </div>
+    </div>
+    <div class="toolbar" style="margin-top:0">
+      <span class="grow"></span>
+      <button class="btn" id="list-save">☆ Save this list</button>
+    </div>
+
+    <h2>Parts</h2>
+    <div class="list">${lines.map(lineRow).join("")}</div>
+
+    <h2>Total by shop</h2>
+    <table>
+      <thead><tr><th>Shop</th><th class="num">Parts</th><th class="num">Total</th></tr></thead>
+      <tbody>
+        ${totals.map((s, i) => `
+          <tr class="${!s.missing.length && i === 0 ? "best" : ""}">
+            <td>${esc(s.name)}${s.missing.length ? `<div class="missing">Missing: ${s.missing.map(esc).join(", ")}</div>` : ""}</td>
+            <td class="num">${s.found}/${findable()}</td>
+            <td class="num">${money(s.total)}</td>
+          </tr>`).join("")}
+      </tbody>
+    </table>
+    <p class="hint">Shop totals use the same close matches as the mix${found < lines.length ? " and skip parts no shop has" : ""}. Shipping isn't included.</p>
+  `;
+
+  out.querySelectorAll("select[data-line]").forEach(sel => {
+    sel.onchange = () => { picks[+sel.dataset.line] = +sel.value; renderList(); };
+  });
+  $("#list-save").onclick = saveList;
+}
+
+function lineRow(line, i) {
+  const c = line.candidates[picks[i]];
+  if (!c) {
+    return `<div class="line"><div class="line-head"><span class="q">${line.qty} × ${esc(line.query)}</span><span class="badge bad">Not found</span></div>
+      <div class="meta">No shop has this in stock. Try a different name or part number.</div></div>`;
+  }
+  const packs = packsNeeded(line, c);
+  return `
+    <div class="line">
+      <div class="line-head">
+        <span class="q">${line.qty} × ${esc(line.query)} ${line.weak ? '<span class="badge warn">Check match</span>' : ""}</span>
+        <span class="cost">${money(lineCost(line, c))}</span>
+      </div>
+      <div class="meta">
+        <a href="${esc(c.url)}" target="_blank" rel="noopener">${esc(c.name)}</a> · ${esc(c.shop_name)} ·
+        ${c.pack > 1 ? `${packs} pack${packs === 1 ? "" : "s"} of ${c.pack} at ${money(c.price)}` : `${money(c.price)} each`}
+      </div>
+      ${line.candidates.length > 1 ? `
+        <select data-line="${i}" aria-label="Choose product for ${esc(line.query)}">
+          ${line.candidates.map((o, j) => `<option value="${j}" ${j === picks[i] ? "selected" : ""}>${esc(money(lineCost(line, o)))} · ${esc(o.shop_name)} · ${esc(o.name.slice(0, 70))}</option>`).join("")}
+        </select>` : ""}
+    </div>`;
+}
+
+async function saveList() {
+  const name = prompt("Name this list", "Parts list " + new Date().toLocaleDateString());
+  if (name === null) return;
+  const total = listData.lines.reduce((sum, l, i) => sum + (l.candidates[picks[i]] ? lineCost(l, l.candidates[picks[i]]) : 0), 0);
+  try {
+    storeList(name, listText, total);
+    toast("List saved");
+  } catch (e) { toast(e.message); }
+}
+
+/* ---------- saved ---------- */
+let saved = { items: [], lists: [] };
+
+async function loadSaved(refresh = false) {
+  const out = $("#saved-out");
+  if (!refresh && !saved.items.length && !saved.lists.length) out.innerHTML = `<div class="loading">Loading…</div>`;
+  try {
+    if (refresh) {
+      const r = await refreshItems();
+      saved.items = r.items;
+      toast(r.failed ? `Updated, but ${r.failed} item${r.failed === 1 ? "" : "s"} couldn't be checked` : "Prices updated");
+    } else {
+      saved = getSaved();
+    }
+    savedKeys = new Set(saved.items.map(key));
+    updateSavedCount(saved.items.length);
+    renderSaved();
+  } catch (e) {
+    out.innerHTML = `<div class="empty">${esc(e.message)}</div>`;
+  }
+}
+
+function renderSaved() {
+  const out = $("#saved-out");
+  const { items, lists } = saved;
+  const lastCheck = items.map(i => i.checked_at).sort().pop();
+  out.innerHTML = `
+    <div class="toolbar" style="margin-top:0">
+      <span class="grow">${items.length} saved item${items.length === 1 ? "" : "s"}${lastCheck ? ` · prices checked ${esc(when(lastCheck))}` : ""}</span>
+      ${items.length ? `<button class="btn" id="refresh">↻ Refresh prices</button>` : ""}
+    </div>
+    ${items.length ? `<div class="list">${items.map(savedRow).join("")}</div>`
+      : `<div class="empty">Nothing saved yet. Tap ☆ on a search result to save it.</div>`}
+
+    <h2>Saved parts lists</h2>
+    ${lists.length ? `<div class="list">${lists.map(l => `
+      <div class="row" style="grid-template-columns:1fr auto">
+        <div>
+          <div class="name">${esc(l.name)}</div>
+          <div class="meta">${l.text.split("\n").filter(x => x.trim()).length} parts · saved ${esc(when(l.saved_at))}${l.saved_total ? ` at ${money(l.saved_total)}` : ""}</div>
+        </div>
+        <div class="actions">
+          <button class="btn small" data-open-list="${l.id}">Open</button>
+          <button class="star" data-del-list="${l.id}" title="Delete" aria-label="Delete">✕</button>
+        </div>
+      </div>`).join("")}</div>`
+      : `<div class="empty">No saved lists. Price a parts list, then tap “Save this list”.</div>`}
+  `;
+
+  $("#refresh")?.addEventListener("click", async e => {
+    e.target.disabled = true;
+    e.target.textContent = "Checking…";
+    await loadSaved(true);
+  });
+  out.querySelectorAll("[data-del-item]").forEach(b => b.onclick = async () => {
+    deleteItem(+b.dataset.delItem);
+    loadSaved();
+  });
+  out.querySelectorAll("[data-del-list]").forEach(b => b.onclick = async () => {
+    if (!confirm("Delete this saved list?")) return;
+    deleteList(+b.dataset.delList);
+    loadSaved();
+  });
+  out.querySelectorAll("[data-open-list]").forEach(b => b.onclick = () => {
+    const l = lists.find(x => x.id === +b.dataset.openList);
+    $("#list-text").value = l.text;
+    location.hash = "#list";
+    runList(l.text);
+  });
+}
+
+function savedRow(it) {
+  const diff = it.price - it.saved_price;
+  let status = "";
+  if (!it.available) status = '<span class="badge bad">No longer listed</span>';
+  else if (!it.in_stock) status = '<span class="badge bad">Out of stock</span>';
+  const delta = Math.abs(diff) >= 0.01
+    ? `<span class="delta ${diff < 0 ? "down" : "up"}">${diff < 0 ? "▼" : "▲"} ${money(Math.abs(diff))}</span>` : "";
+  return `
+    <div class="row">
+      ${thumb(it)}
+      <div>
+        <a class="name" href="${esc(it.url)}" target="_blank" rel="noopener">${esc(it.name)}</a>
+        <div class="meta">${esc(it.shop_name)} · saved at ${money(it.saved_price)} ${status}</div>
+      </div>
+      <div class="actions">
+        <div class="price"><b>${money(it.price)}</b>${delta ? `<span class="per">${delta}</span>` : ""}</div>
+        <button class="star" data-del-item="${it.id}" title="Remove" aria-label="Remove">✕</button>
+      </div>
+    </div>`;
+}
+
+function when(iso) {
+  const d = new Date(iso);
+  const mins = Math.round((Date.now() - d) / 60000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins} min ago`;
+  if (mins < 1440) return `${Math.round(mins / 60)} h ago`;
+  return d.toLocaleDateString();
+}
+
+/* ---------- start ---------- */
+showTab();
+saved = getSaved();
+savedKeys = new Set(saved.items.map(key));
+updateSavedCount(saved.items.length);
+warmUp();
+</script>
+</body>
+</html>
