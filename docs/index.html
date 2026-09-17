@@ -151,6 +151,14 @@
   .line select { width: 100%; margin-top: 8px; padding: 8px; font-size: 14px; }
   .line .meta a { color: var(--accent); }
 
+  .shop-mark {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    background: var(--accent-soft); color: var(--accent); font-weight: 700; font-size: 17px;
+  }
+  .row.shop-row { grid-template-columns: 40px minmax(0, 1fr) auto; }
+  .shop-row .name, .shop-row .meta { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .hint a { color: var(--accent); }
+
   .delta { font-size: 12px; font-weight: 600; white-space: nowrap; }
   .delta.down { color: var(--good); }
   .delta.up { color: var(--bad); }
@@ -182,6 +190,7 @@
       <a href="#search" data-tab="search">Search</a>
       <a href="#list" data-tab="list">Parts list</a>
       <a href="#saved" data-tab="saved">Saved<span class="count" id="saved-count">0</span></a>
+      <a href="#shops" data-tab="shops">Shops</a>
     </nav>
     <a class="gh" href="https://github.com/AhmedShaalan/Egypt-Electronics-Parts-Search" target="_blank" rel="noopener" title="View on GitHub" aria-label="View source on GitHub">
       <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
@@ -214,10 +223,18 @@
   <section id="tab-saved">
     <div id="saved-out"></div>
   </section>
+
+  <!-- SHOPS -->
+  <section id="tab-shops">
+    <p class="hint" style="margin-top:0">Every search checks these shops at the same time.</p>
+    <div class="list" id="shops-out" style="margin-top:12px"></div>
+    <p class="hint">Know a shop with an online store that should be here? <a href="https://github.com/AhmedShaalan/Egypt-Electronics-Parts-Search/issues" target="_blank" rel="noopener">Suggest it on GitHub</a>.</p>
+  </section>
 </main>
 <div class="toast" id="toast"></div>
 
 <script type="module">
+import { SHOPS } from "./js/shops.js";
 import { searchAll, priceList, warmUp, getSaved, saveItem as storeItem, deleteItem, refreshItems, saveList as storeList, deleteList } from "./js/search.js";
 
 const $ = (s, el = document) => el.querySelector(s);
@@ -605,7 +622,24 @@ function when(iso) {
   return d.toLocaleDateString();
 }
 
+/* ---------- shops ---------- */
+function renderShops() {
+  $("#shops-out").innerHTML = SHOPS.map(s => {
+    const domain = new URL(s.base).hostname.replace(/^www\./, "");
+    return `
+      <div class="row shop-row">
+        <div class="shop-mark" aria-hidden="true">${esc(s.name[0])}</div>
+        <div>
+          <a class="name" href="${esc(s.base)}" target="_blank" rel="noopener">${esc(s.name)}</a>
+          <div class="meta">${esc(domain)}</div>
+        </div>
+        <span class="chip">${esc(s.platform)}</span>
+      </div>`;
+  }).join("");
+}
+
 /* ---------- start ---------- */
+renderShops();
 showTab();
 saved = getSaved();
 savedKeys = new Set(saved.items.map(key));

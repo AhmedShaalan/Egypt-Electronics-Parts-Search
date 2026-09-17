@@ -20,7 +20,7 @@ const ACCESSORY_NAMES = new Set([
 // accessory words that also appear glued to the next word ("Casefor Arduino")
 const ACCESSORY_PREFIXES = ["case", "cable", "shield", "adapter", "holder", "enclosure", "programmer"];
 
-const SPLIT = /[^0-9a-z؀-ۿ.]+/;
+const SPLIT = /[^0-9a-z\u0600-\u06ff.]+/;
 const isDigit = (c) => /^\p{Nd}+$/u.test(c);
 const hasDigit = (s) => /\p{Nd}/u.test(s);
 const hasLetter = (s) => /[a-z]/.test(s);
@@ -38,7 +38,7 @@ export function tokens(s) {
 }
 
 function compact(s) {
-  return clean(s).replace(/[^0-9a-z؀-ۿ]/g, "");
+  return clean(s).replace(/[^0-9a-z\u0600-\u06ff]/g, "");
 }
 
 // Substring match that won't let 10k match 910k or 7805 match 17805.
