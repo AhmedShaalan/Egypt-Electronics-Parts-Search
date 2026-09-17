@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (C) 2026 Ahmed Shaalan
+
 // The Cloudflare Worker that relays requests to shops that block browsers (see worker/).
 const PRODUCTION_RELAY = "https://egypt-parts-relay.ahmed-shaalan.workers.dev";
 const LOCAL_RELAY = "http://localhost:8787";

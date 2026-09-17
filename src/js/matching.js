@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (C) 2026 Ahmed Shaalan
+
 // Scoring how well a product name matches a search query.
 //
 // Shops name the same part differently ("LM7805", "L7805CV", "7805 Regulator"),

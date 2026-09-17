@@ -9,7 +9,7 @@ Find a part, see every in-stock price side by side, and price a whole parts list
 
 ### [**→ Open the site**](https://ahmedshaalan.github.io/Egypt-Electronics-Parts-Search/)
 
-`9 shops` · `live prices` · `out-of-stock hidden` · `works on your phone` · `free, no sign-up` · [`MIT license`](LICENSE)
+`9 shops` · `live prices` · `out-of-stock hidden` · `works on your phone` · `free, no sign-up` · [`AGPL-3.0 license`](LICENSE)
 
 <img src=".github/screenshots/search.png" alt="Search results for LM7805 across nine Egyptian shops, sorted by match and price" width="760">
 
@@ -184,7 +184,7 @@ Egypt-Electronics-Parts-Search/
 ├── .github/
 │   ├── workflows/pages.yml Publishes src/ on every push to main
 │   └── screenshots/        Images for this README
-└── LICENSE                 MIT
+└── LICENSE                 GNU AGPL v3
 ```
 
 ## Run your own copy
@@ -205,7 +205,7 @@ npx wrangler deploy
 
 Wrangler prints the relay's address, like `https://egypt-parts-relay.yourname.workers.dev`.
 
-**3. Point the site at it.** Put that address in `PRODUCTION_RELAY` in [`src/js/config.js`](src/js/config.js), then commit and push.
+**3. Point the site at it.** Put that address in `PRODUCTION_RELAY` in [`src/js/config.js`](src/js/config.js). Also point the GitHub icon link in `src/index.html` at your fork: under the AGPL, visitors to your copy must be able to get its source. Then commit and push.
 
 **4. Turn on GitHub Pages.** In your fork: **Settings → Pages → Build and deployment**, set **Source** to **GitHub Actions**. The included workflow ([`.github/workflows/pages.yml`](.github/workflows/pages.yml)) publishes `src/` on every push to `main` that touches it. Run it once from the **Actions** tab (or push a change) and the site appears at `https://yourname.github.io/<repo-name>/` about a minute later.
 
@@ -306,6 +306,14 @@ App icon: [Transistor](https://icons8.com/icon/set/transistor/color) icon by [Ic
 
 ## License
 
-[MIT](LICENSE) © 2026 [Ahmed Shaalan](https://ahmedshaalan.com). You're free to use, modify and share it. Please keep the copyright notice.
+Copyright © 2026 [Ahmed Shaalan](https://ahmedshaalan.com)
+
+Licensed under the [GNU Affero General Public License v3.0 or later](LICENSE) (AGPL-3.0-or-later). In short:
+
+- You can use, study, modify and share this project.
+- If you share a modified version, **or run one as a website or service that others use**, you must release your full source code under the same license and keep the copyright notices.
+- It comes with no warranty.
+
+Versions published before this license change were released under the MIT License.
 
 Shop names and product data belong to their respective shops. This project isn't affiliated with any of them.

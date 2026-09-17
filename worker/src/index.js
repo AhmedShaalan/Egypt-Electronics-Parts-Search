@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (C) 2026 Ahmed Shaalan
+
 // Relay for shops that don't allow browsers on other sites to read their data (no CORS).
 // It only talks to the shops listed below, only answers the site's own origins,
 // and caches shop responses for an hour so the shops aren't hit on every search.

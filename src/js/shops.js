@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (C) 2026 Ahmed Shaalan
+
 // One connector per store platform. Each shop can search, and re-check a saved product's price.
 //
 // Shopify shops allow browsers to read their data directly. The others don't (no CORS),

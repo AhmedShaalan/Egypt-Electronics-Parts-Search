@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (C) 2026 Ahmed Shaalan
+
 // Searching every shop at once, parts lists, and saved items (kept in this browser).
 
 import { CACHE_MS, MAX_LIST_LINES, PARTIAL_CACHE_MS, SHOP_TIMEOUT_MS } from "./config.js";
