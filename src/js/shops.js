@@ -339,6 +339,97 @@ class LampatronicsShop extends Shop {
   }
 }
 
+class ElGammalShop extends Shop {
+  // Lovable storefront backed by Supabase. Its database API allows browsers directly (CORS),
+  // using the public "anon" key the storefront itself ships with.
+  platform = "Supabase";
+  static API = "https://lackyfaornknmawcyldv.supabase.co/rest/v1";
+  static ANON_KEY =
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxhY2t5ZmFvcm5rbm1hd2N5bGR2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwNjQyMDQsImV4cCI6MjA5MjY0MDIwNH0.Vdmae-sT-zW_lTUbKznYKXlRw1rzI7I-8A3toSWdhzY";
+
+  constructor(...args) {
+    super(...args);
+    this.limit = limiter(6);
+    this.stock = new Map();
+  }
+
+  api(path, { method = "GET", body, signal } = {}) {
+    const key = ElGammalShop.ANON_KEY;
+    return fetch(`${ElGammalShop.API}/${path}`, {
+      method,
+      body,
+      signal,
+      headers: { apikey: key, authorization: `Bearer ${key}`, "content-type": "application/json" },
+    });
+  }
+
+  product(d) {
+    return {
+      shop: this.key,
+      ref: d.id,
+      // names start with an internal code ("XX629-ESP32 30Pin ..."), which isn't useful to shoppers
+      name: cleanName(d.name).replace(/^XX\d+\s*-?\s*/i, ""),
+      price: Number(d.user_price || 0),
+      url: `${this.base}/p/${d.slug}`,
+      image: d.image_url || null,
+      in_stock: true,
+      old_price: null,
+    };
+  }
+
+  async onlineStock(id, signal, fresh = false) {
+    const hit = this.stock.get(id);
+    if (hit && !fresh && Date.now() < hit.expires) return hit.quantity;
+    const r = await this.limit(async () =>
+      ok(await this.api("rpc/get_online_stock", { method: "POST", body: JSON.stringify({ _product_id: id }), signal })),
+    );
+    const quantity = Number(await r.json()) || 0;
+    this.stock.set(id, { expires: Date.now() + HOUR, quantity });
+    return quantity;
+  }
+
+  async search(query, signal) {
+    // same filters as the shop's own search page; commas and parentheses would break the filter syntax
+    const q = query.replace(/[,()*]/g, " ").trim();
+    const params = new URLSearchParams({
+      select: "id,name,slug,user_price,image_url",
+      is_active: "eq.true",
+      is_visible: "eq.true",
+      is_online: "eq.true",
+      or: `(name.ilike.*${q}*,barcode.ilike.*${q}*,tags.ilike.*${q}*)`,
+      limit: "200",
+    });
+    const r = await ok(await this.api(`products?${params}`, { signal }));
+    const candidates = (await r.json()).map((d) => this.product(d)).filter((p) => p.price > 0 && score(query, p.name) >= WEAK);
+    const checked = await Promise.all(
+      candidates.map(async (p) => {
+        try {
+          p.in_stock = (await this.onlineStock(p.ref, signal)) > 0;
+          return p;
+        } catch (err) {
+          if (signal?.aborted) throw err;
+          return null;
+        }
+      }),
+    );
+    return checked.filter((p) => p && p.in_stock);
+  }
+
+  async check(ref, signal) {
+    const params = new URLSearchParams({
+      select: "id,name,slug,user_price,image_url",
+      id: `eq.${ref}`,
+      is_active: "eq.true",
+      is_visible: "eq.true",
+      is_online: "eq.true",
+    });
+    const rows = await (await ok(await this.api(`products?${params}`, { signal }))).json();
+    if (!rows.length) return null;
+    const p = this.product(rows[0]);
+    return { price: p.price, in_stock: (await this.onlineStock(ref, signal, true)) > 0 };
+  }
+}
+
 export const SHOPS = [
   new OdooShop("ram", "RAM Electronics", "https://www.ram-e-shop.com"),
   new WooShop("makers", "Makers Electronics", "https://makerselectronics.com"),
@@ -349,5 +440,6 @@ export const SHOPS = [
   new LampatronicsShop("lampatronics", "Lampatronics", "https://lampatronics.com"),
   new WooShop("uge", "UGE", "https://uge-one.com"),
   new WooShop("ampere", "Ampere Electronics", "https://ampere-electronics.com"),
+  new ElGammalShop("elgammal", "El Gammal Electronics", "https://el-gammal.com"),
 ];
 export const SHOPS_BY_KEY = Object.fromEntries(SHOPS.map((s) => [s.key, s]));

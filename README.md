@@ -9,7 +9,7 @@ Find a part, see every in-stock price side by side, and price a whole parts list
 
 ### [**→ Open the site**](https://ahmedshaalan.github.io/Egypt-Electronics-Parts-Search/)
 
-`9 shops` · `live prices` · `out-of-stock hidden` · `works on your phone` · `free, no sign-up` · [`AGPL-3.0 license`](LICENSE)
+`10 shops` · `live prices` · `out-of-stock hidden` · `works on your phone` · `free, no sign-up` · [`AGPL-3.0 license`](LICENSE)
 
 <img src=".github/screenshots/search.png" alt="Search results for LM7805 across nine Egyptian shops, sorted by match and price" width="760">
 
@@ -26,7 +26,7 @@ Egypt Electronics Parts Search asks every shop at once, recognizes those names a
 ## Features
 
 **🔍 Search every shop at once**
-- Queries all 9 shops at the same time and merges the results into one list
+- Queries all 10 shops at the same time and merges the results into one list
 - Hides out-of-stock items automatically
 - Shows sale prices next to the original price, and the per-piece price for packs ("(10pcs)")
 - Sort by best match, cheapest, or cheapest per piece, or filter to one shop
@@ -113,15 +113,16 @@ Saved items live in your browser's storage, so they're private to that browser a
 | [Lampatronics](https://lampatronics.com) | Custom (Laravel + Vue) | The site's own product API |
 | [UGE](https://uge-one.com) | WooCommerce | Store API |
 | [Ampere Electronics](https://ampere-electronics.com) | WooCommerce | Store API |
+| [El Gammal Electronics](https://el-gammal.com) | Supabase (Lovable) | The shop's public database API, plus a stock lookup per product |
 
 ## How it works
 
 The whole app runs in your browser. It's a static site on GitHub Pages, with no server of its own.
 
-The catch: browsers only let a website read another site's data if that site allows it (CORS). The two Shopify shops do; the other seven don't. For those, requests go through a tiny **relay** on Cloudflare Workers that fetches the shop's page and hands it back.
+The catch: browsers only let a website read another site's data if that site allows it (CORS). The two Shopify shops and El Gammal do; the other seven don't. For those, requests go through a tiny **relay** on Cloudflare Workers that fetches the shop's page and hands it back.
 
 ```
-                                ┌──────────── direct ────────────► Future, DevBoards  (Shopify, CORS allowed)
+                                ┌──────────── direct ────────────► Future, DevBoards, El Gammal  (CORS allowed)
  GitHub Pages site ─────────────┤
  (all search logic, in JS)      └─► Cloudflare Worker relay ─────► RAM, Makers, Micro Ohm, Most,
                                     (allow-listed shops only,      UGE, Ampere, Lampatronics
@@ -138,7 +139,7 @@ The catch: browsers only let a website read another site's data if that site all
 
 [`worker/src/index.js`](worker/src/index.js) is about 100 lines and deliberately dumb: all parsing and matching happen in the browser. It:
 
-- only fetches from the 9 shop domains, so it can't be used as an open proxy
+- only fetches from the shop domains it knows, so it can't be used as an open proxy
 - only answers requests from the site's own origin (plus `localhost` for development)
 - forwards just three headers (`x-api-key`, `content-type`, `accept`) and caps request bodies
 - caches successful shop responses for an hour at Cloudflare's edge
@@ -164,6 +165,7 @@ In a parts list, the default pick for each line is the **cheapest product within
 - **WooCommerce:** `GET /wp-json/wc/store/v1/products?search=…&stock_status[]=instock`, up to 60 results per query. Prices arrive in piasters and are converted to EGP.
 - **Shopify:** the suggest endpoint caps at 10 results, so the app loads the whole catalog from `products.json` (about 1,300 products, under 1 MB compressed), keeps it for an hour, and searches it locally. Loading starts as soon as the page opens, so the first search is fast.
 - **Odoo (RAM):** parses up to 3 pages of `/shop?search=…`, then calls `get_combination_info` per product for the stock count. RAM slows down under load, so it gets at most 5 requests at a time, and stock lookups are cached for an hour.
+- **El Gammal (Supabase):** the storefront reads products straight from its Supabase database with a public, read-only "anon" key, and so does this app: the same product filters as the shop's own search page, then the shop's `get_online_stock` function per matching product (at most 6 at a time, cached for an hour). The internal code at the start of product names ("XX629-") is dropped. If the shop ever changes that key, it shows as `failed` until the key in `src/js/shops.js` is updated.
 - **Lampatronics:** the storefront is a JavaScript app backed by `/api/frontend/product`. The API requires the key the site embeds in every page. The app reads that key from the home page and re-reads it if it's ever rejected. Up to 3 pages of 50 results.
 
 ## Project structure
@@ -268,6 +270,12 @@ class MyShop extends Shop {
 | Aliases | `ALIASES` in `src/js/matching.js` | 16x2 ↔ 1602, … |
 | Sites allowed to use the relay | `ALLOWED_ORIGINS` in `worker/wrangler.toml` | the GitHub Pages origin |
 | Relay cache | `CACHE_SECONDS` in `worker/src/index.js` | 1 h |
+
+## Privacy
+
+- **No accounts, no cookies.** Saved items and lists stay in your own browser.
+- **Anonymous visit counts.** The site uses [Cloudflare Web Analytics](https://www.cloudflare.com/web-analytics/), which counts page views without cookies or tracking individual visitors. What you search for isn't sent to it.
+- **Searches go to the shops.** To get prices, your browser asks each shop directly, or through the relay for shops that need it. The relay's code doesn't store or log requests.
 
 ## Limitations
 
