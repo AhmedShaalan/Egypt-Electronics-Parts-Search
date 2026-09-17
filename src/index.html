@@ -195,9 +195,9 @@
   button.chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
   .list { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
-  .row { display: grid; grid-template-columns: 52px 1fr auto; gap: 12px; padding: 12px; align-items: center; border-top: 1px solid var(--border); }
+  .row { display: grid; grid-template-columns: 100px 1fr auto; gap: 12px; padding: 12px; align-items: center; border-top: 1px solid var(--border); }
   .row:first-child { border-top: 0; }
-  .thumb { width: 52px; height: 52px; border-radius: 8px; background: var(--surface-2); object-fit: contain; }
+  .thumb { width: 100px; height: 100px; border-radius: 8px; background: var(--surface-2); object-fit: contain; }
   .name.link { background: none; border: 0; padding: 0; text-align: left; cursor: pointer; color: var(--accent); }
   .name.link:hover { text-decoration: underline; }
   .name { font-weight: 500; text-decoration: none; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
@@ -272,8 +272,8 @@
   @media (max-width: 560px) {
     header .icons { order: 1; }
     header nav { order: 2; width: 100%; }
-    .row { grid-template-columns: 44px 1fr; }
-    .thumb { width: 44px; height: 44px; }
+    .row { grid-template-columns: 76px 1fr; }
+    .thumb { width: 76px; height: 76px; }
     .row .actions { grid-column: 2; justify-content: space-between; }
     .price { text-align: left; }
     .price s, .price .per { display: inline; margin-left: 6px; }
@@ -341,7 +341,7 @@
 
 <script type="module">
 import { SHOPS } from "./js/shops.js";
-import { searchAll, priceList, warmUp, getSaved, saveItem as storeItem, deleteItem, refreshItems, saveList as storeList, deleteList } from "./js/search.js";
+import { searchAll, priceList, warmUp, getSaved, saveItem as storeItem, unsaveItem as storeUnsave, deleteItem, refreshItems, saveList as storeList, deleteList } from "./js/search.js";
 
 const $ = (s, el = document) => el.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -389,13 +389,18 @@ function packNote(p) {
   return p.pack > 1 ? `<span class="per">${money(p.unit_price)}/pc</span>` : "";
 }
 
-async function saveItem(p, btn) {
+// the star toggles: starred items are saved, tapping a filled star removes them again
+async function toggleSave(p, btn) {
   try {
-    storeItem(p);
-    savedKeys.add(key(p));
-    if (btn) { btn.classList.add("on"); btn.textContent = "★"; }
+    const on = !savedKeys.has(key(p));
+    if (on) { storeItem(p); savedKeys.add(key(p)); } else { storeUnsave(p); savedKeys.delete(key(p)); }
+    if (btn) {
+      btn.classList.toggle("on", on);
+      btn.textContent = on ? "★" : "☆";
+      btn.title = btn.ariaLabel = on ? "Remove from saved" : "Save";
+    }
     updateSavedCount(savedKeys.size);
-    toast("Saved");
+    toast(on ? "Saved" : "Removed");
   } catch (e) { toast(e.message); }
 }
 
@@ -472,7 +477,7 @@ function renderSearch() {
   });
   $("#show-weak")?.addEventListener("click", () => { showWeak = true; renderSearch(); });
   out.querySelectorAll("[data-save]").forEach(btn => {
-    btn.onclick = () => saveItem(search.results.find(r => key(r) === btn.dataset.save), btn);
+    btn.onclick = () => toggleSave(search.results.find(r => key(r) === btn.dataset.save), btn);
   });
 }
 
@@ -487,7 +492,7 @@ function resultRow(p) {
       </div>
       <div class="actions">
         <div class="price"><b>${money(p.price)}</b>${p.old_price ? `<s>${money(p.old_price)}</s>` : ""}${packNote(p)}</div>
-        <button class="star ${saved ? "on" : ""}" data-save="${esc(key(p))}" title="Save" aria-label="Save">${saved ? "★" : "☆"}</button>
+        <button class="star ${saved ? "on" : ""}" data-save="${esc(key(p))}" title="${saved ? "Remove from saved" : "Save"}" aria-label="${saved ? "Remove from saved" : "Save"}">${saved ? "★" : "☆"}</button>
       </div>
     </div>`;
 }

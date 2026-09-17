@@ -207,6 +207,13 @@ export function saveItem(p) {
   if (!store(data)) throw new Error("Couldn't save: this browser blocks storage");
 }
 
+// the star on a search result toggles, so items are also removed by shop and ref
+export function unsaveItem(p) {
+  const data = load();
+  data.items = data.items.filter((it) => !(it.shop === p.shop && it.ref === p.ref));
+  store(data);
+}
+
 export function deleteItem(id) {
   const data = load();
   data.items = data.items.filter((it) => it.id !== id);
