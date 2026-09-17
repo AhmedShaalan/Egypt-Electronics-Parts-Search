@@ -198,6 +198,8 @@
   .row { display: grid; grid-template-columns: 52px 1fr auto; gap: 12px; padding: 12px; align-items: center; border-top: 1px solid var(--border); }
   .row:first-child { border-top: 0; }
   .thumb { width: 52px; height: 52px; border-radius: 8px; background: var(--surface-2); object-fit: contain; }
+  .name.link { background: none; border: 0; padding: 0; text-align: left; cursor: pointer; color: var(--accent); }
+  .name.link:hover { text-decoration: underline; }
   .name { font-weight: 500; text-decoration: none; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
   .name:hover { text-decoration: underline; }
   .meta { color: var(--muted); font-size: 13px; margin-top: 2px; }
@@ -230,6 +232,9 @@
   .card .sub { font-size: 13px; color: var(--muted); }
 
   h2 { font-size: 15px; margin: 26px 0 10px; }
+  #list-out:not(:empty) { border-top: 1px dashed var(--border); margin-top: 18px; padding-top: 4px; }
+  h2.with-total { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+  h2.with-total .total { font-variant-numeric: tabular-nums; }
   table { width: 100%; border-collapse: collapse; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
   th, td { text-align: left; padding: 9px 12px; border-top: 1px solid var(--border); font-size: 14px; vertical-align: top; }
   th { border-top: 0; color: var(--muted); font-weight: 500; font-size: 13px; background: var(--surface-2); }
@@ -350,6 +355,7 @@ let shopFilter = "";        // shop key picked from the chips, "" = all shops
 let listData = null;        // last parts-list response
 let listText = "";          // text that produced listData
 let picks = [];             // chosen candidate index per line
+let defaultPicks = [];      // the cheapest picks, before the visitor changed any
 
 function toast(msg) {
   const t = $("#toast");
@@ -508,6 +514,7 @@ async function runList(text) {
       });
       return best;
     });
+    defaultPicks = picks.slice();
     renderList();
   } catch (e) {
     out.innerHTML = `<div class="empty">${esc(e.message)}</div>`;
@@ -551,6 +558,7 @@ function renderList() {
     const c = l.candidates[picks[i]];
     if (c) { mixTotal += lineCost(l, c); mixShops.add(c.shop_name); found++; }
   });
+  const mixLabel = picks.some((p, i) => p !== defaultPicks[i]) ? "Your picks" : "Cheapest mix";
   const totals = shopTotals();
   const complete = totals.filter(s => !s.missing.length);
   const bestShop = complete[0];
@@ -560,14 +568,14 @@ function renderList() {
     ${failed.length ? `<div class="chips">${failed.map(s => `<span class="chip fail" title="${esc(s.error)}">${esc(s.name)} · failed</span>`).join("")}</div>` : ""}
     <div class="summary">
       <div class="card">
-        <div class="label">Cheapest mix</div>
+        <div class="label">${mixLabel}</div>
         <div class="big">${money(mixTotal)}</div>
         <div class="sub">${found}/${lines.length} parts from ${mixShops.size} shop${mixShops.size === 1 ? "" : "s"}</div>
       </div>
       <div class="card">
         <div class="label">Everything from one shop</div>
         ${bestShop
-          ? `<div class="big">${money(bestShop.total)}</div><div class="sub">${esc(bestShop.name)}${bestShop.total > mixTotal ? ` · +${money(bestShop.total - mixTotal)} vs mix` : ""}</div>`
+          ? `<div class="big">${money(bestShop.total)}</div><div class="sub">${esc(bestShop.name)}${bestShop.total > mixTotal ? ` · +${money(bestShop.total - mixTotal)} vs ${mixLabel.toLowerCase()}` : ""}</div>`
           : `<div class="big">—</div><div class="sub">No shop has every part${totals[0] ? `. Closest: ${esc(totals[0].name)}, missing ${totals[0].missing.length}` : ""}</div>`}
       </div>
     </div>
@@ -576,7 +584,7 @@ function renderList() {
       <button class="btn" id="list-save">☆ Save this list</button>
     </div>
 
-    <h2>Parts</h2>
+    <h2 class="with-total">${mixLabel} <span class="total">${money(mixTotal)}</span></h2>
     <div class="list">${lines.map(lineRow).join("")}</div>
 
     <h2>Total by shop</h2>
@@ -591,7 +599,7 @@ function renderList() {
           </tr>`).join("")}
       </tbody>
     </table>
-    <p class="hint">Shop totals use the same close matches as the mix${found < lines.length ? " and skip parts no shop has" : ""}. Shipping isn't included.</p>
+    <p class="hint">Shop totals use the same close matches as the ${mixLabel.toLowerCase()}${found < lines.length ? " and skip parts no shop has" : ""}. Shipping isn't included.</p>
   `;
 
   out.querySelectorAll("select[data-line]").forEach(sel => {
@@ -672,11 +680,10 @@ function renderSaved() {
     ${lists.length ? `<div class="list">${lists.map(l => `
       <div class="row" style="grid-template-columns:1fr auto">
         <div>
-          <div class="name">${esc(l.name)}</div>
+          <button class="name link" data-open-list="${l.id}">${esc(l.name)}</button>
           <div class="meta">${l.text.split("\n").filter(x => x.trim()).length} parts · saved ${esc(when(l.saved_at))}${l.saved_total ? ` at ${money(l.saved_total)}` : ""}</div>
         </div>
         <div class="actions">
-          <button class="btn small" data-open-list="${l.id}">Open</button>
           <button class="star" data-del-list="${l.id}" title="Delete" aria-label="Delete">✕</button>
         </div>
       </div>`).join("")}</div>`
@@ -689,6 +696,7 @@ function renderSaved() {
     await loadSaved(true);
   });
   out.querySelectorAll("[data-del-item]").forEach(b => b.onclick = async () => {
+    if (!confirm("Remove this saved item?")) return;
     deleteItem(+b.dataset.delItem);
     loadSaved();
   });
