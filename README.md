@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="docs/icon.png" alt="" width="64" height="64">
+<img src="src/icon.png" alt="" width="64" height="64">
 
 # Egypt Electronics Parts Search
 
@@ -11,7 +11,7 @@ Find a part, see every in-stock price side by side, and price a whole parts list
 
 `9 shops` · `live prices` · `out-of-stock hidden` · `works on your phone` · `free, no sign-up` · [`MIT license`](LICENSE)
 
-<img src="docs/screenshots/search.png" alt="Search results for LM7805 across nine Egyptian shops, sorted by match and price" width="760">
+<img src=".github/screenshots/search.png" alt="Search results for LM7805 across nine Egyptian shops, sorted by match and price" width="760">
 
 </div>
 
@@ -49,8 +49,8 @@ Egypt Electronics Parts Search asks every shop at once, recognizes those names a
 
 <table>
 <tr>
-<td width="62%"><img src="docs/screenshots/parts-list.png" alt="A seven-part list priced across shops: cheapest mix 580.50 EGP versus 641.50 EGP from a single shop"></td>
-<td width="38%"><img src="docs/screenshots/phone-dark.png" alt="ESP32 search results on a phone in dark mode"></td>
+<td width="62%"><img src=".github/screenshots/parts-list.png" alt="A seven-part list priced across shops: cheapest mix 580.50 EGP versus 641.50 EGP from a single shop"></td>
+<td width="38%"><img src=".github/screenshots/phone-dark.png" alt="ESP32 search results on a phone in dark mode"></td>
 </tr>
 <tr>
 <td align="center"><sub>Parts list: cheapest mix vs. one shop</sub></td>
@@ -145,7 +145,7 @@ The catch: browsers only let a website read another site's data if that site all
 
 ### Matching
 
-Matching is what makes the results trustworthy, so it gets its own module ([`docs/js/matching.js`](docs/js/matching.js)):
+Matching is what makes the results trustworthy, so it gets its own module ([`src/js/matching.js`](src/js/matching.js)):
 
 | Rule | Example |
 |---|---|
@@ -170,18 +170,20 @@ In a parts list, the default pick for each line is the **cheapest product within
 
 ```
 Egypt-Electronics-Parts-Search/
-├── docs/                   The website (served by GitHub Pages)
+├── src/                    The website, published to GitHub Pages
 │   ├── index.html          UI: vanilla HTML/CSS/JS, no build step
 │   ├── icon.png            App icon (Icons8)
-│   ├── js/
-│   │   ├── config.js       Relay URL, timeouts, cache times
-│   │   ├── shops.js        One connector per platform + the SHOPS list
-│   │   ├── matching.js     Query ↔ product-name scoring, aliases, pack sizes
-│   │   └── search.js       Fan-out search, parts lists, saved items
-│   └── screenshots/        Images for this README
+│   └── js/
+│       ├── config.js       Relay URL, timeouts, cache times
+│       ├── shops.js        One connector per platform + the SHOPS list
+│       ├── matching.js     Query ↔ product-name scoring, aliases, pack sizes
+│       └── search.js       Fan-out search, parts lists, saved items
 ├── worker/                 Cloudflare Worker relay
 │   ├── src/index.js
 │   └── wrangler.toml       Worker name and allowed origins
+├── .github/
+│   ├── workflows/pages.yml Publishes src/ on every push to main
+│   └── screenshots/        Images for this README
 └── LICENSE                 MIT
 ```
 
@@ -203,9 +205,9 @@ npx wrangler deploy
 
 Wrangler prints the relay's address, like `https://egypt-parts-relay.yourname.workers.dev`.
 
-**3. Point the site at it.** Put that address in `PRODUCTION_RELAY` in [`docs/js/config.js`](docs/js/config.js), then commit and push.
+**3. Point the site at it.** Put that address in `PRODUCTION_RELAY` in [`src/js/config.js`](src/js/config.js), then commit and push.
 
-**4. Turn on GitHub Pages.** In your fork: **Settings → Pages → Build and deployment**, choose **Deploy from a branch**, branch `main`, folder **`/docs`**. The site appears at `https://yourname.github.io/<repo-name>/` within a minute or two.
+**4. Turn on GitHub Pages.** In your fork: **Settings → Pages → Build and deployment**, set **Source** to **GitHub Actions**. The included workflow ([`.github/workflows/pages.yml`](.github/workflows/pages.yml)) publishes `src/` on every push to `main` that touches it. Run it once from the **Actions** tab (or push a change) and the site appears at `https://yourname.github.io/<repo-name>/` about a minute later.
 
 ## Local development
 
@@ -216,14 +218,14 @@ No build step. Run the relay and a static file server side by side:
 cd worker && npx wrangler dev
 
 # terminal 2: the site on http://localhost:8766
-python3 -m http.server 8766 -d docs
+python3 -m http.server 8766 -d src
 ```
 
 Open <http://localhost:8766>. On `localhost`, the site automatically uses the local relay.
 
 ## Adding a shop
 
-**If the shop runs WooCommerce, Shopify or Odoo**, add one line to `SHOPS` at the bottom of [`docs/js/shops.js`](docs/js/shops.js):
+**If the shop runs WooCommerce, Shopify or Odoo**, add one line to `SHOPS` at the bottom of [`src/js/shops.js`](src/js/shops.js):
 
 ```js
 new WooShop("newshop", "New Shop", "https://newshop.com"),
@@ -258,12 +260,12 @@ class MyShop extends Shop {
 
 | Setting | Where | Default |
 |---|---|---|
-| Relay address | `PRODUCTION_RELAY` in `docs/js/config.js` | the deployed Worker |
-| Time allowed per shop | `SHOP_TIMEOUT_MS` in `docs/js/config.js` | 25 s |
-| Search cache | `CACHE_MS` / `PARTIAL_CACHE_MS` in `docs/js/config.js` | 1 h / 2 min |
-| Max lines in a parts list | `MAX_LIST_LINES` in `docs/js/config.js` | 40 |
-| Match thresholds | `STRONG` / `WEAK` in `docs/js/matching.js` | 70 / 45 |
-| Aliases | `ALIASES` in `docs/js/matching.js` | 16x2 ↔ 1602, … |
+| Relay address | `PRODUCTION_RELAY` in `src/js/config.js` | the deployed Worker |
+| Time allowed per shop | `SHOP_TIMEOUT_MS` in `src/js/config.js` | 25 s |
+| Search cache | `CACHE_MS` / `PARTIAL_CACHE_MS` in `src/js/config.js` | 1 h / 2 min |
+| Max lines in a parts list | `MAX_LIST_LINES` in `src/js/config.js` | 40 |
+| Match thresholds | `STRONG` / `WEAK` in `src/js/matching.js` | 70 / 45 |
+| Aliases | `ALIASES` in `src/js/matching.js` | 16x2 ↔ 1602, … |
 | Sites allowed to use the relay | `ALLOWED_ORIGINS` in `worker/wrangler.toml` | the GitHub Pages origin |
 | Relay cache | `CACHE_SECONDS` in `worker/src/index.js` | 1 h |
 

@@ -99,6 +99,12 @@
   .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
   .chip { font-size: 12px; padding: 3px 9px; border-radius: 99px; background: var(--surface-2); color: var(--muted); }
   .chip.fail { background: var(--bad-soft); color: var(--bad); }
+  button.chip { border: 1px solid transparent; font: inherit; font-size: 12px; cursor: pointer; line-height: 1.45; }
+  button.chip:hover:not(:disabled):not(.active) { border-color: var(--border); color: var(--text); }
+  button.chip.active { background: var(--accent); color: var(--accent-text); }
+  button.chip:disabled { cursor: default; opacity: .55; }
+  button.chip.fail:disabled { opacity: 1; }
+  button.chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
   .list { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
   .row { display: grid; grid-template-columns: 52px 1fr auto; gap: 12px; padding: 12px; align-items: center; border-top: 1px solid var(--border); }
@@ -245,6 +251,7 @@ const STRONG = 70;
 let savedKeys = new Set();
 let search = null;          // last search response
 let showWeak = false;
+let shopFilter = "";        // shop key picked from the chips, "" = all shops
 let listData = null;        // last parts-list response
 let listText = "";          // text that produced listData
 let picks = [];             // chosen candidate index per line
@@ -303,6 +310,7 @@ async function runSearch(q) {
   const out = $("#search-out");
   out.innerHTML = `<div class="loading">Searching all shops for “${esc(q)}”…</div>`;
   showWeak = false;
+  shopFilter = "";
   try {
     search = await searchAll(q);
     renderSearch();
@@ -314,7 +322,7 @@ async function runSearch(q) {
 function renderSearch() {
   const out = $("#search-out");
   const sort = $("#sort")?.value || "match";
-  const shop = $("#shop-filter")?.value || "";
+  const shop = shopFilter;
   let rows = search.results.filter(r => !shop || r.shop === shop);
   const sorters = {
     price: (a, b) => a.price - b.price,
@@ -325,19 +333,20 @@ function renderSearch() {
   const strong = rows.filter(r => r.score >= STRONG);
   const weak = rows.filter(r => r.score < STRONG);
 
-  const shopsWithResults = [...new Set(search.results.map(r => r.shop))];
-  const chips = search.shops.map(s => s.ok
-    ? `<span class="chip">${esc(s.name)} · ${s.count}</span>`
-    : `<span class="chip fail" title="${esc(s.error)}">${esc(s.name)} · failed</span>`).join("");
+  const chip = (key, label, { count, disabled = false, fail = false, title = "" } = {}) => `
+    <button type="button" class="chip filter${fail ? " fail" : ""}${shop === key ? " active" : ""}" data-shop="${esc(key)}"
+      aria-pressed="${shop === key}" ${disabled ? "disabled" : ""} ${title ? `title="${esc(title)}"` : ""}>${esc(label)}${count === undefined ? "" : ` · ${count}`}</button>`;
+  // counts match the "N matches" line: real matches only; a shop with only weaker matches stays clickable
+  const matchCount = key => search.results.filter(r => r.score >= STRONG && (!key || r.shop === key)).length;
+  const chips = chip("", "All shops", { count: matchCount("") }) + search.shops.map(s => s.ok
+    ? chip(s.key, s.name, { count: matchCount(s.key), disabled: !s.count })
+    : chip(s.key, s.name + " · failed", { disabled: true, fail: true, title: s.error })).join("");
+  const shopName = shop && search.shops.find(s => s.key === shop)?.name;
 
   out.innerHTML = `
-    <div class="chips">${chips}</div>
+    <div class="chips" role="group" aria-label="Filter by shop">${chips}</div>
     <div class="toolbar">
-      <span class="grow">${strong.length} match${strong.length === 1 ? "" : "es"}${search.cached ? " · from the last hour" : ""}</span>
-      <select id="shop-filter" aria-label="Shop">
-        <option value="">All shops</option>
-        ${search.shops.filter(s => shopsWithResults.includes(s.key)).map(s => `<option value="${s.key}" ${s.key === shop ? "selected" : ""}>${esc(s.name)}</option>`).join("")}
-      </select>
+      <span class="grow">${strong.length} match${strong.length === 1 ? "" : "es"}${shopName ? ` at ${esc(shopName)}` : ""}${search.cached ? " · from the last hour" : ""}</span>
       <select id="sort" aria-label="Sort">
         <option value="match" ${sort === "match" ? "selected" : ""}>Best match, then cheapest</option>
         <option value="price" ${sort === "price" ? "selected" : ""}>Cheapest</option>
@@ -350,7 +359,14 @@ function renderSearch() {
       : `<button class="btn more" id="show-weak">Show ${weak.length} weaker match${weak.length === 1 ? "" : "es"}</button>`) : ""}
   `;
   $("#sort").onchange = renderSearch;
-  $("#shop-filter").onchange = renderSearch;
+  out.querySelectorAll(".chip.filter").forEach(btn => {
+    btn.onclick = () => {
+      // clicking the active shop again goes back to all shops
+      shopFilter = btn.dataset.shop === shopFilter ? "" : btn.dataset.shop;
+      showWeak = false;
+      renderSearch();
+    };
+  });
   $("#show-weak")?.addEventListener("click", () => { showWeak = true; renderSearch(); });
   out.querySelectorAll("[data-save]").forEach(btn => {
     btn.onclick = () => saveItem(search.results.find(r => key(r) === btn.dataset.save), btn);
