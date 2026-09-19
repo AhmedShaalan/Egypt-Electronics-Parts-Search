@@ -57,11 +57,12 @@ class Shop {
 
 class WooShop extends Shop {
   platform = "WooCommerce";
+  api = "wc/store/v1"; // older installs only answer on the unversioned "wc/store"
 
   // WooCommerce Store API. Prices come in minor units (piasters).
   async search(query, signal) {
     const params = new URLSearchParams({ search: query, per_page: "60", "stock_status[]": "instock" });
-    const r = await ok(await relay(`${this.base}/wp-json/wc/store/v1/products?${params}`, { signal }));
+    const r = await ok(await relay(`${this.base}/wp-json/${this.api}/products?${params}`, { signal }));
     return this.parse(await r.text()).map((d) => this.product(d)).filter((p) => p.price > 0);
   }
 
@@ -90,7 +91,7 @@ class WooShop extends Shop {
   }
 
   async check(ref, signal) {
-    const r = await relay(`${this.base}/wp-json/wc/store/v1/products/${encodeURIComponent(ref)}`, { signal });
+    const r = await relay(`${this.base}/wp-json/${this.api}/products/${encodeURIComponent(ref)}`, { signal });
     if (r.status === 404) return null;
     const p = this.product(this.parse(await (await ok(r)).text()));
     return { price: p.price, in_stock: p.in_stock };
@@ -446,5 +447,8 @@ export const SHOPS = [
   new WooShop("uge", "UGE", "https://uge-one.com"),
   new WooShop("ampere", "Ampere Electronics", "https://ampere-electronics.com"),
   new ElGammalShop("elgammal", "El Gammal Electronics", "https://el-gammal.com"),
+  new WooShop("free", "Free Electronics", "https://free-electronic.com"),
+  new WooShop("hd", "HD Electronics", "https://hdelectronicseg.com"),
+  Object.assign(new WooShop("circuit", "Circuit Electronics", "https://circuit-electronics.com"), { api: "wc/store" }),
 ];
 export const SHOPS_BY_KEY = Object.fromEntries(SHOPS.map((s) => [s.key, s]));

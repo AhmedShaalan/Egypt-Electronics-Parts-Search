@@ -15,6 +15,9 @@ const SHOP_HOSTS = new Set([
   "lampatronics.com",
   "store.fut-electronics.com",
   "devboardsmarket.com",
+  "free-electronic.com",
+  "hdelectronicseg.com",
+  "circuit-electronics.com",
 ]);
 
 const BROWSER_HEADERS = {

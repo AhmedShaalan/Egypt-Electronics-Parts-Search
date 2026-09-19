@@ -9,7 +9,7 @@ Find a part, see every in-stock price side by side, and price a whole parts list
 
 ### [**→ Open the site**](https://ahmedshaalan.github.io/Egypt-Electronics-Parts-Search/)
 
-`10 shops` · `live prices` · `out-of-stock hidden` · `works on your phone` · `free, no sign-up` · [`AGPL-3.0 license`](LICENSE)
+`13 shops` · `live prices` · `out-of-stock hidden` · `works on your phone` · `free, no sign-up` · [`AGPL-3.0 license`](LICENSE)
 
 <img src=".github/screenshots/search.png" alt="Search results for LM7805 across nine Egyptian shops, sorted by match and price" width="760">
 
@@ -26,7 +26,7 @@ Egypt Electronics Parts Search asks every shop at once, recognizes those names a
 ## Features
 
 **🔍 Search every shop at once**
-- Queries all 10 shops at the same time and merges the results into one list
+- Queries all 13 shops at the same time and merges the results into one list
 - Hides out-of-stock items automatically
 - Shows sale prices next to the original price, and the per-piece price for packs ("(10pcs)")
 - Sort by best match, cheapest, or cheapest per piece, or filter to one shop
@@ -114,19 +114,22 @@ Saved items live in your browser's storage, so they're private to that browser a
 | [UGE](https://uge-one.com) | WooCommerce | Store API |
 | [Ampere Electronics](https://ampere-electronics.com) | WooCommerce | Store API |
 | [El Gammal Electronics](https://el-gammal.com) | Supabase (Lovable) | The shop's public database API, plus a stock lookup per product |
+| [Free Electronics](https://free-electronic.com) | WooCommerce | Store API |
+| [HD Electronics](https://hdelectronicseg.com) | WooCommerce | Store API |
+| [Circuit Electronics](https://circuit-electronics.com) | WooCommerce | Store API |
 
 ## How it works
 
 The whole app runs in your browser. It's a static site on GitHub Pages, with no server of its own.
 
-The catch: browsers only let a website read another site's data if that site allows it (CORS). The two Shopify shops and El Gammal do; the other seven don't. For those, requests go through a tiny **relay** on Cloudflare Workers that fetches the shop's page and hands it back.
+The catch: browsers only let a website read another site's data if that site allows it (CORS). The two Shopify shops and El Gammal do; the other ten don't. For those, requests go through a tiny **relay** on Cloudflare Workers that fetches the shop's page and hands it back.
 
 ```
                                 ┌──────────── direct ────────────► Future, DevBoards, El Gammal  (CORS allowed)
  GitHub Pages site ─────────────┤
  (all search logic, in JS)      └─► Cloudflare Worker relay ─────► RAM, Makers, Micro Ohm, Most,
-                                    (allow-listed shops only,      UGE, Ampere, Lampatronics
-                                     1-hour cache)
+                                    (allow-listed shops only,      UGE, Ampere, Lampatronics,
+                                     1-hour cache)                 Free, HD, Circuit
 ```
 
 1. **Fan out.** A search runs against all shops in parallel. Each shop gets 25 seconds; a slow or broken shop is marked failed instead of holding up the rest.
