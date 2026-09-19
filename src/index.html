@@ -493,9 +493,21 @@ $("#search-form").addEventListener("submit", e => {
   runSearch($("#q").value);
 });
 
+// a search puts ?q= in the address bar, so the results can be linked to and shared
+const SITE_TITLE = "Egypt Electronics Parts Search";
+const PAGE_TITLE = document.title;
+
+function setSearchUrl(q) {
+  const url = new URL(location.href);
+  if (q) url.searchParams.set("q", q); else url.searchParams.delete("q");
+  history.replaceState(null, "", url.pathname + url.search + url.hash);
+  document.title = q ? `${q} · ${SITE_TITLE}` : PAGE_TITLE;
+}
+
 async function runSearch(q) {
   q = q.trim();
   if (q.length < 2) return;
+  setSearchUrl(q);
   const out = $("#search-out");
   out.innerHTML = `<div class="loading">Searching all shops for “${esc(q)}”…</div>`;
   showWeak = false;
@@ -943,8 +955,17 @@ function renderShops() {
 }
 
 /* ---------- start ---------- */
+$("#q").addEventListener("search", e => { if (!e.target.value.trim()) setSearchUrl(""); });
+
+// opened with a shared link? show that search straight away
+const sharedQuery = (new URLSearchParams(location.search).get("q") || "").trim();
+if (sharedQuery) {
+  $("#q").value = sharedQuery;
+  if (!location.hash) location.hash = "#search";
+}
 renderShops();
 showTab();
+if (sharedQuery) runSearch(sharedQuery);
 saved = getSaved();
 savedKeys = new Set(saved.items.map(key));
 updateSavedCount(saved.items.length);
