@@ -437,6 +437,8 @@ let listData = null;        // last parts-list response
 let listText = "";          // text that produced listData
 let picks = [];             // chosen candidate index per line
 let defaultPicks = [];      // the cheapest picks, before the visitor changed any
+let pendingQuery = "";      // ?q= from a shared link, waiting for the search tab
+let currentQuery = "";      // what the search tab is showing, mirrored into ?q=
 
 function toast(msg) {
   const t = $("#toast");
@@ -454,6 +456,15 @@ function showTab() {
   document.querySelectorAll("nav a").forEach(a => a.classList.toggle("active", a.dataset.tab === tab));
   document.querySelectorAll("main section").forEach(s => s.classList.toggle("active", s.id === "tab-" + tab));
   if (tab === "saved") loadSaved();
+  // a shared ?q= link that opens on another tab waits until the search tab is shown
+  if (tab === "search" && pendingQuery) {
+    const q = pendingQuery;
+    pendingQuery = "";
+    runSearch(q);
+    return;
+  }
+  // ?q= belongs to the search tab, so the other tabs keep it out of the address bar
+  setSearchUrl(tab === "search" ? currentQuery : "");
 }
 window.addEventListener("hashchange", showTab);
 
@@ -498,9 +509,12 @@ const SITE_TITLE = "Egypt Electronics Parts Search";
 const PAGE_TITLE = document.title;
 
 function setSearchUrl(q) {
+  if (q) currentQuery = q;
   const url = new URL(location.href);
   if (q) url.searchParams.set("q", q); else url.searchParams.delete("q");
-  history.replaceState(null, "", url.pathname + url.search + url.hash);
+  // #search is the default tab, so it is left out of the address bar
+  const hash = url.hash === "#search" ? "" : url.hash;
+  history.replaceState(null, "", url.pathname + url.search + hash);
   document.title = q ? `${q} · ${SITE_TITLE}` : PAGE_TITLE;
 }
 
@@ -955,17 +969,16 @@ function renderShops() {
 }
 
 /* ---------- start ---------- */
-$("#q").addEventListener("search", e => { if (!e.target.value.trim()) setSearchUrl(""); });
+$("#q").addEventListener("search", e => { if (!e.target.value.trim()) { currentQuery = ""; setSearchUrl(""); } });
 
-// opened with a shared link? show that search straight away
+// opened with a shared link? fill the box, and run it as soon as the search tab is shown
 const sharedQuery = (new URLSearchParams(location.search).get("q") || "").trim();
 if (sharedQuery) {
   $("#q").value = sharedQuery;
-  if (!location.hash) location.hash = "#search";
+  pendingQuery = sharedQuery;
 }
 renderShops();
 showTab();
-if (sharedQuery) runSearch(sharedQuery);
 saved = getSaved();
 savedKeys = new Set(saved.items.map(key));
 updateSavedCount(saved.items.length);
