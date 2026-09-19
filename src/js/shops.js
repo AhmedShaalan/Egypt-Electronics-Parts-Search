@@ -75,7 +75,8 @@ class WooShop extends Shop {
     const unit = 10 ** Number(prices.currency_minor_unit ?? 2);
     const price = Number(prices.price || 0) / unit;
     const regular = Number(prices.regular_price || 0) / unit;
-    const image = d.images?.length ? d.images[0].thumbnail || d.images[0].src : null;
+    let image = d.images?.length ? d.images[0].thumbnail || d.images[0].src : null;
+    if (image && this.imageCdn) image = this.imageCdn(image);
     return {
       shop: this.key,
       ref: String(d.id),
@@ -432,7 +433,11 @@ class ElGammalShop extends Shop {
 
 export const SHOPS = [
   new OdooShop("ram", "RAM Electronics", "https://www.ram-e-shop.com"),
-  new WooShop("makers", "Makers Electronics", "https://makerselectronics.com"),
+  Object.assign(new WooShop("makers", "Makers Electronics", "https://makerselectronics.com"), {
+    // The site sits behind a JavaScript browser check that also blocks direct <img> loads
+    // of /wp-content/uploads/. Jetpack's image CDN can still fetch from the origin.
+    imageCdn: (url) => url.replace(/^https?:\/\/(www\.)?makerselectronics\.com\//, "https://i0.wp.com/makerselectronics.com/"),
+  }),
   new ShopifyShop("future", "Future Electronics", "https://store.fut-electronics.com"),
   new WooShop("microohm", "Micro Ohm", "https://microohm-eg.com"),
   new WooShop("most", "Most Electronic", "https://mostelectronic.com"),
