@@ -7,7 +7,7 @@
 **One search box for Egypt's electronic-parts shops.**<br>
 Find a part, see every in-stock price side by side, and price a whole parts list in seconds.
 
-### [**→ Open the site**](https://ahmedshaalan.github.io/Egypt-Electronics-Parts-Search/)
+### [**→ Open the site**](https://parts.ahmedshaalan.com/)
 
 `13 shops` · `live prices` · `out-of-stock hidden` · `works on your phone` · `free, no sign-up` · [`AGPL-3.0 license`](LICENSE)
 
@@ -60,7 +60,7 @@ Egypt Electronics Parts Search asks every shop at once, recognizes those names a
 
 ## Using it
 
-Open **[ahmedshaalan.github.io/Egypt-Electronics-Parts-Search](https://ahmedshaalan.github.io/Egypt-Electronics-Parts-Search/)**. On a phone, *Add to Home Screen* gives it an app icon.
+Open **[parts.ahmedshaalan.com](https://parts.ahmedshaalan.com/)**. On a phone, *Add to Home Screen* gives it an app icon.
 
 ### Search
 
