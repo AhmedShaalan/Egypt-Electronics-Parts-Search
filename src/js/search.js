@@ -252,6 +252,14 @@ export function saveList(name, text, total) {
   if (!store(data)) throw new Error("Couldn't save: this browser blocks storage");
 }
 
+export function renameList(id, name) {
+  const data = load();
+  const list = data.lists.find((l) => l.id === id);
+  if (!list) return;
+  list.name = name.trim().slice(0, 80) || list.name;
+  store(data);
+}
+
 export function deleteList(id) {
   const data = load();
   data.lists = data.lists.filter((l) => l.id !== id);

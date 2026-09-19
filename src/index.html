@@ -223,7 +223,8 @@
   .price s { display: block; color: var(--muted); font-size: 12px; }
   .price .per { display: block; color: var(--muted); font-size: 12px; white-space: nowrap; }
   .actions { display: flex; align-items: center; gap: 10px; }
-  .star { border: 0; background: none; font-size: 20px; cursor: pointer; color: var(--muted); padding: 4px; line-height: 1; }
+  .star { border: 0; background: none; font-size: 20px; cursor: pointer; color: var(--muted); padding: 4px; line-height: 1; border-radius: 8px; }
+  .star:hover { color: var(--text); background: var(--surface-2); }
   .star.on { color: #e3a008; }
 
   .badge { display: inline-block; font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 99px; vertical-align: 1px; }
@@ -233,6 +234,12 @@
   .badge.sale { background: var(--accent-soft); color: var(--accent); }
 
   .empty, .loading { padding: 36px 16px; text-align: center; color: var(--muted); }
+  .empty.boxed { border: 1px dashed var(--border); border-radius: var(--radius); }
+  .total-bar {
+    display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-top: 8px;
+    padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius); color: var(--muted); font-size: 14px;
+  }
+  .total-bar .total { color: var(--text); font-weight: 600; font-variant-numeric: tabular-nums; }
   .loading::before {
     content: ""; display: inline-block; width: 14px; height: 14px; margin-right: 8px; vertical-align: -2px;
     border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .8s linear infinite;
@@ -250,7 +257,31 @@
   #list-out:not(:empty) { border-top: 1px dashed var(--border); margin-top: 18px; padding-top: 4px; }
   h2.with-total { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
   h2.with-total .total { font-variant-numeric: tabular-nums; }
-  table { width: 100%; border-collapse: collapse; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+  h2.with-copy { display: flex; align-items: center; gap: 4px; margin: 0; color: var(--text); font-size: 15px; }
+  h2.with-copy .icon-btn { padding: 4px; }
+  h2.with-copy .icon-btn svg { width: 18px; height: 18px; }
+  details.menu { position: relative; }
+  details.menu summary { list-style: none; }
+  details.menu summary::-webkit-details-marker { display: none; }
+  details.menu[open] summary { color: var(--text); background: var(--surface-2); }
+  .menu-list {
+    position: absolute; top: calc(100% + 4px); left: 0; z-index: 5; min-width: 220px; padding: 4px;
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, .12); font-weight: 400; font-size: 14px;
+  }
+  details.menu.right .menu-list { left: auto; right: 0; }
+  .list:has(details.menu[open]) { overflow: visible; }
+  .row details.menu .icon-btn { padding: 4px; }
+  .row details.menu .icon-btn svg { width: 18px; height: 18px; }
+  .menu-title { padding: 6px 10px 4px; color: var(--muted); font-size: 12px; font-weight: 500; text-transform: uppercase; letter-spacing: .04em; }
+  .menu-list button {
+    display: block; width: 100%; text-align: left; padding: 8px 10px; border: 0; border-radius: 6px;
+    background: none; color: var(--text); font: inherit; cursor: pointer; white-space: nowrap;
+  }
+  .menu-list button:hover { background: var(--surface-2); }
+  .menu-list button.danger { color: var(--bad); }
+  .menu-sep { border-top: 1px solid var(--border); margin: 4px 0; }
+  table { width: 100%; border-collapse: separate; border-spacing: 0; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
   th, td { text-align: left; padding: 9px 12px; border-top: 1px solid var(--border); font-size: 14px; vertical-align: top; }
   th { border-top: 0; color: var(--muted); font-weight: 500; font-size: 13px; background: var(--surface-2); }
   td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
@@ -278,7 +309,7 @@
   .delta.up { color: var(--bad); }
 
   .toast {
-    position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%) translateY(20px); opacity: 0;
+    position: fixed; left: 50%; top: 72px; transform: translateX(-50%) translateY(-20px); opacity: 0;
     background: var(--text); color: var(--bg); padding: 9px 16px; border-radius: 99px; font-size: 14px;
     transition: all .2s; pointer-events: none; z-index: 10;
   }
@@ -388,7 +419,7 @@
 
 <script type="module">
 import { SHOPS } from "./js/shops.js";
-import { searchAll, priceList, warmUp, getSaved, saveItem as storeItem, unsaveItem as storeUnsave, deleteItem, refreshItems, saveList as storeList, deleteList } from "./js/search.js";
+import { searchAll, priceList, warmUp, getSaved, saveItem as storeItem, unsaveItem as storeUnsave, deleteItem, refreshItems, saveList as storeList, renameList, deleteList } from "./js/search.js";
 
 const $ = (s, el = document) => el.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -697,6 +728,51 @@ async function saveList() {
 /* ---------- saved ---------- */
 let saved = { items: [], lists: [] };
 
+// what the copy menu on the saved tab can put on the clipboard. Short formats are one item per
+// line; the one with links gives each item its own block. Lists with prices end with the total.
+const oneLine = it => it.name.replace(/\s+/g, " ").trim();
+const COPY_FORMATS = [
+  { label: "Names", one: "Name", line: it => oneLine(it) },
+  { label: "Names and prices", one: "Name and price", priced: true, line: it => `${oneLine(it)} — ${money(it.price)}` },
+  { label: "Names, shops and prices", one: "Name, shop and price", priced: true, line: it => `${oneLine(it)} — ${money(it.price)} (${it.shop_name})` },
+  { label: "Names, shops, prices and links", one: "Name, shop, price and link", priced: true, block: true,
+    line: it => `${oneLine(it)}\n${money(it.price)} · ${it.shop_name}\n${it.url}` },
+];
+
+function copyText(items, format) {
+  let text = items.map(format.line).join(format.block ? "\n\n" : "\n");
+  if (format.priced && items.length > 1) {
+    text += `${format.block ? "\n\n" : "\n"}Total: ${money(items.reduce((sum, it) => sum + it.price, 0))}`;
+  }
+  return text;
+}
+
+// what the menu on a saved parts list can copy
+const listParts = l => l.text.split("\n").map(x => x.trim()).filter(Boolean).join("\n");
+const LIST_COPY_FORMATS = [
+  { label: "Parts", text: l => `${l.name}\n\n${listParts(l)}` },
+  { label: "Parts and total", text: l => `${l.name}\n\n${listParts(l)}${l.saved_total ? `\n\nTotal when saved: ${money(l.saved_total)}` : ""}` },
+];
+
+// a copy icon that opens the format choices; with an id it copies that one item, otherwise the whole list
+function copyMenu(title, id) {
+  const item = id == null ? "" : ` data-item="${id}"`;
+  return `<details class="menu${id == null ? "" : " right"}">
+    <summary class="icon-btn" title="${title}" aria-label="${title}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+    </summary>
+    <div class="menu-list" role="menu">
+      <div class="menu-title">${id == null ? "Copy all" : "Copy"}</div>
+      ${COPY_FORMATS.map((f, i) => `<button type="button" role="menuitem" data-copy="${i}"${item}>${id == null ? f.label : f.one}</button>`).join("")}
+    </div>
+  </details>`;
+}
+
+// close an open menu when tapping anywhere else
+document.addEventListener("click", e => {
+  document.querySelectorAll("details.menu[open]").forEach(d => { if (!d.contains(e.target)) d.open = false; });
+});
+
 async function loadSaved(refresh = false) {
   const out = $("#saved-out");
   if (!refresh && !saved.items.length && !saved.lists.length) out.innerHTML = `<div class="loading">Loading…</div>`;
@@ -722,11 +798,20 @@ function renderSaved() {
   const lastCheck = items.map(i => i.checked_at).sort().pop();
   out.innerHTML = `
     <div class="toolbar" style="margin-top:0">
-      <span class="grow">${items.length} saved item${items.length === 1 ? "" : "s"}${lastCheck ? ` · prices checked ${esc(when(lastCheck))}` : ""}</span>
+      <div class="grow">
+        <h2 class="with-copy">Saved items
+          ${items.length ? copyMenu("Copy list") : ""}
+        </h2>
+        ${items.length ? `<div class="meta">${items.length} saved item${items.length === 1 ? "" : "s"}${lastCheck ? ` · prices checked ${esc(when(lastCheck))}` : ""}</div>` : ""}
+      </div>
       ${items.length ? `<button class="btn" id="refresh">↻ Refresh prices</button>` : ""}
     </div>
-    ${items.length ? `<div class="list">${items.map(savedRow).join("")}</div>`
-      : `<div class="empty">Nothing saved yet. Tap ☆ on a search result to save it.</div>`}
+    ${items.length ? `<div class="list">${items.map(savedRow).join("")}</div>
+      <div class="total-bar">
+        <span>${items.length} item${items.length === 1 ? "" : "s"}</span>
+        <span class="total">Total ${money(items.reduce((sum, it) => sum + it.price, 0))}</span>
+      </div>`
+      : `<div class="empty boxed">Nothing saved yet. Tap ☆ on a search result to save it.</div>`}
 
     <h2>Saved parts lists</h2>
     ${lists.length ? `<div class="list">${lists.map(l => `
@@ -736,12 +821,34 @@ function renderSaved() {
           <div class="meta">${l.text.split("\n").filter(x => x.trim()).length} parts · saved ${esc(when(l.saved_at))}${l.saved_total ? ` at ${money(l.saved_total)}` : ""}</div>
         </div>
         <div class="actions">
-          <button class="star" data-del-list="${l.id}" title="Delete" aria-label="Delete">✕</button>
+          <details class="menu right">
+            <summary class="icon-btn" title="More" aria-label="More actions">
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
+            </summary>
+            <div class="menu-list" role="menu">
+              <button type="button" role="menuitem" data-rename-list="${l.id}">Rename</button>
+              <div class="menu-title">Copy</div>
+              ${LIST_COPY_FORMATS.map((f, i) => `<button type="button" role="menuitem" data-copy-list="${l.id}" data-format="${i}">${f.label}</button>`).join("")}
+              <div class="menu-sep"></div>
+              <button type="button" role="menuitem" class="danger" data-del-list="${l.id}">Delete</button>
+            </div>
+          </details>
         </div>
       </div>`).join("")}</div>`
-      : `<div class="empty">No saved lists. Price a parts list, then tap “Save this list”.</div>`}
+      : `<div class="empty boxed">No saved lists. Price a parts list, then tap “Save this list”.</div>`}
   `;
 
+  out.querySelectorAll("[data-copy]").forEach(b => b.onclick = async () => {
+    b.closest("details").open = false;
+    const which = b.dataset.item ? items.filter(it => it.id === +b.dataset.item) : items;
+    const text = copyText(which, COPY_FORMATS[+b.dataset.copy]);
+    try {
+      await navigator.clipboard.writeText(text);
+      toast("Copied");
+    } catch {
+      toast("Couldn't copy");
+    }
+  });
   $("#refresh")?.addEventListener("click", async e => {
     e.target.disabled = true;
     e.target.textContent = "Checking…";
@@ -752,7 +859,27 @@ function renderSaved() {
     deleteItem(+b.dataset.delItem);
     loadSaved();
   });
+  out.querySelectorAll("[data-rename-list]").forEach(b => b.onclick = () => {
+    b.closest("details").open = false;
+    const l = lists.find(x => x.id === +b.dataset.renameList);
+    const name = prompt("Rename this list", l.name);
+    if (name === null || !name.trim()) return;
+    renameList(l.id, name);
+    toast("Renamed");
+    loadSaved();
+  });
+  out.querySelectorAll("[data-copy-list]").forEach(b => b.onclick = async () => {
+    b.closest("details").open = false;
+    const l = lists.find(x => x.id === +b.dataset.copyList);
+    try {
+      await navigator.clipboard.writeText(LIST_COPY_FORMATS[+b.dataset.format].text(l));
+      toast("Copied");
+    } catch {
+      toast("Couldn't copy");
+    }
+  });
   out.querySelectorAll("[data-del-list]").forEach(b => b.onclick = async () => {
+    b.closest("details").open = false;
     if (!confirm("Delete this saved list?")) return;
     deleteList(+b.dataset.delList);
     loadSaved();
@@ -777,10 +904,11 @@ function savedRow(it) {
       ${thumb(it)}
       <div>
         <a class="name" href="${esc(it.url)}" target="_blank" rel="noopener">${esc(it.name)}</a>
-        <div class="meta">${esc(it.shop_name)} · saved at ${money(it.saved_price)} ${status}</div>
+        <div class="meta">${esc(it.shop_name)} · price when saved ${money(it.saved_price)} ${status}</div>
       </div>
       <div class="actions">
         <div class="price"><b>${money(it.price)}</b>${delta ? `<span class="per">${delta}</span>` : ""}</div>
+        ${copyMenu("Copy this item", it.id)}
         <button class="star" data-del-item="${it.id}" title="Remove" aria-label="Remove">✕</button>
       </div>
     </div>`;
