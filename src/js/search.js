@@ -62,26 +62,51 @@ async function runSearch(query, { onProgress, skip } = {}) {
   const results = [];
   const statuses = [];
   for (const { items, status } of outcomes) {
-    const seen = new Set();
-    for (const p of items) {
-      if (!p.in_stock || p.price <= 0 || seen.has(p.ref)) continue;
-      seen.add(p.ref);
-      const s = score(query, p.name);
-      if (s < WEAK) continue;
-      const pack = packSize(p.name);
-      results.push({
-        ...p,
-        score: s,
-        pack,
-        unit_price: Math.round((p.price / pack) * 1000) / 1000,
-        shop_name: SHOPS_BY_KEY[p.shop].name,
-      });
-    }
-    if (status.ok) status.count = results.filter((r) => r.shop === status.key).length;
+    results.push(...scoreItems(query, items, status));
     statuses.push(status);
   }
-  results.sort((a, b) => b.score - a.score || a.price - b.price);
-  return { query, results, shops: statuses, searched_at: now() };
+  return { query, results: sortResults(results), shops: statuses, searched_at: now() };
+}
+
+// keeps the in-stock items that match the query; also fills in status.count
+function scoreItems(query, items, status) {
+  const results = [];
+  const seen = new Set();
+  for (const p of items) {
+    if (!p.in_stock || p.price <= 0 || seen.has(p.ref)) continue;
+    seen.add(p.ref);
+    const s = score(query, p.name);
+    if (s < WEAK) continue;
+    const pack = packSize(p.name);
+    results.push({
+      ...p,
+      score: s,
+      pack,
+      unit_price: Math.round((p.price / pack) * 1000) / 1000,
+      shop_name: SHOPS_BY_KEY[p.shop].name,
+    });
+  }
+  if (status.ok) status.count = results.length;
+  return results;
+}
+
+const sortResults = (results) => results.sort((a, b) => b.score - a.score || a.price - b.price);
+
+function remember(result) {
+  const key = tokens(result.query).join(" ") || result.query.trim().toLowerCase();
+  const ttl = result.shops.every((s) => s.ok) ? CACHE_MS : PARTIAL_CACHE_MS;
+  cache.set(key, { expires: Date.now() + ttl, result });
+  for (const [k, v] of cache) if (v.expires < Date.now()) cache.delete(k);
+}
+
+// Searches one shop that was skipped earlier and returns a copy of `result` with it merged in.
+export async function fetchShop(result, key) {
+  const { items, status } = await searchShop(SHOPS_BY_KEY[key], result.query);
+  const results = sortResults([...result.results.filter((r) => r.shop !== key), ...scoreItems(result.query, items, status)]);
+  const merged = { ...result, results, shops: result.shops.map((s) => (s.key === key ? status : s)) };
+  // once nothing is skipped the result is as good as a normal search
+  if (!merged.shops.some((s) => s.skipped)) remember(merged);
+  return merged;
 }
 
 // options: onProgress(done, total) per finished shop; skip, an AbortSignal that
@@ -96,10 +121,7 @@ export async function searchAll(query, options = {}) {
   }
   const result = await inflight.get(key);
   // a skipped search is deliberately incomplete: searching again should hit every shop
-  if (result.shops.some((s) => s.skipped)) return { ...result, cached: false };
-  const ttl = result.shops.every((s) => s.ok) ? CACHE_MS : PARTIAL_CACHE_MS;
-  cache.set(key, { expires: Date.now() + ttl, result });
-  for (const [k, v] of cache) if (v.expires < Date.now()) cache.delete(k);
+  if (!result.shops.some((s) => s.skipped)) remember(result);
   return { ...result, cached: false };
 }
 

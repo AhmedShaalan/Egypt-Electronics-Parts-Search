@@ -203,6 +203,11 @@
   .chip { font-size: 12px; padding: 3px 9px; border-radius: 99px; background: var(--surface-2); color: var(--muted); }
   .chip.fail { background: var(--bad-soft); color: var(--bad); }
   .chip.skipped { background: var(--warn-soft); color: var(--warn); }
+  /* a skipped shop can still be fetched on its own: the label says so on hover */
+  .chip.skipped .on-hover { display: none; }
+  .chip.skipped:not(:disabled):hover .idle, .chip.skipped:not(:disabled):focus-visible .idle { display: none; }
+  .chip.skipped:not(:disabled):hover .on-hover, .chip.skipped:not(:disabled):focus-visible .on-hover { display: inline; }
+  .chip.skipped:not(:disabled):hover, .chip.skipped:not(:disabled):focus-visible { background: var(--good-soft); color: var(--good); }
   button.chip { border: 1px solid transparent; font: inherit; font-size: 12px; cursor: pointer; line-height: 1.45; }
   button.chip:hover:not(:disabled):not(.active) { border-color: var(--border); color: var(--text); }
   button.chip.active { background: var(--accent); color: var(--accent-text); }
@@ -432,7 +437,7 @@
 
 <script type="module">
 import { SHOPS } from "./js/shops.js";
-import { searchAll, priceList, warmUp, getSaved, saveItem as storeItem, unsaveItem as storeUnsave, deleteItem, refreshItems, saveList as storeList, renameList, deleteList } from "./js/search.js";
+import { searchAll, fetchShop, priceList, warmUp, getSaved, saveItem as storeItem, unsaveItem as storeUnsave, deleteItem, refreshItems, saveList as storeList, renameList, deleteList } from "./js/search.js";
 
 const $ = (s, el = document) => el.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -568,6 +573,23 @@ async function runSearch(q) {
   }
 }
 
+const fetching = new Set(); // shop keys being fetched after a skip
+
+async function fetchSkipped(key) {
+  const before = search;
+  fetching.add(key);
+  renderSearch();
+  let merged = before;
+  try {
+    merged = await fetchShop(before, key);
+  } catch (e) {
+    toast(e.message);
+  }
+  fetching.delete(key);
+  // a new search may have replaced this one meanwhile
+  if (search === before) { search = merged; renderSearch(); }
+}
+
 function renderSearch() {
   const out = $("#search-out");
   const sort = $("#sort")?.value || "match";
@@ -582,15 +604,17 @@ function renderSearch() {
   const strong = rows.filter(r => r.score >= STRONG);
   const weak = rows.filter(r => r.score < STRONG);
 
-  const chip = (key, label, { count, disabled = false, fail = false, skipped = false, title = "" } = {}) => `
+  const chip = (key, label, { count, disabled = false, fail = false, skipped = false, fetching = false, title = "" } = {}) => `
     <button type="button" class="chip filter${fail ? " fail" : ""}${skipped ? " skipped" : ""}${shop === key ? " active" : ""}" data-shop="${esc(key)}"
-      aria-pressed="${shop === key}" ${disabled ? "disabled" : ""} ${title ? `title="${esc(title)}"` : ""}>${esc(label)}${count === undefined ? "" : ` · ${count}`}</button>`;
+      ${skipped ? `data-fetch="${esc(key)}"` : `aria-pressed="${shop === key}"`} ${disabled || fetching ? "disabled" : ""} ${title ? `title="${esc(title)}"` : ""}>${esc(label)}${
+        count === undefined ? "" : ` · ${count}`}${
+        skipped ? (fetching ? " · fetching…" : `<span class="idle"> · skipped</span><span class="on-hover"> · Fetch now</span>`) : ""}</button>`;
   // counts match the "N matches" line: real matches only; a shop with only weaker matches stays clickable
   const matchCount = key => search.results.filter(r => r.score >= STRONG && (!key || r.shop === key)).length;
   const chips = chip("", "All shops", { count: matchCount("") }) + search.shops.map(s => s.ok
     ? chip(s.key, s.name, { count: matchCount(s.key), disabled: !s.count })
     : s.skipped
-      ? chip(s.key, s.name + " · skipped", { disabled: true, skipped: true, title: "Not searched: you chose to show results early" })
+      ? chip(s.key, s.name, { skipped: true, fetching: fetching.has(s.key), title: "Not searched: you chose to show results early. Click to search it now." })
       : chip(s.key, s.name + " · failed", { disabled: true, fail: true, title: s.error })).join("");
   const shopName = shop && search.shops.find(s => s.key === shop)?.name;
   const skipped = search.shops.filter(s => s.skipped).length;
@@ -612,7 +636,8 @@ function renderSearch() {
   `;
   $("#sort").onchange = renderSearch;
   $("#search-all")?.addEventListener("click", (e) => { e.preventDefault(); runSearch(search.query); });
-  out.querySelectorAll(".chip.filter").forEach(btn => {
+  out.querySelectorAll(".chip[data-fetch]").forEach(btn => { btn.onclick = () => fetchSkipped(btn.dataset.fetch); });
+  out.querySelectorAll(".chip.filter:not([data-fetch])").forEach(btn => {
     btn.onclick = () => {
       // clicking the active shop again goes back to all shops
       shopFilter = btn.dataset.shop === shopFilter ? "" : btn.dataset.shop;
