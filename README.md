@@ -31,6 +31,7 @@ Egypt Electronics Parts Search asks every shop at once, recognizes those names a
 - Shows sale prices next to the original price, and the per-piece price for packs ("(10pcs)")
 - Sort by best match, cheapest, or cheapest per piece, or filter to one shop
 - Shows a label for any shop that failed or timed out, so a quiet shop is never mistaken for "not available"
+- Shows progress as shops answer; if one is slow, **Show results so far** stops waiting, and any skipped shop can be fetched later with one click
 
 **📋 Price a whole parts list**
 - Paste a parts list, one part per line, and get the **cheapest mix** across shops and the **best single shop** to buy everything from
@@ -70,6 +71,8 @@ Type a part number or a description: `LM7805`, `ESP32`, `10k resistor`, `HC-SR04
 |---|---|
 | `UGE · 27` | UGE returned 27 matching in-stock products |
 | `UGE · failed` (red) | That shop didn't answer. Hover for the reason. It's retried after 2 minutes, not an hour |
+| `UGE · skipped` (amber) | You pressed **Show results so far** before this shop answered. Hover and click **Fetch now** to search just this shop and merge its results in |
+| **Show results so far** | Appears under the progress bar once the first shop answers. Stops waiting for the rest and shows what's in |
 | **Sale** | The shop is discounting it; the original price is struck through |
 | `0.50 EGP/pc` | The listing is a pack; this is the price per piece |
 | **Show N weaker matches** | Loosely related items (e.g. "PCB for ESP32"), kept out of the main list |
@@ -135,11 +138,11 @@ The catch: browsers only let a website read another site's data if that site all
                                      1-hour cache)                 Free, HD, Circuit, Electra's stock
 ```
 
-1. **Fan out.** A search runs against all shops in parallel. Each shop gets 25 seconds; a slow or broken shop is marked failed instead of holding up the rest.
+1. **Fan out.** A search runs against all shops in parallel, with a progress bar counting them in. Each shop gets 25 seconds; a slow or broken shop is marked failed instead of holding up the rest. You can also stop waiting early: the shops still running are marked skipped, and each can be fetched on its own afterwards.
 2. **Widen the net.** Shop search engines match text literally, so the app also sends variants: `LM7805` → `7805`, `16x2 LCD` → `1602 LCD` and `16×2 LCD`.
 3. **Score.** Every product name is scored 0–100 against your query (see below). Scores of 70+ are shown as matches, 45–69 as weaker matches, and anything lower is dropped.
 4. **Filter and sort.** Out-of-stock and zero-price items are removed, and results are sorted by score, then price.
-5. **Cache.** Results are kept for an hour (2 minutes if any shop failed). The relay also caches shop responses for an hour, shared across everyone who uses the site.
+5. **Cache.** Results are kept for an hour (2 minutes if any shop failed). A search with skipped shops isn't cached until every skipped shop has been fetched, so searching again asks all of them. The relay also caches shop responses for an hour, shared across everyone who uses the site.
 
 ### The relay
 
