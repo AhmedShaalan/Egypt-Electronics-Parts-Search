@@ -579,6 +579,46 @@ class MtmShop extends CatalogShop {
   }
 }
 
+class VoltxShop extends Shop {
+  // Next.js storefront with its own JSON search API, which allows browsers directly.
+  // Results carry price, offer and stock, so one request answers a search.
+  platform = "Custom";
+
+  get api() {
+    return `${this.base}/api/products`;
+  }
+
+  async search(query, signal) {
+    const url = `${this.api}/search/public?q=${encodeURIComponent(query)}&limit=160`;
+    const { results } = await (await ok(await fetch(url, { signal }))).json();
+    return (results || []).map((d) => this.product(d)).filter((p) => p.in_stock && p.price > 0);
+  }
+
+  price(d) {
+    const sell = parseMoney(d.sell_price);
+    const offer = d.is_offer ? parseMoney(d.offer_price) : 0;
+    return offer > 0 && offer < sell ? { price: offer, old_price: sell } : { price: sell, old_price: null };
+  }
+
+  product(d) {
+    return {
+      shop: this.key,
+      ref: String(d.product_id),
+      name: cleanName(d.name),
+      ...this.price(d),
+      url: this.base + (d.url || `/product/${d.slug}`),
+      image: d.primary_media ? this.base + d.primary_media : null,
+      in_stock: d.in_stock === true,
+    };
+  }
+
+  async check(ref, signal) {
+    const d = await (await ok(await fetch(`${this.api}/${encodeURIComponent(ref)}`, { signal }))).json();
+    if (!d || !d.product_id) return null;
+    return { ...this.price(d), in_stock: Number(d.stock_quantity || 0) > 0 };
+  }
+}
+
 export const SHOPS = [
   new OdooShop("ram", "RAM Electronics", "https://www.ram-e-shop.com"),
   Object.assign(new WooShop("makers", "Makers Electronics", "https://makerselectronics.com"), {
@@ -599,5 +639,6 @@ export const SHOPS = [
   Object.assign(new WooShop("circuit", "Circuit Electronics", "https://circuit-electronics.com"), { api: "wc/store" }),
   new ElectraShop("electra", "Electra Store", "https://electra.store"),
   new MtmShop("mtm", "MTM Electronics", "https://mtm-electronic.com"),
+  new VoltxShop("voltx", "VoltX Electronics", "https://voltx-store.com"),
 ];
 export const SHOPS_BY_KEY = Object.fromEntries(SHOPS.map((s) => [s.key, s]));

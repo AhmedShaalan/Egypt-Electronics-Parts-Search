@@ -9,9 +9,9 @@ Find a part, see every in-stock price side by side, and price a whole parts list
 
 ### [**→ Open the site**](https://parts.ahmedshaalan.com/)
 
-`15 shops` · `live prices` · `out-of-stock hidden` · `works on your phone` · `free, no sign-up` · [`AGPL-3.0 license`](LICENSE)
+`16 shops` · `live prices` · `out-of-stock hidden` · `works on your phone` · `free, no sign-up` · [`AGPL-3.0 license`](LICENSE)
 
-<img src=".github/screenshots/search.png" alt="Search results for LM7805 across nine Egyptian shops, sorted by match and price" width="760">
+<img src=".github/screenshots/search.png" alt="Search results for LM7805 across 16 Egyptian shops, sorted by match and price" width="760">
 
 </div>
 
@@ -26,7 +26,7 @@ Egypt Electronics Parts Search asks every shop at once, recognizes those names a
 ## Features
 
 **🔍 Search every shop at once**
-- Queries all 15 shops at the same time and merges the results into one list
+- Queries all 16 shops at the same time and merges the results into one list
 - Hides out-of-stock items automatically
 - Shows sale prices next to the original price, and the per-piece price for packs ("(10pcs)")
 - Sort by best match, cheapest, or cheapest per piece, or filter to one shop
@@ -49,7 +49,7 @@ Egypt Electronics Parts Search asks every shop at once, recognizes those names a
 
 <table>
 <tr>
-<td width="62%"><img src=".github/screenshots/parts-list.png" alt="A seven-part list priced across shops: cheapest mix 580.50 EGP versus 641.50 EGP from a single shop"></td>
+<td width="62%"><img src=".github/screenshots/parts-list.png" alt="A seven-part list priced across shops: cheapest mix 837 EGP versus 1,105 EGP from a single shop"></td>
 <td width="38%"><img src=".github/screenshots/phone-dark.png" alt="ESP32 search results on a phone in dark mode"></td>
 </tr>
 <tr>
@@ -119,19 +119,20 @@ Saved items live in your browser's storage, so they're private to that browser a
 | [Circuit Electronics](https://circuit-electronics.com) | WooCommerce | Store API |
 | [Electra Store](https://electra.store) | Custom (Laravel) | Full catalog from the shop's API, searched in the browser, plus a stock lookup per product |
 | [MTM Electronics](https://mtm-electronic.com) | Custom (Next.js + Laravel) | Full catalog from the shop's API, searched in the browser |
+| [VoltX Electronics](https://voltx-store.com) | Custom (Next.js) | The shop's own public search API |
 
 ## How it works
 
 The whole app runs in your browser. It's a static site on GitHub Pages, with no server of its own.
 
-The catch: browsers only let a website read another site's data if that site allows it (CORS). The two Shopify shops, El Gammal, MTM and Electra's catalog do; the other ten don't. For those, requests go through a tiny **relay** on Cloudflare Workers that fetches the shop's page and hands it back.
+The catch: browsers only let a website read another site's data if that site allows it (CORS). The two Shopify shops, El Gammal, MTM, VoltX and Electra's catalog do; the other ten don't. For those, requests go through a tiny **relay** on Cloudflare Workers that fetches the shop's page and hands it back.
 
 ```
-                                ┌──────────── direct ────────────► Future, DevBoards, El Gammal  (CORS allowed)
- GitHub Pages site ─────────────┤
+                                ┌──────────── direct ────────────► Future, DevBoards, El Gammal,
+ GitHub Pages site ─────────────┤                                  MTM, VoltX, Electra's catalog  (CORS allowed)
  (all search logic, in JS)      └─► Cloudflare Worker relay ─────► RAM, Makers, Micro Ohm, Most,
                                     (allow-listed shops only,      UGE, Ampere, Lampatronics,
-                                     1-hour cache)                 Free, HD, Circuit
+                                     1-hour cache)                 Free, HD, Circuit, Electra's stock
 ```
 
 1. **Fan out.** A search runs against all shops in parallel. Each shop gets 25 seconds; a slow or broken shop is marked failed instead of holding up the rest.
@@ -171,6 +172,7 @@ In a parts list, the default pick for each line is the **cheapest product within
 - **Shopify:** the suggest endpoint caps at 10 results, so the app loads the whole catalog from `products.json` (about 1,300 products, under 1 MB compressed), keeps it for an hour, and searches it locally. Loading starts as soon as the page opens, so the first search is fast.
 - **Odoo (RAM):** parses up to 3 pages of `/shop?search=…`, then calls `get_combination_info` per product for the stock count. RAM slows down under load, so it gets at most 5 requests at a time, and stock lookups are cached for an hour.
 - **El Gammal (Supabase):** the storefront reads products straight from its Supabase database with a public, read-only "anon" key, and so does this app: the same product filters as the shop's own search page, then the shop's `get_online_stock` function per matching product (at most 6 at a time, cached for an hour). The internal code at the start of product names ("XX629-") is dropped. If the shop ever changes that key, it shows as `failed` until the key in `src/js/shops.js` is updated.
+- **VoltX:** the storefront's own search API (`/api/products/search/public`) returns name, price, offer and stock in one response and allows browsers directly, so a search is a single request with no relay.
 - **Lampatronics:** the storefront is a JavaScript app backed by `/api/frontend/product`. The API requires the key the site embeds in every page. The app reads that key from the home page and re-reads it if it's ever rejected. Up to 3 pages of 50 results.
 
 ## Project structure
@@ -248,7 +250,7 @@ curl "https://newshop.com/wp-json/wc/store/v1/products?search=7805&per_page=3"
 
 For Shopify, try `https://newshop.com/products.json?limit=1`.
 
-**If it's a different platform**, extend `Shop` and implement two methods:
+**If it's a different platform**, look for a JSON API behind the shop's own search box first (the browser's network tab shows it; VoltX and Lampatronics were added that way). Then extend `Shop` and implement two methods:
 
 ```js
 class MyShop extends Shop {
