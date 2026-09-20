@@ -202,11 +202,12 @@
   .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
   .chip { font-size: 12px; padding: 3px 9px; border-radius: 99px; background: var(--surface-2); color: var(--muted); }
   .chip.fail { background: var(--bad-soft); color: var(--bad); }
+  .chip.skipped { background: var(--warn-soft); color: var(--warn); }
   button.chip { border: 1px solid transparent; font: inherit; font-size: 12px; cursor: pointer; line-height: 1.45; }
   button.chip:hover:not(:disabled):not(.active) { border-color: var(--border); color: var(--text); }
   button.chip.active { background: var(--accent); color: var(--accent-text); }
   button.chip:disabled { cursor: default; opacity: .55; }
-  button.chip.fail:disabled { opacity: 1; }
+  button.chip.fail:disabled, button.chip.skipped:disabled { opacity: 1; }
   button.chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
   .list { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
@@ -240,6 +241,12 @@
     padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius); color: var(--muted); font-size: 14px;
   }
   .total-bar .total { color: var(--text); font-weight: 600; font-variant-numeric: tabular-nums; }
+  .loading .progress { max-width: 260px; margin: 14px auto 0; }
+  .loading .bar { height: 4px; border-radius: 99px; background: var(--border); overflow: hidden; }
+  .loading .bar i { display: block; height: 100%; width: 0; border-radius: inherit; background: var(--accent); transition: width .25s ease; }
+  .loading .progress-label { margin-top: 8px; font-size: 13px; font-variant-numeric: tabular-nums; }
+  .loading .skip { display: inline-block; margin-top: 12px; }
+  .loading .skip[hidden] { display: none; }
   .loading::before {
     content: ""; display: inline-block; width: 14px; height: 14px; margin-right: 8px; vertical-align: -2px;
     border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .8s linear infinite;
@@ -521,16 +528,40 @@ function setSearchUrl(q) {
   document.title = q ? `${q} · ${SITE_TITLE}` : PAGE_TITLE;
 }
 
+// spinner line with a progress bar underneath; `text` is already escaped
+function loadingHtml(text, total, unit, skippable = false) {
+  return `<div class="loading">${text}
+    <div class="progress"><div class="bar"><i></i></div><div class="progress-label">0 of ${total} ${unit}</div></div>
+    ${skippable ? `<button type="button" class="btn skip" hidden>Show results so far</button>` : ""}
+  </div>`;
+}
+
+function setProgress(el, done, total, unit) {
+  // a newer search replaces the loading line, so a stale one must not write into it
+  if (!el.isConnected) return;
+  el.querySelector(".bar i").style.width = `${Math.round((done / total) * 100)}%`;
+  el.querySelector(".progress-label").textContent = `${done} of ${total} ${unit}`;
+  const skip = el.parentElement.querySelector(".skip");
+  if (skip && done > 0) skip.hidden = false;
+}
+
 async function runSearch(q) {
   q = q.trim();
   if (q.length < 2) return;
   setSearchUrl(q);
   const out = $("#search-out");
-  out.innerHTML = `<div class="loading">Searching all shops for “${esc(q)}”…</div>`;
+  out.innerHTML = loadingHtml(`Searching all shops for “${esc(q)}”…`, SHOPS.length, "shops", true);
+  const progress = out.querySelector(".progress");
+  const skip = new AbortController();
+  out.querySelector(".skip").onclick = (e) => {
+    e.target.disabled = true;
+    e.target.textContent = "Finishing…";
+    skip.abort();
+  };
   showWeak = false;
   shopFilter = "";
   try {
-    search = await searchAll(q);
+    search = await searchAll(q, { onProgress: (done, total) => setProgress(progress, done, total, "shops"), skip: skip.signal });
     renderSearch();
   } catch (e) {
     out.innerHTML = `<div class="empty">${esc(e.message)}</div>`;
@@ -551,20 +582,23 @@ function renderSearch() {
   const strong = rows.filter(r => r.score >= STRONG);
   const weak = rows.filter(r => r.score < STRONG);
 
-  const chip = (key, label, { count, disabled = false, fail = false, title = "" } = {}) => `
-    <button type="button" class="chip filter${fail ? " fail" : ""}${shop === key ? " active" : ""}" data-shop="${esc(key)}"
+  const chip = (key, label, { count, disabled = false, fail = false, skipped = false, title = "" } = {}) => `
+    <button type="button" class="chip filter${fail ? " fail" : ""}${skipped ? " skipped" : ""}${shop === key ? " active" : ""}" data-shop="${esc(key)}"
       aria-pressed="${shop === key}" ${disabled ? "disabled" : ""} ${title ? `title="${esc(title)}"` : ""}>${esc(label)}${count === undefined ? "" : ` · ${count}`}</button>`;
   // counts match the "N matches" line: real matches only; a shop with only weaker matches stays clickable
   const matchCount = key => search.results.filter(r => r.score >= STRONG && (!key || r.shop === key)).length;
   const chips = chip("", "All shops", { count: matchCount("") }) + search.shops.map(s => s.ok
     ? chip(s.key, s.name, { count: matchCount(s.key), disabled: !s.count })
-    : chip(s.key, s.name + " · failed", { disabled: true, fail: true, title: s.error })).join("");
+    : s.skipped
+      ? chip(s.key, s.name + " · skipped", { disabled: true, skipped: true, title: "Not searched: you chose to show results early" })
+      : chip(s.key, s.name + " · failed", { disabled: true, fail: true, title: s.error })).join("");
   const shopName = shop && search.shops.find(s => s.key === shop)?.name;
+  const skipped = search.shops.filter(s => s.skipped).length;
 
   out.innerHTML = `
     <div class="chips" role="group" aria-label="Filter by shop">${chips}</div>
     <div class="toolbar">
-      <span class="grow">${strong.length} match${strong.length === 1 ? "" : "es"}${shopName ? ` at ${esc(shopName)}` : ""}${search.cached ? " · from the last hour" : ""}</span>
+      <span class="grow">${strong.length} match${strong.length === 1 ? "" : "es"}${shopName ? ` at ${esc(shopName)}` : ""}${search.cached ? " · from the last hour" : ""}${skipped ? ` · ${skipped} shop${skipped === 1 ? "" : "s"} skipped, <a href="#" id="search-all">search them too</a>` : ""}</span>
       <select id="sort" aria-label="Sort">
         <option value="match" ${sort === "match" ? "selected" : ""}>Best match, then cheapest</option>
         <option value="price" ${sort === "price" ? "selected" : ""}>Cheapest</option>
@@ -577,6 +611,7 @@ function renderSearch() {
       : `<button class="btn more" id="show-weak">Show ${weak.length} weaker match${weak.length === 1 ? "" : "es"}</button>`) : ""}
   `;
   $("#sort").onchange = renderSearch;
+  $("#search-all")?.addEventListener("click", (e) => { e.preventDefault(); runSearch(search.query); });
   out.querySelectorAll(".chip.filter").forEach(btn => {
     btn.onclick = () => {
       // clicking the active shop again goes back to all shops
@@ -616,9 +651,10 @@ async function runList(text) {
   const btn = $("#list-run");
   btn.disabled = true;
   const n = text.split("\n").filter(l => l.trim()).length;
-  out.innerHTML = `<div class="loading">Pricing ${n} part${n === 1 ? "" : "s"} across all shops…</div>`;
+  out.innerHTML = loadingHtml(`Pricing ${n} part${n === 1 ? "" : "s"} across all shops…`, n, "parts");
+  const progress = out.querySelector(".progress");
   try {
-    listData = await priceList(text);
+    listData = await priceList(text, (done, total) => setProgress(progress, done, total, "parts"));
     listText = text;
     // default pick: cheapest total cost for the quantity (candidates are strong matches when any exist)
     // default pick: among the closest matches, the cheapest for the quantity needed

@@ -13,39 +13,52 @@ const inflight = new Map();
 
 // ---------- search ----------
 
-async function searchShop(shop, query) {
+// `skip` is an AbortSignal: the user gave up waiting and wants what is already in
+async function searchShop(shop, query, skip) {
   const started = performance.now();
   const status = { key: shop.key, name: shop.name };
   const controller = new AbortController();
   let timer;
-  const timeout = new Promise((_, reject) => {
-    timer = setTimeout(() => {
+  let onSkip;
+  const giveUp = new Promise((_, reject) => {
+    const stop = (why) => {
       controller.abort();
-      reject(new Error("timed out"));
-    }, SHOP_TIMEOUT_MS);
+      reject(new Error(why));
+    };
+    timer = setTimeout(() => stop("timed out"), SHOP_TIMEOUT_MS);
+    onSkip = () => stop("skipped");
+    skip?.addEventListener("abort", onSkip, { once: true });
   });
   let items = [];
   try {
     const queries = [query, ...searchVariants(query)];
     const batches = await Promise.race([
       Promise.all(queries.map((q) => shop.search(q, controller.signal))),
-      timeout,
+      giveUp,
     ]);
     items = batches.flat();
     Object.assign(status, { ok: true, count: 0 });
   } catch (err) {
     // one broken shop must not break the search
-    const error = err.message === "timed out" ? "timed out" : `${err.name}: ${String(err.message).slice(0, 120)}`;
-    Object.assign(status, { ok: false, error });
+    if (err.message === "skipped") Object.assign(status, { ok: false, skipped: true, error: "skipped" });
+    else {
+      const error = err.message === "timed out" ? "timed out" : `${err.name}: ${String(err.message).slice(0, 120)}`;
+      Object.assign(status, { ok: false, error });
+    }
   } finally {
     clearTimeout(timer);
+    skip?.removeEventListener("abort", onSkip);
   }
   status.ms = Math.round(performance.now() - started);
   return { items, status };
 }
 
-async function runSearch(query) {
-  const outcomes = await Promise.all(SHOPS.map((s) => searchShop(s, query)));
+// onProgress(done, total) is called as each shop finishes
+async function runSearch(query, { onProgress, skip } = {}) {
+  let done = 0;
+  const outcomes = await Promise.all(
+    SHOPS.map((s) => searchShop(s, query, skip).then((o) => (onProgress?.(++done, SHOPS.length), o))),
+  );
   const results = [];
   const statuses = [];
   for (const { items, status } of outcomes) {
@@ -71,15 +84,19 @@ async function runSearch(query) {
   return { query, results, shops: statuses, searched_at: now() };
 }
 
-export async function searchAll(query) {
+// options: onProgress(done, total) per finished shop; skip, an AbortSignal that
+// stops waiting for the shops still running and returns what is already in
+export async function searchAll(query, options = {}) {
   const key = tokens(query).join(" ") || query.trim().toLowerCase();
   const hit = cache.get(key);
   if (hit && Date.now() < hit.expires) return { ...hit.result, cached: true };
   if (!inflight.has(key)) {
-    // identical concurrent searches share one run
-    inflight.set(key, runSearch(query).finally(() => inflight.delete(key)));
+    // identical concurrent searches share one run (only the first caller sees progress)
+    inflight.set(key, runSearch(query, options).finally(() => inflight.delete(key)));
   }
   const result = await inflight.get(key);
+  // a skipped search is deliberately incomplete: searching again should hit every shop
+  if (result.shops.some((s) => s.skipped)) return { ...result, cached: false };
   const ttl = result.shops.every((s) => s.ok) ? CACHE_MS : PARTIAL_CACHE_MS;
   cache.set(key, { expires: Date.now() + ttl, result });
   for (const [k, v] of cache) if (v.expires < Date.now()) cache.delete(k);
@@ -125,11 +142,18 @@ async function mapLimited(items, max, fn) {
   return out;
 }
 
-export async function priceList(text) {
+// onProgress(done, total) is called as each distinct part is priced
+export async function priceList(text, onProgress) {
   const parsed = text.split(/\r?\n/).map(parseLine).filter(Boolean).slice(0, MAX_LIST_LINES);
   const queries = [...new Set(parsed.map(([q]) => q))];
   // be gentle: at most 4 parts searched at once
-  const results = await mapLimited(queries, 4, (q) => searchAll(q));
+  let done = 0;
+  onProgress?.(0, queries.length); // the caller's line count may differ from the distinct parts
+  const results = await mapLimited(queries, 4, async (q) => {
+    const r = await searchAll(q);
+    onProgress?.(++done, queries.length);
+    return r;
+  });
   const found = new Map(queries.map((q, i) => [q, results[i]]));
 
   const failed = new Map();
