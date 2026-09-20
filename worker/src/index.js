@@ -18,6 +18,7 @@ const SHOP_HOSTS = new Set([
   "free-electronic.com",
   "hdelectronicseg.com",
   "circuit-electronics.com",
+  "electra.store",
 ]);
 
 const BROWSER_HEADERS = {
@@ -31,6 +32,7 @@ const BROWSER_HEADERS = {
 const FORWARDED_HEADERS = ["x-api-key", "content-type", "accept"];
 const CACHE_SECONDS = 3600;
 const MAX_BODY = 4096;
+const MAX_BYTES = 256 * 1024; // the most a page can ask to be kept of a shop's response
 
 export default {
   async fetch(request, env, ctx) {
@@ -48,7 +50,8 @@ export default {
     if (!allowed) return text("Origin not allowed", 403, cors);
     if (request.method !== "GET" && request.method !== "POST") return text("Method not allowed", 405, cors);
 
-    const target = new URL(request.url).searchParams.get("url");
+    const params = new URL(request.url).searchParams;
+    const target = params.get("url");
     let url;
     try {
       url = new URL(target);
@@ -58,6 +61,10 @@ export default {
     if (url.protocol !== "https:" || !SHOP_HOSTS.has(url.hostname)) {
       return text("Shop not allowed", 403, cors);
     }
+
+    // a page that only needs the top of a long document (a product page's head) can ask for
+    // the first bytes of it, so the rest never crosses the wire
+    const bytes = Math.min(Math.max(Number(params.get("bytes")) || 0, 0), MAX_BYTES);
 
     const body = request.method === "POST" ? await request.text() : null;
     if (body && body.length > MAX_BODY) return text("Body too large", 413, cors);
@@ -71,7 +78,7 @@ export default {
     // POST responses can't be cached by URL alone, so the cache key includes the body
     const cache = caches.default;
     const cacheKey = new Request(
-      `https://relay-cache.internal/${request.method}/${await sha256(url.href + "\n" + (body || "") + "\n" + (headers["x-api-key"] || ""))}`,
+      `https://relay-cache.internal/${request.method}/${await sha256(url.href + "\n" + (body || "") + "\n" + (headers["x-api-key"] || "") + "\n" + bytes)}`,
     );
     const hit = await cache.match(cacheKey);
     if (hit) return withHeaders(hit, { ...cors, "X-Relay-Cache": "HIT" });
@@ -83,7 +90,7 @@ export default {
       return text(`Shop unreachable: ${err.message}`, 502, cors);
     }
 
-    const response = new Response(upstream.body, {
+    const response = new Response(bytes ? (await upstream.arrayBuffer()).slice(0, bytes) : upstream.body, {
       status: upstream.status,
       headers: {
         "Content-Type": upstream.headers.get("Content-Type") || "application/octet-stream",

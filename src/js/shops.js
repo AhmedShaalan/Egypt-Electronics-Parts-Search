@@ -11,8 +11,11 @@ import { score, WEAK } from "./matching.js";
 
 const HOUR = 60 * 60 * 1000;
 
-function relay(url, { method = "GET", headers = {}, body, signal } = {}) {
-  return fetch(`${RELAY_URL}/?url=${encodeURIComponent(url)}`, { method, headers, body, signal });
+function relay(url, { method = "GET", headers = {}, body, signal, bytes } = {}) {
+  const params = new URLSearchParams({ url });
+  // only the start of a long page is needed sometimes; the relay drops the rest
+  if (bytes) params.set("bytes", String(bytes));
+  return fetch(`${RELAY_URL}/?${params}`, { method, headers, body, signal });
 }
 
 async function ok(response) {
@@ -98,10 +101,9 @@ class WooShop extends Shop {
   }
 }
 
-class ShopifyShop extends Shop {
-  platform = "Shopify";
-
-  // Shopify's suggest search caps at 10 results, so load the whole catalog and search it locally.
+// A shop whose own search is too limited to use, so the whole catalog is downloaded
+// and searched here. It is kept for an hour; loadCatalog() fetches it.
+class CatalogShop extends Shop {
   catalog() {
     if (!this.loading || Date.now() - this.loadedAt > HOUR) {
       this.loadedAt = Date.now();
@@ -112,7 +114,12 @@ class ShopifyShop extends Shop {
     }
     return this.loading;
   }
+}
 
+class ShopifyShop extends CatalogShop {
+  platform = "Shopify";
+
+  // Shopify's suggest search caps at 10 results.
   async loadCatalog() {
     const items = [];
     for (let page = 1; page <= 40; page++) {
@@ -432,6 +439,146 @@ class ElGammalShop extends Shop {
   }
 }
 
+class ElectraShop extends CatalogShop {
+  // Custom Laravel store. Its product API allows browsers directly, but its search only matches
+  // the query as a case-sensitive substring of the name ("ESP32" finds 31 products, "esp32" none),
+  // so the whole catalog is downloaded and searched here instead. The API's stock_quantity is 0
+  // for nearly everything and means nothing, so availability comes from the product page, where
+  // the shop publishes it as schema.org data — the relay trims that page down to its head.
+  platform = "Custom";
+  static PER_PAGE = 1000;
+  static MAX_PAGES = 10;
+  static MAX_CHECKS = 20; // product pages read per search
+  static HEAD_BYTES = 24 * 1024;
+
+  constructor(...args) {
+    super(...args);
+    this.limit = limiter(6);
+    this.offers = new Map();
+  }
+
+  async page(n) {
+    const params = new URLSearchParams({ per_page: String(ElectraShop.PER_PAGE), page: String(n) });
+    const r = await this.limit(() => fetch(`${this.base}/api/v1/products?${params}`));
+    return (await ok(r)).json();
+  }
+
+  async loadCatalog() {
+    // the first page says how many there are, so the rest can be fetched together
+    const first = await this.page(1);
+    const last = Math.min(Number(first.last_page || 1), ElectraShop.MAX_PAGES);
+    const rest = await Promise.all(Array.from({ length: last - 1 }, (_, i) => this.page(i + 2)));
+    return [first, ...rest].flatMap((body) => (body.data || []).map((d) => this.product(d)));
+  }
+
+  product(d) {
+    const listed = parseMoney(d.price);
+    const special = parseMoney(d.special_price);
+    const price = special > 0 && special < listed ? special : listed;
+    return {
+      shop: this.key,
+      ref: d.slug,
+      name: cleanName(d.name),
+      price,
+      url: `${this.base}/products/${d.slug}`,
+      image: d.image_url ? this.base + d.image_url : null,
+      in_stock: true,
+      old_price: listed > price ? listed : null,
+    };
+  }
+
+  // the schema.org Offer in the product page's head: the price shoppers see, and whether
+  // the part can actually be bought (the shop also lists back-ordered parts)
+  async offer(slug, signal, fresh = false) {
+    const hit = this.offers.get(slug);
+    if (hit && !fresh && Date.now() < hit.expires) return hit.offer;
+    const r = await this.limit(async () =>
+      relay(`${this.base}/products/${encodeURIComponent(slug)}`, { signal, bytes: ElectraShop.HEAD_BYTES }),
+    );
+    let offer = null;
+    if (r.status !== 404) {
+      const head = await (await ok(r)).text();
+      const availability = head.match(/"availability"\s*:\s*"[^"]*\/(\w+)"/);
+      const price = head.match(/"priceCurrency"\s*:\s*"[A-Z]+"\s*,\s*"price"\s*:\s*"([\d.,]+)"/);
+      if (availability && price) offer = { in_stock: availability[1] === "InStock", price: parseMoney(price[1]) };
+    }
+    this.offers.set(slug, { expires: Date.now() + HOUR, offer });
+    return offer;
+  }
+
+  async search(query, signal) {
+    // only the best matches are worth a product page each
+    const candidates = (await this.catalog())
+      .map((p) => ({ p, s: score(query, p.name) }))
+      .filter(({ p, s }) => p.price > 0 && s >= WEAK)
+      .sort((a, b) => b.s - a.s)
+      .slice(0, ElectraShop.MAX_CHECKS);
+
+    const checked = await Promise.all(
+      candidates.map(async ({ p }) => {
+        try {
+          const offer = await this.offer(p.ref, signal);
+          if (!offer || !offer.in_stock) return null;
+          const price = offer.price || p.price;
+          return { ...p, price, old_price: p.old_price > price ? p.old_price : null };
+        } catch (err) {
+          if (signal?.aborted) throw err;
+          return null;
+        }
+      }),
+    );
+    return checked.filter((p) => p && p.price > 0);
+  }
+
+  async check(ref, signal) {
+    const offer = await this.offer(ref, signal, true);
+    if (!offer) return null;
+    return { price: offer.price, in_stock: offer.in_stock };
+  }
+}
+
+class MtmShop extends CatalogShop {
+  // Next.js storefront on a Laravel backend. The backend hands out the whole catalog in one
+  // request and allows browsers directly, so the search runs here; its own search only matches
+  // the query as a single substring of the name ("10k resistor" finds nothing). Close to half
+  // the catalog carries no price, and those products are left out: there is nothing to compare.
+  platform = "Custom";
+
+  get api() {
+    return `${this.base}/backend/public/api/products`;
+  }
+
+  async loadCatalog() {
+    const rows = await (await ok(await fetch(this.api))).json();
+    return rows.map((d) => this.product(d));
+  }
+
+  product(d) {
+    return {
+      shop: this.key,
+      ref: String(d.id),
+      name: cleanName(d.name),
+      price: parseMoney(d.price),
+      url: `${this.base}/products/${d.id}`,
+      image: d.images?.[0]?.image || null,
+      in_stock: Number(d.amount || 0) > 0,
+      old_price: null,
+    };
+  }
+
+  async search(query) {
+    return (await this.catalog()).filter((p) => p.in_stock && p.price > 0 && score(query, p.name) >= WEAK);
+  }
+
+  async check(ref, signal) {
+    // one product comes back the same way the catalog does: as a list
+    const rows = await (await ok(await fetch(`${this.api}/${encodeURIComponent(ref)}`, { signal }))).json();
+    if (!Array.isArray(rows) || !rows.length) return null;
+    const p = this.product(rows[0]);
+    return { price: p.price, in_stock: p.in_stock };
+  }
+}
+
 export const SHOPS = [
   new OdooShop("ram", "RAM Electronics", "https://www.ram-e-shop.com"),
   Object.assign(new WooShop("makers", "Makers Electronics", "https://makerselectronics.com"), {
@@ -450,5 +597,7 @@ export const SHOPS = [
   new WooShop("free", "Free Electronics", "https://free-electronic.com"),
   new WooShop("hd", "HD Electronics", "https://hdelectronicseg.com"),
   Object.assign(new WooShop("circuit", "Circuit Electronics", "https://circuit-electronics.com"), { api: "wc/store" }),
+  new ElectraShop("electra", "Electra Store", "https://electra.store"),
+  new MtmShop("mtm", "MTM Electronics", "https://mtm-electronic.com"),
 ];
 export const SHOPS_BY_KEY = Object.fromEntries(SHOPS.map((s) => [s.key, s]));

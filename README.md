@@ -9,7 +9,7 @@ Find a part, see every in-stock price side by side, and price a whole parts list
 
 ### [**→ Open the site**](https://parts.ahmedshaalan.com/)
 
-`13 shops` · `live prices` · `out-of-stock hidden` · `works on your phone` · `free, no sign-up` · [`AGPL-3.0 license`](LICENSE)
+`15 shops` · `live prices` · `out-of-stock hidden` · `works on your phone` · `free, no sign-up` · [`AGPL-3.0 license`](LICENSE)
 
 <img src=".github/screenshots/search.png" alt="Search results for LM7805 across nine Egyptian shops, sorted by match and price" width="760">
 
@@ -26,7 +26,7 @@ Egypt Electronics Parts Search asks every shop at once, recognizes those names a
 ## Features
 
 **🔍 Search every shop at once**
-- Queries all 13 shops at the same time and merges the results into one list
+- Queries all 15 shops at the same time and merges the results into one list
 - Hides out-of-stock items automatically
 - Shows sale prices next to the original price, and the per-piece price for packs ("(10pcs)")
 - Sort by best match, cheapest, or cheapest per piece, or filter to one shop
@@ -117,12 +117,14 @@ Saved items live in your browser's storage, so they're private to that browser a
 | [Free Electronics](https://free-electronic.com) | WooCommerce | Store API |
 | [HD Electronics](https://hdelectronicseg.com) | WooCommerce | Store API |
 | [Circuit Electronics](https://circuit-electronics.com) | WooCommerce | Store API |
+| [Electra Store](https://electra.store) | Custom (Laravel) | Full catalog from the shop's API, searched in the browser, plus a stock lookup per product |
+| [MTM Electronics](https://mtm-electronic.com) | Custom (Next.js + Laravel) | Full catalog from the shop's API, searched in the browser |
 
 ## How it works
 
 The whole app runs in your browser. It's a static site on GitHub Pages, with no server of its own.
 
-The catch: browsers only let a website read another site's data if that site allows it (CORS). The two Shopify shops and El Gammal do; the other ten don't. For those, requests go through a tiny **relay** on Cloudflare Workers that fetches the shop's page and hands it back.
+The catch: browsers only let a website read another site's data if that site allows it (CORS). The two Shopify shops, El Gammal, MTM and Electra's catalog do; the other ten don't. For those, requests go through a tiny **relay** on Cloudflare Workers that fetches the shop's page and hands it back.
 
 ```
                                 ┌──────────── direct ────────────► Future, DevBoards, El Gammal  (CORS allowed)
