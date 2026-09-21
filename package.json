@@ -1,0 +1,20 @@
+{
+  "name": "egypt-parts-site",
+  "version": "1.8.0",
+  "private": true,
+  "description": "The website: compare electronics part prices across Egyptian shops",
+  "license": "AGPL-3.0-or-later",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "@preact/preset-vite": "^2.10.6",
+    "vite": "^8.3.0"
+  },
+  "dependencies": {
+    "preact": "^10.29.8"
+  }
+}

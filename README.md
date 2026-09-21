@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="src/icon.png" alt="" width="64" height="64">
+<img src="src/public/icon.png" alt="" width="64" height="64">
 
 # Egypt Electronics Parts Search + MCP
 
@@ -234,15 +234,16 @@ In a parts list, the default pick for each line is the **cheapest product within
 
 ```
 Egypt-Electronics-Parts-Search/
-├── src/                    The website, published to GitHub Pages (vanilla HTML/CSS/JS, no build step)
+├── src/                    The website, built by Vite and published to GitHub Pages
 │   ├── index.html          The page's markup
 │   ├── css/site.css        Styles, light and dark
-│   ├── icon.png            App icon (Icons8)
-│   ├── og-image.png        Link preview image
-│   ├── robots.txt, sitemap.xml
-│   ├── CNAME               The custom domain for GitHub Pages
-│   ├── google….html        Google Search Console verification
-│   └── js/
+│   ├── public/             Copied as they are
+│   │   ├── icon.png        App icon (Icons8)
+│   │   ├── og-image.png    Link preview image
+│   │   ├── robots.txt, sitemap.xml
+│   │   ├── CNAME           The custom domain for GitHub Pages
+│   │   └── google….html    Google Search Console verification
+│   └── js/                 config, shops, matching and search are shared with mcp/, so they stay plain JS
 │       ├── config.js       Relay URL, timeouts, cache times
 │       ├── shops.js        One connector per platform + the SHOPS list
 │       ├── matching.js     Query ↔ product-name scoring, aliases, pack sizes
@@ -250,6 +251,7 @@ Egypt-Electronics-Parts-Search/
 │       ├── main.js         The page: tabs, start-up
 │       └── ui/             The page's parts, one file each
 │           ├── search-tab.js, list-tab.js, saved.js
+│           ├── shops-tab.jsx The Shops tab, the first in Preact
 │           ├── picker.js, cart.js, add-to-list.js, copy.js
 │           └── common.js   Helpers they share
 ├── mcp/                    MCP server for AI assistants (Node, reuses src/js)
@@ -257,8 +259,10 @@ Egypt-Electronics-Parts-Search/
 ├── worker/                 Cloudflare Worker relay
 │   ├── src/index.js
 │   └── wrangler.toml       Worker name and allowed origins
+├── package.json            The site's build: Vite + Preact
+├── vite.config.js
 ├── .github/
-│   ├── workflows/pages.yml Publishes src/ on every push to main
+│   ├── workflows/pages.yml Builds and publishes the site on every push to main
 │   └── screenshots/        Images for this README
 ├── CHANGELOG.md            What changed, by date
 └── LICENSE                 GNU AGPL v3
@@ -282,23 +286,24 @@ npx wrangler deploy
 
 Wrangler prints the relay's address, like `https://egypt-parts-relay.yourname.workers.dev`.
 
-**3. Point the site at it.** Put that address in `PRODUCTION_RELAY` in [`src/js/config.js`](src/js/config.js). Also point the GitHub icon link in `src/index.html` at your fork: under the AGPL, visitors to your copy must be able to get its source. Replace `parts.ahmedshaalan.com` with your own address in `src/index.html` (the canonical link, the `og:` and `twitter:` tags and the structured data), `src/sitemap.xml` and `src/robots.txt`, and delete `src/CNAME` and the Google verification file unless you use your own. Then commit and push.
+**3. Point the site at it.** Put that address in `PRODUCTION_RELAY` in [`src/js/config.js`](src/js/config.js). Also point the GitHub icon link in `src/index.html` at your fork: under the AGPL, visitors to your copy must be able to get its source. Replace `parts.ahmedshaalan.com` with your own address in `src/index.html` (the canonical link, the `og:` and `twitter:` tags and the structured data), `src/public/sitemap.xml` and `src/public/robots.txt`, and delete `src/public/CNAME` and the Google verification file unless you use your own. Then commit and push.
 
-**4. Turn on GitHub Pages.** In your fork: **Settings → Pages → Build and deployment**, set **Source** to **GitHub Actions**. The included workflow ([`.github/workflows/pages.yml`](.github/workflows/pages.yml)) publishes `src/` on every push to `main` that touches it. Run it once from the **Actions** tab (or push a change) and the site appears at `https://yourname.github.io/<repo-name>/` about a minute later.
+**4. Turn on GitHub Pages.** In your fork: **Settings → Pages → Build and deployment**, set **Source** to **GitHub Actions**. The included workflow ([`.github/workflows/pages.yml`](.github/workflows/pages.yml)) builds the site and publishes it on every push to `main` that touches it. Run it once from the **Actions** tab (or push a change) and the site appears at `https://yourname.github.io/<repo-name>/` about a minute later.
 
 ## Local development
 
-No build step. Run the relay and a static file server side by side:
+Needs Node 22 or newer. Run the relay and the site side by side:
 
 ```sh
 # terminal 1: the relay on http://localhost:8787
 cd worker && npx wrangler dev --var ALLOW_LOCALHOST:true
 
-# terminal 2: the site on http://localhost:8766
-python3 -m http.server 8766 -d src
+# terminal 2: the site on http://localhost:8766, reloading as you edit
+npm install
+npm run dev
 ```
 
-Open <http://localhost:8766>. On `localhost`, the site automatically uses the local relay.
+Open <http://localhost:8766>. To check what GitHub Pages will get, `npm run build` puts it in `dist/` and `npm run preview` serves that. On `localhost`, the site automatically uses the local relay.
 
 ## Adding a shop
 
@@ -379,9 +384,9 @@ If you run your own copy, please don't lower the cache times or raise the parall
 
 ## Tech
 
-Vanilla JavaScript (ES modules) · [GitHub Pages](https://pages.github.com) · [Cloudflare Workers](https://workers.cloudflare.com)
+JavaScript (ES modules) · [Preact](https://preactjs.com) · [Vite](https://vite.dev) · [GitHub Pages](https://pages.github.com) · [Cloudflare Workers](https://workers.cloudflare.com)
 
-No framework, no build step, no dependencies.
+The search code in `src/js` (connectors, matching, totals) has no dependencies and runs unchanged in the browser and in the MCP server. The page is moving to Preact components one tab at a time.
 
 ## Changelog
 

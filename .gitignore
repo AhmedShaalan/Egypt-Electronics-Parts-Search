@@ -5,3 +5,4 @@ wishlist.db
 node_modules/
 worker/.wrangler/
 .dev.vars
+dist/

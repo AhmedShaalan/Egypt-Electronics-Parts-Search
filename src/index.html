@@ -7,8 +7,8 @@
 <title>Egypt Electronics Parts Search · Compare prices at 16 shops</title>
 <meta name="description" content="Search 16 Egyptian electronics shops at once and compare in-stock prices for parts like LM7805 and ESP32. Price a whole parts list. Free, no sign-up.">
 <link rel="canonical" href="https://parts.ahmedshaalan.com/">
-<link rel="icon" type="image/png" href="icon.png">
-<link rel="apple-touch-icon" href="icon.png">
+<link rel="icon" type="image/png" href="/icon.png">
+<link rel="apple-touch-icon" href="/icon.png">
 <meta name="theme-color" content="#f6f5f1" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#141412" media="(prefers-color-scheme: dark)">
 
@@ -71,12 +71,12 @@
   apply();
 })();
 </script>
-<link rel="stylesheet" href="css/site.css?v=__BUILD__">
+<link rel="stylesheet" href="css/site.css">
 </head>
 <body>
 <header>
   <div class="wrap">
-    <div class="brand"><img src="icon.png" alt="" width="22" height="22"><span class="title">Egypt Electronics Parts Search</span></div>
+    <div class="brand"><img src="/icon.png" alt="" width="22" height="22"><span class="title">Egypt Electronics Parts Search</span></div>
     <nav>
       <a href="#search" data-tab="search">Search</a>
       <a href="#list" data-tab="list">Parts list</a>
@@ -236,26 +236,7 @@ npm install</code></pre>
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
 </button>
 
-<!-- every deploy stamps the scripts and styles with its commit (see .github/workflows/pages.yml),
-     so a browser never mixes a new page with old cached ones. A new module needs a line here too,
-     or it keeps no ?v= and a browser may run an old cached copy -->
-<script type="importmap">
-{ "imports": {
-  "./js/config.js": "./js/config.js?v=__BUILD__",
-  "./js/matching.js": "./js/matching.js?v=__BUILD__",
-  "./js/shops.js": "./js/shops.js?v=__BUILD__",
-  "./js/search.js": "./js/search.js?v=__BUILD__",
-  "./js/ui/common.js": "./js/ui/common.js?v=__BUILD__",
-  "./js/ui/copy.js": "./js/ui/copy.js?v=__BUILD__",
-  "./js/ui/cart.js": "./js/ui/cart.js?v=__BUILD__",
-  "./js/ui/saved.js": "./js/ui/saved.js?v=__BUILD__",
-  "./js/ui/add-to-list.js": "./js/ui/add-to-list.js?v=__BUILD__",
-  "./js/ui/search-tab.js": "./js/ui/search-tab.js?v=__BUILD__",
-  "./js/ui/list-tab.js": "./js/ui/list-tab.js?v=__BUILD__",
-  "./js/ui/picker.js": "./js/ui/picker.js?v=__BUILD__"
-} }
-</script>
-<script type="module" src="js/main.js?v=__BUILD__"></script>
+<script type="module" src="js/main.js"></script>
 <!-- Cloudflare Web Analytics: page views only, no cookies -->
 <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "682b699925714d4993f77f2d490389f7"}'></script>
 </body>

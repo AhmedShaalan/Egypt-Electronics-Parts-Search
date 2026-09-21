@@ -3,13 +3,13 @@
 
 // The page: its tabs, and what runs once it has loaded. Each tab's code is in ui/.
 
-import { SHOPS } from "./shops.js";
 import { warmUp } from "./search.js";
-import { $, esc } from "./ui/common.js";
+import { $ } from "./ui/common.js";
 import { copy } from "./ui/copy.js";
 import { searchTabShown } from "./ui/search-tab.js";
 import "./ui/list-tab.js";
 import { loadSaved, reloadSaved } from "./ui/saved.js";
+import { renderShops } from "./ui/shops-tab.jsx";
 
 $("#theme-toggle").addEventListener("click", () => window.toggleTheme());
 
@@ -40,25 +40,9 @@ window.addEventListener("hashchange", showTab);
 // the AI tab's setup commands
 document.querySelectorAll(".copy-code").forEach(b => b.addEventListener("click", () => copy(b.parentElement.querySelector("pre").innerText)));
 
-/* ---------- shops ---------- */
-function renderShops() {
-  $("#shops-out").innerHTML = SHOPS.map(s => {
-    const domain = new URL(s.base).hostname.replace(/^www\./, "");
-    return `
-      <div class="row shop-row">
-        <div class="shop-mark" aria-hidden="true">${esc(s.name[0])}</div>
-        <div>
-          <a class="name" href="${esc(s.base)}" target="_blank" rel="noopener">${esc(s.name)}</a>
-          <div class="meta">${esc(domain)}</div>
-        </div>
-        <span class="chip">${esc(s.platform)}</span>
-      </div>`;
-  }).join("");
-}
-
 /* ---------- start ---------- */
 reloadSaved();
-renderShops();
+renderShops($("#shops-out"));
 showTab();
 // the catalogs searched in the browser are a few MB, so they load once a search is being typed
 for (const el of [$("#q"), $("#list-text")]) el.addEventListener("input", warmUp, { once: true });

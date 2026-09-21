@@ -2,6 +2,11 @@
 
 What changed on [parts.ahmedshaalan.com](https://parts.ahmedshaalan.com/), newest first. The site is updated as changes land. Each entry is also a git tag (`v1.8.0`), which is the version to use if you run the [MCP server](mcp/) or your own copy.
 
+## Unreleased
+
+### Changed
+- The site is now built with [Vite](https://vite.dev) before it's published, and the page is moving to [Preact](https://preactjs.com) components, starting with the Shops tab. It loads as one script and one stylesheet, whose names change with every release so browsers never keep an old copy. The site looks and works the same.
+
 ## 1.8.0 · 2026-09-21
 
 ### Fixed
