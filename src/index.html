@@ -88,6 +88,7 @@
     --bad-soft: #fbe5e3;
     --warn: #8a5a00;
     --warn-soft: #fcefd2;
+    --star: #b86e00;
     --radius: 10px;
   }
   :root { color-scheme: light; }
@@ -109,6 +110,7 @@
       --bad-soft: #3b1d1b;
       --warn: #f2c04c;
       --warn-soft: #3a2f14;
+      --star: #e3a008;
     }
   }
   :root[data-theme="dark"] {
@@ -128,6 +130,7 @@
     --bad-soft: #3b1d1b;
     --warn: #f2c04c;
     --warn-soft: #3a2f14;
+    --star: #e3a008;
   }
   * { box-sizing: border-box; }
   body {
@@ -225,6 +228,9 @@
   button.chip:hover:not(:disabled):not(.active) { border-color: var(--border); color: var(--text); }
   button.chip.active { background: var(--accent); color: var(--accent-text); }
   button.chip:disabled { cursor: default; opacity: .55; }
+  /* a failed shop's chip stays focusable, so its reason can be read */
+  button.chip[aria-disabled="true"] { cursor: help; opacity: .75; }
+  .sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
   button.chip.fail:disabled, button.chip.skipped:disabled { opacity: 1; }
   button.chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
@@ -244,7 +250,7 @@
   .actions { display: flex; align-items: center; gap: 10px; }
   .star { border: 0; background: none; font-size: 20px; cursor: pointer; color: var(--muted); padding: 4px; line-height: 1; border-radius: 8px; }
   .star:hover { color: var(--text); background: var(--surface-2); }
-  .star.on { color: #e3a008; }
+  .star.on { color: var(--star); }
   /* copy, add-to-list and save on a search result show on hover, and always on touch screens;
      a filled star stays, so saved results are easy to spot */
   .row .reveal { display: flex; align-items: center; gap: 2px; }
@@ -254,7 +260,7 @@
   .row .reveal > .icon-btn { padding: 4px; }
   .row .reveal > .icon-btn svg { width: 18px; height: 18px; }
   .save svg { fill: none; }
-  .save.on, .save.on:hover { color: #e3a008; }
+  .save.on, .save.on:hover { color: var(--star); }
   .save.on svg { fill: currentColor; }
 
   dialog.modal {
@@ -411,12 +417,13 @@
 </header>
 
 <main class="wrap">
+  <div id="live" class="sr-only" role="status" aria-live="polite"></div>
   <!-- SEARCH -->
   <section id="tab-search">
     <h1>Compare electronics part prices across 16 Egyptian shops</h1>
     <form class="searchbar" id="search-form">
       <div class="search-field">
-        <input type="search" id="q" placeholder="Search a part, e.g. LM7805, ESP32, 10k resistor" autocomplete="off" autofocus>
+        <input type="search" id="q" aria-label="Search for a part" placeholder="Search a part, e.g. LM7805, ESP32, 10k resistor" autocomplete="off" autofocus>
         <button class="search-clear" id="q-clear" type="button" title="Clear search" aria-label="Clear search" hidden>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
         </button>
@@ -457,7 +464,7 @@
       <div class="faq">
       <details><summary>Where can I buy electronic components in Egypt?</summary><p>The 16 shops above all sell online and deliver across Egypt. Search a part here to see which of them have it in stock right now and at what price.</p></details>
       <details><summary>Which shop is cheapest for Arduino, ESP32 or Raspberry Pi parts?</summary><p>It changes from part to part, which is why this tool exists: search once and the results are sorted so the lowest price is easy to spot. Paste your whole list to find the cheapest single shop, which also saves on shipping.</p></details>
-      <details><summary>Are the prices live?</summary><p>Yes. Every search asks the shops' own websites, so prices and stock are what each shop currently lists. Results are kept for up to an hour so the shops aren't hit repeatedly for the same part.</p></details>
+      <details><summary>Are the prices live?</summary><p>Yes. Every search asks the shops' own websites, so prices and stock are what each shop lists. To avoid asking the shops again for the same part, answers are reused for up to an hour at two steps, so a price can be up to about two hours old.</p></details>
       <details><summary>Is it free?</summary><p>Yes, and open source. There is no account, and saved items never leave your browser.</p></details>
       </div>
       <p>Open source under the AGPL-3.0 license · <a href="https://github.com/AhmedShaalan/Egypt-Electronics-Parts-Search" target="_blank" rel="noopener">Source on GitHub</a> · Built by <a href="https://ahmedshaalan.com" target="_blank" rel="noopener">Ahmed Shaalan</a>.</p>
@@ -466,7 +473,7 @@
 
   <!-- PARTS LIST -->
   <section id="tab-list">
-    <textarea id="list-text" placeholder="One part per line, for example:&#10;LM7805 x2&#10;ESP32&#10;10k resistor x20&#10;3x 100nf capacitor"></textarea>
+    <textarea id="list-text" aria-label="Parts list, one part per line" placeholder="One part per line, for example:&#10;LM7805 x2&#10;ESP32&#10;10k resistor x20&#10;3x 100nf capacitor"></textarea>
     <div class="toolbar" style="margin-top:10px">
       <span class="grow">Quantity: <code>x2</code>, <code>2x</code>, <code>2pcs</code> or a count in front. Notes after a comma are ignored. Packs are counted, e.g. 20 resistors from 10-packs = 2 packs.</span>
       <button class="btn primary" id="list-run">Find prices</button>
@@ -505,12 +512,16 @@
 
 <script type="module">
 import { SHOPS } from "./js/shops.js";
-import { searchAll, fetchShop, priceList, warmUp, getSaved, saveItem as storeItem, unsaveItem as storeUnsave, deleteItem, refreshItems, saveList as storeList, addToList, renameList, deleteList } from "./js/search.js";
+import { searchAll, fetchShop, mergeShop, priceList, warmUp, getSaved, saveItem as storeItem, unsaveItem as storeUnsave, deleteItem, refreshItems, saveList as storeList, addToList, renameList, deleteList } from "./js/search.js";
 
 const $ = (s, el = document) => el.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const money = n => Number(n).toLocaleString("en-US", { minimumFractionDigits: n % 1 ? 2 : 0, maximumFractionDigits: 2 }) + " EGP";
 const STRONG = 70;
+// links and images come from the shops' data, so only web addresses get through (no javascript:)
+const safeUrl = u => /^https?:\/\//i.test(String(u ?? "")) ? u : "#";
+// read out by screen readers when results arrive
+const announce = msg => { $("#live").textContent = msg; };
 
 let savedKeys = new Set();
 let search = null;          // last search response
@@ -544,8 +555,13 @@ toTop.addEventListener("click", () => {
 });
 
 /* ---------- tabs ---------- */
+const TABS = ["search", "list", "saved", "shops"];
+
 function showTab() {
-  const tab = (location.hash || "#search").slice(1);
+  const hash = location.hash.slice(1);
+  // a link to a part of a page (#about) opens the search tab, where that part is
+  const tab = TABS.includes(hash) ? hash : "search";
+  if (hash && tab !== hash) requestAnimationFrame(() => document.getElementById(hash)?.scrollIntoView());
   document.querySelectorAll("nav a").forEach(a => a.classList.toggle("active", a.dataset.tab === tab));
   document.querySelectorAll("main section").forEach(s => s.classList.toggle("active", s.id === "tab-" + tab));
   if (tab === "saved") loadSaved();
@@ -565,7 +581,7 @@ window.addEventListener("hashchange", showTab);
 const key = p => p.shop + "|" + p.ref;
 
 function thumb(p) {
-  return p.image
+  return p.image && safeUrl(p.image) !== "#"
     ? `<img class="thumb" src="${esc(p.image)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'thumb'}))">`
     : `<div class="thumb"></div>`;
 }
@@ -632,10 +648,15 @@ function setProgress(el, done, total, unit) {
   if (skip && done > 0) skip.hidden = false;
 }
 
+let cancelSearch = null; // stops the shops a replaced search is still waiting for
+
 async function runSearch(q) {
   q = q.trim();
   if (q.length < 2) return;
   setSearchUrl(q);
+  cancelSearch?.abort();
+  const cancel = cancelSearch = new AbortController();
+  fetching.clear();
   const out = $("#search-out");
   out.innerHTML = loadingHtml(`Searching all shops for “${esc(q)}”…`, SHOPS.length, "shops", true);
   const progress = out.querySelector(".progress");
@@ -649,10 +670,12 @@ async function runSearch(q) {
   shopFilter = "";
   const run = ++searchRun;
   try {
-    const result = await searchAll(q, { onProgress: (done, total) => setProgress(progress, done, total, "shops"), skip: skip.signal });
+    const result = await searchAll(q, { onProgress: (done, total) => setProgress(progress, done, total, "shops"), skip: skip.signal, cancel: cancel.signal });
     if (run !== searchRun) return;
     search = result;
     renderSearch();
+    const n = result.results.filter(r => r.score >= STRONG).length;
+    announce(`${n} match${n === 1 ? "" : "es"} for ${q}`);
   } catch (e) {
     if (run === searchRun) out.innerHTML = `<div class="empty">${esc(e.message)}</div>`;
   }
@@ -661,6 +684,7 @@ async function runSearch(q) {
 // empties the box and the results, bringing back the intro underneath
 function clearSearch() {
   searchRun++;
+  cancelSearch?.abort();
   search = null;
   $("#q").value = "";
   $("#search-out").innerHTML = "";
@@ -672,18 +696,21 @@ function clearSearch() {
 const fetching = new Set(); // shop keys being fetched after a skip
 
 async function fetchSkipped(key) {
-  const before = search;
+  const run = searchRun;
   fetching.add(key);
   renderSearch();
-  let merged = before;
+  let fetched = null;
   try {
-    merged = await fetchShop(before, key);
+    fetched = await fetchShop(search.query, key);
   } catch (e) {
     toast(e.message);
   }
-  fetching.delete(key);
   // a new search may have replaced this one meanwhile
-  if (search === before) { search = merged; renderSearch(); }
+  if (run !== searchRun) return;
+  fetching.delete(key);
+  // merged into the result as it is now, which may already hold other shops fetched meanwhile
+  if (fetched) search = mergeShop(search, fetched);
+  renderSearch();
 }
 
 function renderSearch() {
@@ -702,16 +729,18 @@ function renderSearch() {
 
   const chip = (key, label, { count, disabled = false, fail = false, skipped = false, fetching = false, title = "" } = {}) => `
     <button type="button" class="chip filter${fail ? " fail" : ""}${skipped ? " skipped" : ""}${shop === key ? " active" : ""}" data-shop="${esc(key)}"
-      ${skipped ? `data-fetch="${esc(key)}"` : `aria-pressed="${shop === key}"`} ${disabled || fetching ? "disabled" : ""} ${title ? `title="${esc(title)}"` : ""}>${esc(label)}${
+      ${skipped ? `data-fetch="${esc(key)}"` : fail ? `data-fail aria-disabled="true"` : `aria-pressed="${shop === key}"`} ${disabled || fetching ? "disabled" : ""} ${title ? `title="${esc(title)}"` : ""}>${esc(label)}${
         count === undefined ? "" : ` · ${count}`}${
         skipped ? (fetching ? " · fetching…" : `<span class="idle"> · skipped</span><span class="on-hover"> · Fetch now</span>`) : ""}</button>`;
   // counts match the "N matches" line: real matches only; a shop with only weaker matches stays clickable
   const matchCount = key => search.results.filter(r => r.score >= STRONG && (!key || r.shop === key)).length;
-  const chips = chip("", "All shops", { count: matchCount("") }) + search.shops.map(s => s.ok
+  // "All shops" first, then the shops A to Z
+  const byName = [...search.shops].sort((a, b) => a.name.localeCompare(b.name));
+  const chips = chip("", "All shops", { count: matchCount("") }) + byName.map(s => s.ok
     ? chip(s.key, s.name, { count: matchCount(s.key), disabled: !s.count })
     : s.skipped
       ? chip(s.key, s.name, { skipped: true, fetching: fetching.has(s.key), title: "Not searched: you chose to show results early. Click to search it now." })
-      : chip(s.key, s.name + " · failed", { disabled: true, fail: true, title: s.error })).join("");
+      : chip(s.key, s.name + " · failed", { fail: true, title: s.error })).join("");
   const shopName = shop && search.shops.find(s => s.key === shop)?.name;
   const skipped = search.shops.filter(s => s.skipped).length;
 
@@ -733,7 +762,9 @@ function renderSearch() {
   $("#sort").onchange = renderSearch;
   $("#search-all")?.addEventListener("click", (e) => { e.preventDefault(); runSearch(search.query); });
   out.querySelectorAll(".chip[data-fetch]").forEach(btn => { btn.onclick = () => fetchSkipped(btn.dataset.fetch); });
-  out.querySelectorAll(".chip.filter:not([data-fetch])").forEach(btn => {
+  // a failed shop can't be filtered to, but a click says why it failed
+  out.querySelectorAll(".chip[data-fail]").forEach(btn => { btn.onclick = () => toast(`${btn.textContent.trim()}: ${btn.title}`); });
+  out.querySelectorAll(".chip.filter:not([data-fetch]):not([data-fail])").forEach(btn => {
     btn.onclick = () => {
       // clicking the active shop again goes back to all shops
       shopFilter = btn.dataset.shop === shopFilter ? "" : btn.dataset.shop;
@@ -816,7 +847,7 @@ function resultRow(p) {
     <div class="row">
       ${thumb(p)}
       <div>
-        <a class="name" href="${esc(p.url)}" target="_blank" rel="noopener">${esc(p.name)}</a>
+        <a class="name" href="${esc(safeUrl(p.url))}" target="_blank" rel="noopener">${esc(p.name)}</a>
         <div class="meta">${esc(p.shop_name)}${p.old_price ? ' · <span class="badge sale">Sale</span>' : ""}${p.pack > 1 ? ` · pack of ${p.pack}` : ""}</div>
       </div>
       <div class="actions">
@@ -837,8 +868,11 @@ function resultRow(p) {
 /* ---------- parts list ---------- */
 $("#list-run").addEventListener("click", () => runList($("#list-text").value));
 
+let listRun = 0; // bumped by each pricing, so an older one finishing late doesn't replace it
+
 async function runList(text) {
   if (!text.trim()) { toast("Paste at least one part"); return; }
+  const run = ++listRun;
   const out = $("#list-out");
   const btn = $("#list-run");
   btn.disabled = true;
@@ -846,7 +880,9 @@ async function runList(text) {
   out.innerHTML = loadingHtml(`Pricing ${n} part${n === 1 ? "" : "s"} across all shops…`, n, "parts");
   const progress = out.querySelector(".progress");
   try {
-    listData = await priceList(text, (done, total) => setProgress(progress, done, total, "parts"));
+    const data = await priceList(text, (done, total) => setProgress(progress, done, total, "parts"));
+    if (run !== listRun) return;
+    listData = data;
     listText = text;
     // default pick: cheapest total cost for the quantity (candidates are strong matches when any exist)
     // default pick: among the closest matches, the cheapest for the quantity needed
@@ -859,10 +895,11 @@ async function runList(text) {
     });
     defaultPicks = picks.slice();
     renderList();
+    announce(`Priced ${listData.lines.length} part${listData.lines.length === 1 ? "" : "s"}`);
   } catch (e) {
-    out.innerHTML = `<div class="empty">${esc(e.message)}</div>`;
+    if (run === listRun) out.innerHTML = `<div class="empty">${esc(e.message)}</div>`;
   } finally {
-    btn.disabled = false;
+    if (run === listRun) btn.disabled = false;
   }
 }
 
@@ -942,7 +979,7 @@ function renderList() {
           </tr>`).join("")}
       </tbody>
     </table>
-    <p class="hint">Shop totals use the same close matches as the ${mixLabel.toLowerCase()}${found < lines.length ? " and skip parts no shop has" : ""}. Shipping isn't included.</p>
+    <p class="hint">Shop totals use the same close matches as the picks above${found < lines.length ? " and skip parts no shop has" : ""}. Shipping isn't included.${listData.left_out ? ` Only the first ${lines.length} lines were priced; ${listData.left_out} more ${listData.left_out === 1 ? "was" : "were"} left out.` : ""}</p>
   `;
 
   out.querySelectorAll("select[data-line]").forEach(sel => {
@@ -965,7 +1002,7 @@ function lineRow(line, i) {
         <span class="cost">${money(lineCost(line, c))}</span>
       </div>
       <div class="meta">
-        <a href="${esc(c.url)}" target="_blank" rel="noopener">${esc(c.name)}</a> · ${esc(c.shop_name)} ·
+        <a href="${esc(safeUrl(c.url))}" target="_blank" rel="noopener">${esc(c.name)}</a> · ${esc(c.shop_name)} ·
         ${c.pack > 1 ? `${packs} pack${packs === 1 ? "" : "s"} of ${c.pack} at ${money(c.price)}` : `${money(c.price)} each`}
       </div>
       ${line.candidates.length > 1 ? `
@@ -1044,6 +1081,23 @@ document.addEventListener("click", e => {
   document.querySelectorAll("details.menu[open]").forEach(d => { if (!d.contains(e.target)) d.open = false; });
 });
 
+// in an open menu: Escape closes it, the arrow keys move between its items
+document.addEventListener("keydown", e => {
+  const menu = e.target.closest?.("details.menu[open]");
+  if (!menu) return;
+  const items = [...menu.querySelectorAll('[role="menuitem"]')];
+  if (e.key === "Escape") {
+    e.preventDefault();
+    menu.open = false;
+    menu.querySelector("summary").focus();
+  } else if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+    e.preventDefault();
+    const i = items.indexOf(document.activeElement);
+    const next = e.key === "ArrowDown" ? (i + 1) % items.length : (i <= 0 ? items.length : i) - 1;
+    items[next]?.focus();
+  }
+});
+
 async function loadSaved(refresh = false) {
   const out = $("#saved-out");
   if (!refresh && !saved.items.length && !saved.lists.length) out.innerHTML = `<div class="loading">Loading…</div>`;
@@ -1067,6 +1121,8 @@ function renderSaved() {
   const out = $("#saved-out");
   const { items, lists } = saved;
   const lastCheck = items.map(i => i.checked_at).sort().pop();
+  const buyable = it => it.available && it.in_stock;
+  const unbuyable = items.filter(it => !buyable(it)).length;
   out.innerHTML = `
     <div class="toolbar" style="margin-top:0">
       <div class="grow">
@@ -1079,8 +1135,8 @@ function renderSaved() {
     </div>
     ${items.length ? `<div class="list">${items.map(savedRow).join("")}</div>
       <div class="total-bar">
-        <span>${items.length} item${items.length === 1 ? "" : "s"}</span>
-        <span class="total">Total ${money(items.reduce((sum, it) => sum + it.price, 0))}</span>
+        <span>${items.length} item${items.length === 1 ? "" : "s"}${unbuyable ? ` · ${unbuyable} out of stock, not counted` : ""}</span>
+        <span class="total">Total ${money(items.filter(buyable).reduce((sum, it) => sum + it.price, 0))}</span>
       </div>`
       : `<div class="empty boxed">Nothing saved yet. Tap ☆ on a search result to save it.</div>`}
 
@@ -1163,7 +1219,7 @@ function savedRow(it) {
     <div class="row">
       ${thumb(it)}
       <div>
-        <a class="name" href="${esc(it.url)}" target="_blank" rel="noopener">${esc(it.name)}</a>
+        <a class="name" href="${esc(safeUrl(it.url))}" target="_blank" rel="noopener">${esc(it.name)}</a>
         <div class="meta">${esc(it.shop_name)} · price when saved ${money(it.saved_price)} ${status}</div>
       </div>
       <div class="actions">
@@ -1223,7 +1279,8 @@ showTab();
 saved = getSaved();
 savedKeys = new Set(saved.items.map(key));
 updateSavedCount();
-warmUp();
+// the catalogs searched in the browser are a few MB, so they load once a search is being typed
+for (const el of [$("#q"), $("#list-text")]) el.addEventListener("input", warmUp, { once: true });
 </script>
 <!-- Cloudflare Web Analytics: page views only, no cookies -->
 <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "682b699925714d4993f77f2d490389f7"}'></script>

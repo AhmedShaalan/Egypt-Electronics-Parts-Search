@@ -32,11 +32,13 @@ async function searchShop(shop, query, skip) {
   let items = [];
   try {
     const queries = [query, ...searchVariants(query)];
-    const batches = await Promise.race([
-      Promise.all(queries.map((q) => shop.search(q, controller.signal))),
+    const settled = await Promise.race([
+      Promise.allSettled(queries.map((q) => shop.search(q, controller.signal))),
       giveUp,
     ]);
-    items = batches.flat();
+    // the variants only widen the search, so only the query itself failing fails the shop
+    if (settled[0].status === "rejected") throw settled[0].reason;
+    items = settled.flatMap((r) => (r.status === "fulfilled" ? r.value : []));
     Object.assign(status, { ok: true, count: 0 });
   } catch (err) {
     // one broken shop must not break the search
@@ -99,33 +101,75 @@ function remember(result) {
   for (const [k, v] of cache) if (v.expires < Date.now()) cache.delete(k);
 }
 
-// Searches one shop that was skipped earlier and returns a copy of `result` with it merged in.
-export async function fetchShop(result, key) {
-  const { items, status } = await searchShop(SHOPS_BY_KEY[key], result.query);
-  const results = sortResults([...result.results.filter((r) => r.shop !== key), ...scoreItems(result.query, items, status)]);
-  const merged = { ...result, results, shops: result.shops.map((s) => (s.key === key ? status : s)) };
+// Searches one shop that was skipped earlier. mergeShop() then puts it into a result;
+// the two are apart so it goes into whatever the result is by the time the shop answers.
+export async function fetchShop(query, key) {
+  const { items, status } = await searchShop(SHOPS_BY_KEY[key], query);
+  return { key, status, results: scoreItems(query, items, status) };
+}
+
+// a copy of `result` with a shop from fetchShop() in it
+export function mergeShop(result, fetched) {
+  const { key } = fetched;
+  const results = sortResults([...result.results.filter((r) => r.shop !== key), ...fetched.results]);
+  const merged = { ...result, results, shops: result.shops.map((s) => (s.key === key ? fetched.status : s)) };
   // once nothing is skipped the result is as good as a normal search
   if (!merged.shops.some((s) => s.skipped)) remember(merged);
   return merged;
 }
 
-// options: onProgress(done, total) per finished shop; skip, an AbortSignal that
-// stops waiting for the shops still running and returns what is already in
-export async function searchAll(query, options = {}) {
-  const key = tokens(query).join(" ") || query.trim().toLowerCase();
+const searchKey = (query) => tokens(query).join(" ") || query.trim().toLowerCase();
+
+// options: onProgress(done, total) per finished shop; skip, an AbortSignal that stops waiting
+// for the shops still running and returns what is already in; cancel, an AbortSignal for a
+// caller that no longer wants the answer. Identical searches running at once share one run,
+// which stops early (like a skip) once every caller has cancelled.
+export async function searchAll(query, { onProgress, skip, cancel } = {}) {
+  const key = searchKey(query);
   const hit = cache.get(key);
   if (hit && Date.now() < hit.expires) return { ...hit.result, cached: true };
-  if (!inflight.has(key)) {
-    // identical concurrent searches share one run (only the first caller sees progress)
-    inflight.set(key, runSearch(query, options).finally(() => inflight.delete(key)));
+  let run = inflight.get(key);
+  if (!run) {
+    const stop = new AbortController();
+    run = { stop, listeners: new Set(), callers: 0, done: 0 };
+    const progress = (done, total) => {
+      run.done = done;
+      for (const f of run.listeners) f(done, total);
+    };
+    run.promise = runSearch(query, { onProgress: progress, skip: stop.signal }).finally(() => {
+      if (inflight.get(key) === run) inflight.delete(key);
+    });
+    inflight.set(key, run);
   }
-  const result = await inflight.get(key);
-  // a skipped search is deliberately incomplete: searching again should hit every shop
-  if (!result.shops.some((s) => s.skipped)) remember(result);
-  return { ...result, cached: false };
+  run.callers++;
+  if (onProgress) {
+    run.listeners.add(onProgress);
+    if (run.done) onProgress(run.done, SHOPS.length);
+  }
+  const onSkip = () => run.stop.abort();
+  const onCancel = () => {
+    run.listeners.delete(onProgress);
+    if (--run.callers > 0) return;
+    // nobody is waiting any more: a new identical search starts afresh
+    if (inflight.get(key) === run) inflight.delete(key);
+    run.stop.abort();
+  };
+  if (skip?.aborted) onSkip();
+  skip?.addEventListener("abort", onSkip, { once: true });
+  cancel?.addEventListener("abort", onCancel, { once: true });
+  try {
+    const result = await run.promise;
+    // a skipped search is deliberately incomplete: searching again should hit every shop
+    if (!result.shops.some((s) => s.skipped)) remember(result);
+    return { ...result, cached: false };
+  } finally {
+    run.listeners.delete(onProgress);
+    skip?.removeEventListener("abort", onSkip);
+    cancel?.removeEventListener("abort", onCancel);
+  }
 }
 
-// Start loading the Shopify catalogs so the first search is fast.
+// Start loading the catalogs searched in the browser (Shopify, Electra, MTM) so the first search is fast.
 export function warmUp() {
   for (const shop of SHOPS) shop.catalog?.().catch(() => {});
 }
@@ -134,8 +178,10 @@ export function warmUp() {
 
 const BULLET = /^\s*(?:[-*•·]|\d+[.)])\s+/;
 const QTY_PATTERNS = [
-  /^(?<q>.+?)\s+[x×*]\s*(?<n>\d+)\s*(?:pcs?|pieces)?$/i, // LM7805 x2
-  /^(?<n>\d+)\s*[x×*]\s+(?<q>.+)$/i, // 2x LM7805
+  // LM7805 x2, but not a size: LCD 16 x 2
+  /^(?<q>.+?)(?<!\s\d{1,2})\s+[x×*]\s*(?<n>\d+)\s*(?:pcs?|pieces)?$/i,
+  // 2x LM7805, but not a size: 16 x 2 LCD
+  /^(?<n>\d+)\s*[x×*]\s+(?!\d{1,2}\s)(?<q>.+)$/i,
   /^(?<q>.+?)\s*[\t,;]\s*(?<n>\d+)\s*(?:pcs?|pieces)?$/i, // LM7805, 2
   /^(?<q>.+?)\s+(?<n>\d+)\s*(?:pcs?|pieces)$/i, // LM7805 2pcs
   /^(?<n>\d+)\s*(?:pcs?|pieces)\s+(?<q>.+)$/i, // 2pcs LM7805
@@ -144,9 +190,12 @@ const QTY_PATTERNS = [
 ];
 
 // A list written as a spec sheet keeps its notes after a comma or in brackets:
-// "relay DPDT, 12 V coil (HK19F class)" is searched as "relay DPDT".
+// "relay DPDT, 12 V coil (HK19F class)" is searched as "relay DPDT". A single word or value
+// after a comma is part of the name, though: "Resistor, 10k, 1/4W" is "Resistor 10k 1/4W".
 function partName(q) {
-  return q.replace(/\([^)]*\)/g, " ").split(",")[0].replace(/\s+/g, " ").trim() || q;
+  const [first, ...rest] = q.replace(/\([^)]*\)/g, " ").split(",");
+  const kept = rest.map((p) => p.trim().replace(/^(\d+(?:\.\d+)?)\s+(?=[a-zµμΩ]+$)/i, "$1")).filter((p) => p && !/\s/.test(p));
+  return [first, ...kept].join(" ").replace(/\s+/g, " ").trim() || q;
 }
 
 export function parseLine(line) {
@@ -174,7 +223,8 @@ async function mapLimited(items, max, fn) {
 
 // onProgress(done, total) is called as each distinct part is priced
 export async function priceList(text, onProgress) {
-  const parsed = text.split(/\r?\n/).map(parseLine).filter(Boolean).slice(0, MAX_LIST_LINES);
+  const all = text.split(/\r?\n/).map(parseLine).filter(Boolean);
+  const parsed = all.slice(0, MAX_LIST_LINES);
   const queries = [...new Set(parsed.map(([q]) => q))];
   // be gentle: at most 4 parts searched at once
   let done = 0;
@@ -201,6 +251,7 @@ export async function priceList(text, onProgress) {
     lines,
     shops: SHOPS.map((s) => ({ key: s.key, name: s.name, url: s.base })),
     failed_shops: [...failed.values()],
+    left_out: all.length - parsed.length, // lines past MAX_LIST_LINES
   };
 }
 
@@ -275,20 +326,23 @@ export function deleteItem(id) {
 }
 
 export async function refreshItems() {
-  const data = load();
+  const updates = new Map();
   let failed = 0;
-  await mapLimited(data.items, 6, async (it) => {
+  await mapLimited(load().items, 6, async (it) => {
     const shop = SHOPS_BY_KEY[it.shop];
     if (!shop) return;
     try {
       const signal = AbortSignal.timeout(SHOP_TIMEOUT_MS);
       const result = await shop.check(it.ref, signal);
-      if (result === null) Object.assign(it, { available: false, in_stock: false, checked_at: now() });
-      else Object.assign(it, { price: result.price, in_stock: result.in_stock, available: true, checked_at: now() });
+      if (result === null) updates.set(it.id, { available: false, in_stock: false, checked_at: now() });
+      else updates.set(it.id, { price: result.price, in_stock: result.in_stock, available: true, checked_at: now() });
     } catch {
       failed++;
     }
   });
+  // saved again from scratch: items saved or removed while the prices were being checked stay that way
+  const data = load();
+  for (const it of data.items) if (updates.has(it.id)) Object.assign(it, updates.get(it.id));
   store(data);
   return { items: getSaved().items, failed };
 }
@@ -315,13 +369,18 @@ export function addToList(id, name, newName) {
     list = { id: data.nextId++, name: (newName || "").trim().slice(0, 80) || "Parts list", text: "", saved_total: null, saved_at: now() };
     data.lists.push(list);
   }
-  const line = name.replace(/\s+/g, " ").trim();
-  const [query] = parseLine(line);
+  // a leading "#" or bullet would make the line a comment or be dropped
+  const line = name.replace(/\s+/g, " ").replace(/^[\s#*•·-]+/, "").trim() || "Part";
+  // the product's own name is the line; " xN" is added whenever the name alone would read
+  // differently ("Resistor 10K 40pcs" is not 40 of them, "1 Screw driver" not 1 screwdriver)
+  const plain = String(parseLine(line)) === String(parseLine(`${line} x1`));
+  const withQty = (n) => (n === 1 && plain ? line : `${line} x${n}`);
+  const qtyOf = (l) => Number(l.match(/\s+x(\d+)$/i)?.[1] || 1);
   const lines = list.text.split("\n").filter((l) => l.trim());
-  const same = lines.findIndex((l) => parseLine(l)?.[0].toLowerCase() === query.toLowerCase());
-  if (same >= 0) lines[same] = `${line} x${parseLine(lines[same])[1] + 1}`;
+  const same = lines.findIndex((l) => l.trim().replace(/\s+x\d+$/i, "").toLowerCase() === line.toLowerCase());
+  if (same >= 0) lines[same] = withQty(qtyOf(lines[same]) + 1);
   else if (lines.length >= MAX_LIST_LINES) throw new Error(`That list is full: a list can have ${MAX_LIST_LINES} parts`);
-  else lines.push(line);
+  else lines.push(withQty(1));
   list.text = lines.join("\n");
   list.saved_total = null; // the total it was saved at no longer covers the list
   if (!store(data)) throw new Error("Couldn't save: this browser blocks storage");

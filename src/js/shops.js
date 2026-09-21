@@ -3,8 +3,9 @@
 
 // One connector per store platform. Each shop can search, and re-check a saved product's price.
 //
-// Shopify shops allow browsers to read their data directly. The others don't (no CORS),
-// so their requests go through the Cloudflare Worker relay in worker/.
+// Shopify, El Gammal, MTM, VoltX and Electra's catalog allow browsers to read their data
+// directly. The others don't (no CORS), so their requests go through the Cloudflare Worker
+// relay in worker/.
 
 import { RELAY_URL } from "./config.js";
 import { score, WEAK } from "./matching.js";
@@ -500,7 +501,9 @@ class ElectraShop extends CatalogShop {
       const head = await (await ok(r)).text();
       const availability = head.match(/"availability"\s*:\s*"[^"]*\/(\w+)"/);
       const price = head.match(/"priceCurrency"\s*:\s*"[A-Z]+"\s*,\s*"price"\s*:\s*"([\d.,]+)"/);
-      if (availability && price) offer = { in_stock: availability[1] === "InStock", price: parseMoney(price[1]) };
+      // a page that can't be read says nothing about the product, so it isn't "no longer listed"
+      if (!availability || !price) throw new Error("Offer not found on product page");
+      offer = { in_stock: availability[1] === "InStock", price: parseMoney(price[1]) };
     }
     this.offers.set(slug, { expires: Date.now() + HOUR, offer });
     return offer;
@@ -613,8 +616,16 @@ class VoltxShop extends Shop {
   }
 
   async check(ref, signal) {
-    const d = await (await ok(await fetch(`${this.api}/${encodeURIComponent(ref)}`, { signal }))).json();
-    if (!d || !d.product_id) return null;
+    // kits ("bundle_6") are looked up as bundles, which carry a status but no stock count
+    const bundle = ref.match(/^bundle_(\d+)$/);
+    const r = await fetch(bundle ? `${this.base}/api/bundles/${bundle[1]}` : `${this.api}/${encodeURIComponent(ref)}`, { signal });
+    if (r.status === 404) return null;
+    const d = await (await ok(r)).json();
+    if (bundle) {
+      if (!d?.bundle_id) return null;
+      return { ...this.price({ ...d, sell_price: d.total_price }), in_stock: d.status !== "out_of_stock" };
+    }
+    if (!d?.product_id) return null;
     return { ...this.price(d), in_stock: Number(d.stock_quantity || 0) > 0 };
   }
 }

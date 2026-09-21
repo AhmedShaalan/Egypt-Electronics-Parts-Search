@@ -5,5 +5,6 @@ compatibility_date = "2026-09-01"
 [vars]
 # sites allowed to use the relay (comma-separated origins)
 ALLOWED_ORIGINS = "https://parts.ahmedshaalan.com,https://ahmedshaalan.github.io"
-# also allow http://localhost:<port> for local development
-ALLOW_LOCALHOST = "true"
+# also allow http://localhost:<port>; only for local development, where
+# `npx wrangler dev --var ALLOW_LOCALHOST:true` turns it on
+ALLOW_LOCALHOST = "false"

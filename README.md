@@ -71,7 +71,7 @@ Type a part number or a description: `LM7805`, `ESP32`, `10k resistor`, `HC-SR04
 | You'll see | What it means |
 |---|---|
 | `UGE · 27` | UGE returned 27 matching in-stock products |
-| `UGE · failed` (red) | That shop didn't answer. Hover for the reason. It's retried after 2 minutes, not an hour |
+| `UGE · failed` (red) | That shop didn't answer. Hover or click it for the reason. It's retried after 2 minutes, not an hour |
 | `UGE · skipped` (amber) | You pressed **Show results so far** before this shop answered. Hover and click **Fetch now** to search just this shop and merge its results in |
 | **Show results so far** | Appears under the progress bar once the first shop answers. Stops waiting for the rest and shows what's in |
 | **Sale** | The shop is discounting it; the original price is struck through |
@@ -95,7 +95,7 @@ HC-SR04
 16x2 LCD
 ```
 
-Bullets and numbering are ignored, `#` lines are treated as comments, and names like `16x2 LCD`, `12 V relay`, `4 channel relay` or `555 timer` aren't mistaken for a quantity. Lists written as a spec sheet work too: notes after the first comma or in brackets are left out of the search, so the line above is searched as `relay DPDT`. Up to 40 lines per list.
+Bullets and numbering are ignored, `#` lines are treated as comments, and names like `16x2 LCD`, `16 x 2 LCD`, `12 V relay`, `4 channel relay` or `555 timer` aren't mistaken for a quantity. Lists written as a spec sheet work too: notes after a comma or in brackets are left out of the search, so the line above is searched as `relay DPDT`. A single word or value after a comma stays: `Resistor, 10k, 1/4W` is searched as `Resistor 10k 1/4W`. Up to 40 lines per list; the result says if any lines were left out.
 
 - **Cheapest mix:** for each part, the cheapest close match from any shop.
 - **Everything from one shop:** the cheapest shop that has every part, and how much more it costs than the mix. Buying from one shop usually saves on shipping, which isn't included in either total.
@@ -103,7 +103,7 @@ Bullets and numbering are ignored, `#` lines are treated as comments, and names 
 
 ### Saved
 
-Items and lists you've starred. **Refresh prices** re-checks each saved item directly at its shop. Items that disappeared are marked **No longer listed**.
+Items and lists you've starred. **Refresh prices** re-checks each saved item directly at its shop. Items that disappeared are marked **No longer listed**. The total counts only what's in stock.
 
 Saved items live in your browser's storage, so they're private to that browser and device. Clearing site data or using a private window removes them.
 
@@ -146,16 +146,16 @@ The catch: browsers only let a website read another site's data if that site all
 2. **Widen the net.** Shop search engines match text literally, and WooCommerce matches several words as one phrase, so the app also sends variants: `12 V 2 A` → `12v 2a`, `Mini-360 buck converter` → `mini360`, `XKC-Y25-NPN level sensor` → `xkc-y25`, `power supply with barrel jack` → `power supply`, `LM7805` → `7805`, `16x2 LCD` → `1602 LCD`. Variants only widen what the shops return; scoring still decides what matches.
 3. **Score.** Every product name is scored 0–100 against your query (see below). Scores of 70+ are shown as matches, 45–69 as weaker matches, and anything lower is dropped.
 4. **Filter and sort.** Out-of-stock and zero-price items are removed, and results are sorted by score, then price.
-5. **Cache.** Results are kept for an hour (2 minutes if any shop failed). A search with skipped shops isn't cached until every skipped shop has been fetched, so searching again asks all of them. The relay also caches shop responses for an hour, shared across everyone who uses the site.
+5. **Cache.** Results are kept for an hour (2 minutes if any shop failed). A search with skipped shops isn't cached until every skipped shop has been fetched, so searching again asks all of them. The relay also caches shop responses for an hour, shared across everyone who uses the site, so a price can be up to about two hours old. Starting a new search stops the one it replaces.
 
 ### The relay
 
-[`worker/src/index.js`](worker/src/index.js) is about 100 lines and deliberately dumb: all parsing and matching happen in the browser. It:
+[`worker/src/index.js`](worker/src/index.js) is about 140 lines and deliberately dumb: all parsing and matching happen in the browser. It:
 
-- only fetches from the shop domains it knows, so it can't be used as an open proxy
+- only fetches from the shop domains it knows, redirects included, so it can't be used as an open proxy
 - only answers requests from the site's own origin (plus `localhost` for development)
 - forwards just three headers (`x-api-key`, `content-type`, `accept`) and caps request bodies
-- caches successful shop responses for an hour at Cloudflare's edge
+- caches successful shop responses for an hour at Cloudflare's edge; errors aren't cached
 - can return just the first bytes of a response (`bytes=`), so a stock check on a 350 KB product page sends the browser 24 KB
 
 ### Matching
@@ -165,23 +165,26 @@ Matching is what makes the results trustworthy, so it gets its own module ([`src
 | Rule | Example |
 |---|---|
 | Part numbers match their core | `LM7805` matches `L7805CV` |
-| Values and part numbers must match | `10k resistor` does **not** match `910K` or `110 KOHM` |
+| Values and part numbers must match | `10k resistor` does **not** match `910K` or `110 KOHM`, and `4.7k` doesn't match `47K` |
+| Words match whole | `male header` doesn't match "Female Header" |
 | Plurals and suffixes match | `resistor` matches `Resistors`; `esp32` matches `ESP32-S3` |
 | Units and symbols are normalized | `Ω` → `ohm`, `µ` → `u`, `×` → `x` |
 | Values keep their units | `12 V` is `12v`, `250 mA` is `0.25A` and `220.0 ohm` is `220 ohm`, so `3.3V regulator` doesn't match a 3.3 ohm resistor, and `fuse 250mA` doesn't match a 2A 250V fuse |
 | Makers' names are optional | `Omron Power Relay G2R-2 12VDC` matches `RELAY G2R-2-12VDC`; a name without the maker isn't counted as a worse match |
 | Common aliases | `16x2` ↔ `1602`, `20x4` ↔ `2004`, `12864` → `128x64` |
-| Accessories rank lower | "Acrylic case **for** Arduino UNO" and "ESP32 **breakout**" score well below the board itself, unless the search is for the accessory: `fuse holder T5x20` matches "Fuse Holder on PCB **for** T5x20" |
-| Pack sizes are detected | "(10pcs)", "Pack of 5", "20 Pieces" |
+| Accessories rank lower | "Acrylic case **for** Arduino UNO" is a weaker match for `Arduino UNO`, and "ESP32 **breakout** board" scores below the ESP32 itself, unless the search is for the accessory: `fuse holder T5x20` matches "Fuse Holder on PCB **for** T5x20" |
+| Pack sizes are detected | "(10pcs)", "Pack of 5", "20 Pieces"; a kit ("Resistor Kit 600pcs") counts as one |
 
 In a parts list, the default pick for each line is the **cheapest product within 25 points of that line's best match**. That keeps `L7805CV` as an option for `LM7805`, but stops a cheap accessory from winning on price. Shop totals use the same rule, so the "cheapest mix" and "one shop" figures are always comparable.
 
 ### Per-shop details
 
 - **WooCommerce:** `GET /wp-json/wc/store/v1/products?search=…&stock_status[]=instock`, up to 60 results per query. Prices arrive in piasters and are converted to EGP.
-- **Shopify:** the suggest endpoint caps at 10 results, so the app loads the whole catalog from `products.json` (about 1,300 products, under 1 MB compressed), keeps it for an hour, and searches it locally. Loading starts as soon as the page opens, so the first search is fast.
+- **Shopify:** the suggest endpoint caps at 10 results, so the app loads the whole catalog from `products.json` (about 1,300 products, under 1 MB compressed), keeps it for an hour, and searches it locally. Loading starts as soon as you start typing a search or a list, so the first search is fast.
 - **Odoo (RAM):** parses up to 3 pages of `/shop?search=…`, then calls `get_combination_info` per product for the stock count. RAM slows down under load, so it gets at most 5 requests at a time, and stock lookups are cached for an hour.
 - **El Gammal (Supabase):** the storefront reads products straight from its Supabase database with a public, read-only "anon" key, and so does this app: the same product filters as the shop's own search page, then the shop's `get_online_stock` function per matching product (at most 6 at a time, cached for an hour). The internal code at the start of product names ("XX629-") is dropped. If the shop ever changes that key, it shows as `failed` until the key in `src/js/shops.js` is updated.
+- **Electra:** the store's own search only matches exact-case substrings, so the app downloads its catalog from `/api/v1/products` (about 5,300 products in 6 pages, allowed directly), keeps it for an hour and searches it locally. The API's stock count means nothing, so the product pages of the 20 best matches are read for their schema.org offer (price and availability), through the relay, which sends back only the page's first 24 KB. Offers are cached for an hour.
+- **MTM:** the backend hands out the whole catalog in one request (`/backend/public/api/products`, about 3 MB, allowed directly), so the app keeps it for an hour and searches it locally. Products without a price are left out.
 - **VoltX:** the storefront's own search API (`/api/products/search/public`) returns name, price, offer and stock in one response and allows browsers directly, so a search is a single request with no relay.
 - **Lampatronics:** the storefront is a JavaScript app backed by `/api/frontend/product`. The API requires the key the site embeds in every page. The app reads that key from the home page and re-reads it if it's ever rejected. Up to 3 pages of 50 results.
 
@@ -192,6 +195,10 @@ Egypt-Electronics-Parts-Search/
 ├── src/                    The website, published to GitHub Pages
 │   ├── index.html          UI: vanilla HTML/CSS/JS, no build step
 │   ├── icon.png            App icon (Icons8)
+│   ├── og-image.png        Link preview image
+│   ├── robots.txt, sitemap.xml
+│   ├── CNAME               The custom domain for GitHub Pages
+│   ├── google….html        Google Search Console verification
 │   └── js/
 │       ├── config.js       Relay URL, timeouts, cache times
 │       ├── shops.js        One connector per platform + the SHOPS list
@@ -225,7 +232,7 @@ npx wrangler deploy
 
 Wrangler prints the relay's address, like `https://egypt-parts-relay.yourname.workers.dev`.
 
-**3. Point the site at it.** Put that address in `PRODUCTION_RELAY` in [`src/js/config.js`](src/js/config.js). Also point the GitHub icon link in `src/index.html` at your fork: under the AGPL, visitors to your copy must be able to get its source. Then commit and push.
+**3. Point the site at it.** Put that address in `PRODUCTION_RELAY` in [`src/js/config.js`](src/js/config.js). Also point the GitHub icon link in `src/index.html` at your fork: under the AGPL, visitors to your copy must be able to get its source. Replace `parts.ahmedshaalan.com` with your own address in `src/index.html` (the canonical link, the `og:` and `twitter:` tags and the structured data), `src/sitemap.xml` and `src/robots.txt`, and delete `src/CNAME` and the Google verification file unless you use your own. Then commit and push.
 
 **4. Turn on GitHub Pages.** In your fork: **Settings → Pages → Build and deployment**, set **Source** to **GitHub Actions**. The included workflow ([`.github/workflows/pages.yml`](.github/workflows/pages.yml)) publishes `src/` on every push to `main` that touches it. Run it once from the **Actions** tab (or push a change) and the site appears at `https://yourname.github.io/<repo-name>/` about a minute later.
 
@@ -235,7 +242,7 @@ No build step. Run the relay and a static file server side by side:
 
 ```sh
 # terminal 1: the relay on http://localhost:8787
-cd worker && npx wrangler dev
+cd worker && npx wrangler dev --var ALLOW_LOCALHOST:true
 
 # terminal 2: the site on http://localhost:8766
 python3 -m http.server 8766 -d src
@@ -251,7 +258,7 @@ Open <http://localhost:8766>. On `localhost`, the site automatically uses the lo
 new WooShop("newshop", "New Shop", "https://newshop.com"),
 ```
 
-If the shop doesn't allow browsers to read its data (most don't), also add its hostname to `SHOP_HOSTS` in [`worker/src/index.js`](worker/src/index.js) and redeploy the relay.
+WooCommerce and Odoo shops are always fetched through the relay, so also add the hostname to `SHOP_HOSTS` in [`worker/src/index.js`](worker/src/index.js) and redeploy the relay. Shopify shops allow browsers directly and don't need it.
 
 To check a WooCommerce shop first, this should return JSON:
 
@@ -286,7 +293,8 @@ class MyShop extends Shop {
 | Max lines in a parts list | `MAX_LIST_LINES` in `src/js/config.js` | 40 |
 | Match thresholds | `STRONG` / `WEAK` in `src/js/matching.js` | 70 / 45 |
 | Aliases | `ALIASES` in `src/js/matching.js` | 16x2 ↔ 1602, … |
-| Sites allowed to use the relay | `ALLOWED_ORIGINS` in `worker/wrangler.toml` | the GitHub Pages origin |
+| Sites allowed to use the relay | `ALLOWED_ORIGINS` in `worker/wrangler.toml` | parts.ahmedshaalan.com and the GitHub Pages origin |
+| Allow `localhost` too | `ALLOW_LOCALHOST` in `worker/wrangler.toml` | off (turned on by `wrangler dev --var ALLOW_LOCALHOST:true`) |
 | Relay cache | `CACHE_SECONDS` in `worker/src/index.js` | 1 h |
 
 ## Privacy
@@ -301,7 +309,6 @@ class MyShop extends Shop {
 - **Shipping isn't included** in any total.
 - **Shops change.** A site redesign or platform switch can break its connector. The shop then shows as `failed` rather than returning wrong data.
 - **A shop may block the relay.** Shops can refuse requests coming from Cloudflare's servers; that shop then shows as `failed`.
-- **Makers Electronics blocks its product images** on other sites, so its results show a placeholder.
 - **Only shops with a real online store are covered.** Shops that sell only through Facebook or WhatsApp can't be searched.
 - **Saved items don't sync** between browsers or devices.
 
@@ -310,7 +317,8 @@ class MyShop extends Shop {
 This app reads the same public product data your browser does when you shop, and is built to go easy on the shops:
 
 - The relay caches every shop response for an hour, shared by all visitors
-- Shopify catalogs are fetched at most once an hour per visitor
+- The catalogs searched in the browser (the Shopify shops, Electra and MTM) are fetched at most once an hour per visitor, and only once they start typing
+- Starting a new search stops the requests of the one it replaces
 - A parts list searches at most 4 parts at a time, and RAM, the slowest shop, gets at most 5 requests at once
 - Saved-item refreshes check at most 6 items at a time
 

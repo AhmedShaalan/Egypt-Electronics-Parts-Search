@@ -33,6 +33,7 @@ const FORWARDED_HEADERS = ["x-api-key", "content-type", "accept"];
 const CACHE_SECONDS = 3600;
 const MAX_BODY = 4096;
 const MAX_BYTES = 256 * 1024; // the most a page can ask to be kept of a shop's response
+const MAX_REDIRECTS = 5;
 
 export default {
   async fetch(request, env, ctx) {
@@ -77,15 +78,29 @@ export default {
 
     // POST responses can't be cached by URL alone, so the cache key includes the body
     const cache = caches.default;
+    // and the headers passed through, which can change the answer too
+    const forwarded = FORWARDED_HEADERS.map((name) => headers[name] || "").join("\n");
     const cacheKey = new Request(
-      `https://relay-cache.internal/${request.method}/${await sha256(url.href + "\n" + (body || "") + "\n" + (headers["x-api-key"] || "") + "\n" + bytes)}`,
+      `https://relay-cache.internal/${request.method}/${await sha256([url.href, body || "", forwarded, bytes].join("\n"))}`,
     );
     const hit = await cache.match(cacheKey);
     if (hit) return withHeaders(hit, { ...cors, "X-Relay-Cache": "HIT" });
 
+    // redirects are followed here, so each hop can be held to the same list of shops
     let upstream;
     try {
-      upstream = await fetch(url.href, { method: request.method, headers, body, redirect: "follow" });
+      let method = request.method;
+      let payload = body;
+      for (let hops = 0; ; hops++) {
+        upstream = await fetch(url.href, { method, headers, body: payload, redirect: "manual" });
+        const location = upstream.headers.get("Location");
+        if (upstream.status < 300 || upstream.status >= 400 || !location) break;
+        if (hops >= MAX_REDIRECTS) return text("Too many redirects", 502, cors);
+        url = new URL(location, url);
+        if (url.protocol !== "https:" || !SHOP_HOSTS.has(url.hostname)) return text("Shop redirected elsewhere", 502, cors);
+        // like a browser: a POST that is redirected (other than 307/308) becomes a GET
+        if (upstream.status !== 307 && upstream.status !== 308) [method, payload] = ["GET", null];
+      }
     } catch (err) {
       return text(`Shop unreachable: ${err.message}`, 502, cors);
     }
@@ -94,7 +109,8 @@ export default {
       status: upstream.status,
       headers: {
         "Content-Type": upstream.headers.get("Content-Type") || "application/octet-stream",
-        "Cache-Control": `public, max-age=${CACHE_SECONDS}`,
+        // only a good answer is kept, by the browser too: an error is asked again next time
+        "Cache-Control": upstream.status === 200 ? `public, max-age=${CACHE_SECONDS}` : "no-store",
       },
     });
     if (upstream.status === 200) ctx.waitUntil(cache.put(cacheKey, response.clone()));

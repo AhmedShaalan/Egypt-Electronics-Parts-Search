@@ -20,6 +20,22 @@ What changed on [parts.ahmedshaalan.com](https://parts.ahmedshaalan.com/), newes
   - Searches reach more of each shop's stock: model numbers are also searched on their own (`Mini360`, `XKC-Y25`), and `12 V` is searched as `12v` the way shops write it.
 - The loading spinner is gone; the progress bar replaces it.
 - The link preview image shows the current address and all 16 shops.
+- The shop chips under the search box are in A–Z order.
+- The large shop catalogs (a few MB) download once you start typing, not on every visit, and matching them is about 8× faster.
+- The Saved total counts only items that are in stock.
+
+### Fixed
+- Decimal values no longer match ten times the value: `4.7k` doesn't match 47K, `1.5A fuse` doesn't match 15 A, `22pF` doesn't match 2.2 pF.
+- A word no longer matches inside another: `male header` doesn't match "Female Header".
+- Parts lists: `Resistor, 10k` keeps its value, `16 x 2 LCD` is one LCD and not 16, and a list over 40 lines says how many lines were left out.
+- Add to list: a product whose name ends in a pack size ("… 40pcs") or starts with `#` is added as itself, with the right quantity.
+- Clicking **Fetch now** on several skipped shops at once keeps all of their results.
+- A new search stops the one it replaces, and repeating a search that is still running keeps its progress bar moving.
+- Opening a saved list while another list is being priced no longer mixes up the results.
+- Refreshing saved prices no longer loses items saved or removed meanwhile; VoltX kits can be re-checked, and removed VoltX products show as no longer listed.
+- A failed shop's chip shows why it failed when clicked, menus work with the keyboard (arrows, Escape), screen readers hear when results arrive, and the saved star is easier to see in light mode.
+- Shop links that aren't web addresses are never made clickable.
+- The relay no longer tells browsers to keep shop errors for an hour, and follows redirects only to the shops it knows.
 
 ## 2026-09-20
 
