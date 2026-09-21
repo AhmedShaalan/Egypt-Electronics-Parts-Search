@@ -77,6 +77,7 @@ Type a part number or a description: `LM7805`, `ESP32`, `10k resistor`, `HC-SR04
 | **Sale** | The shop is discounting it; the original price is struck through |
 | `0.50 EGP/pc` | The listing is a pack; this is the price per piece |
 | **Show N weaker matches** | Loosely related items (e.g. "PCB for ESP32"), kept out of the main list |
+| Copy, add to list, ☆ | Appear when you hover a result (always shown on phones). Copy puts its name, price, shop or link on the clipboard; add to list puts it in a saved parts list or a new one; ☆ saves it |
 
 ### Parts list
 
@@ -202,6 +203,7 @@ Egypt-Electronics-Parts-Search/
 ├── .github/
 │   ├── workflows/pages.yml Publishes src/ on every push to main
 │   └── screenshots/        Images for this README
+├── CHANGELOG.md            What changed, by date
 └── LICENSE                 GNU AGPL v3
 ```
 
@@ -319,6 +321,10 @@ If you run your own copy, please don't lower the cache times or raise the parall
 Vanilla JavaScript (ES modules) · [GitHub Pages](https://pages.github.com) · [Cloudflare Workers](https://workers.cloudflare.com)
 
 No framework, no build step, no dependencies.
+
+## Changelog
+
+What changed and when is in [CHANGELOG.md](CHANGELOG.md).
 
 ## Feedback
 
