@@ -363,7 +363,7 @@ No framework, no build step, no dependencies.
 
 ## Changelog
 
-What changed and when is in [CHANGELOG.md](CHANGELOG.md).
+What changed and when is in [CHANGELOG.md](CHANGELOG.md). Each version there is a git tag, so a copy of the MCP server can be kept on a known version (`git checkout v1.3.0`) or updated with `git pull`.
 
 ## Feedback
 

@@ -1,8 +1,8 @@
 # Changelog
 
-What changed on [parts.ahmedshaalan.com](https://parts.ahmedshaalan.com/), newest first. The site is updated as changes land, so entries are grouped by date rather than by version.
+What changed on [parts.ahmedshaalan.com](https://parts.ahmedshaalan.com/), newest first. The site is updated as changes land. Each entry is also a git tag (`v1.3.0`), which is the version to use if you run the [MCP server](mcp/) or your own copy.
 
-## 2026-09-21
+## 1.3.0 · 2026-09-21
 
 ### Added
 - An MCP server in `mcp/`: Claude and other AI assistants can search the shops, price a parts list and re-check a price, from your own computer. The new **AI** tab explains how to set it up.
@@ -39,12 +39,12 @@ What changed on [parts.ahmedshaalan.com](https://parts.ahmedshaalan.com/), newes
 - Shop links that aren't web addresses are never made clickable.
 - The relay no longer tells browsers to keep shop errors for an hour, and follows redirects only to the shops it knows.
 
-## 2026-09-20
+## 1.2.0 · 2026-09-20
 
 ### Added
 - Three shops: Electra Store, MTM Electronics and VoltX Electronics (16 in total).
 
-## 2026-09-19
+## 1.1.0 · 2026-09-19
 
 ### Added
 - Three shops: Free Electronics, HD Electronics and Circuit Electronics.
@@ -56,7 +56,7 @@ What changed on [parts.ahmedshaalan.com](https://parts.ahmedshaalan.com/), newes
 - The site moved to parts.ahmedshaalan.com.
 - Makers Electronics images load faster, through their image CDN.
 
-## 2026-09-17
+## 1.0.0 · 2026-09-17
 
 ### Added
 - First release: search RAM Electronics, Makers Electronics, Future Electronics, Micro Ohm, Most Electronic, DevBoards Market, Lampatronics, UGE and Ampere Electronics at once, with in-stock results only.
