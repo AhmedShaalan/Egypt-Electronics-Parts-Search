@@ -14,6 +14,14 @@ const UNIT_FIXES = [["Ω", "ohm"], ["ω", "ohm"], ["µ", "u"], ["μ", "u"], ["×
 // common names shops use interchangeably
 const ALIASES = { "16x2": "1602", "1602": "16x2", "20x4": "2004", "2004": "20x4", "12864": "128x64" };
 
+// makers' names: many shops leave them out, so a name without one isn't a worse match
+// (words that also mean something else, like "analog" or "finder", aren't listed)
+const BRANDS = new Set([
+  "omron", "songle", "hongfa", "schneider", "texas", "instruments", "stmicroelectronics", "nxp", "microchip",
+  "atmel", "infineon", "vishay", "onsemi", "fairchild", "toshiba", "panasonic", "murata", "espressif", "bosch",
+  "maxim", "renesas", "rohm", "nichicon", "rubycon",
+]);
+
 const ACCESSORY_WORDS = new Set(["for", "compatible"]);
 const ACCESSORY_NAMES = new Set([
   "adapter", "breakout", "base", "baseboard", "shield", "pcb", "cable", "case", "enclosure", "shell",
@@ -32,13 +40,19 @@ const longestDigitRun = (s) => (s.match(/\p{Nd}+/gu) || []).reduce((a, b) => (b.
 
 // "12 V", "250 mA", "10 k" -> "12v", "250ma", "10k", the way shops write values
 const UNIT_GAP = /(\d)\s+(v|mv|a|ma|mah|ah|w|kw|ohm|kohm|k|uf|nf|pf|mm|hz|khz|mhz)(?![0-9a-z])/g;
+// "220.0 ohm" -> "220 ohm"
+const ZERO_DECIMALS = /(\d)\.0+(?![0-9])/g;
+// "250mA" -> "0.25a", so it matches the shops that write 0.25A
+const MILLIAMPS = /(?<![0-9a-z.])(\d+(?:\.\d+)?)ma(?![0-9a-z])/g;
+// a value with its unit: 250ma, 12v, 10k, 100nf
+const VALUE = /^\d+(?:\.\d+)?(?:v|mv|vdc|vac|a|ma|mah|ah|w|kw|ohm|kohm|k|uf|nf|pf|mm|hz|khz|mhz)$/;
 // "Mini-360", "LM 7805" -> "mini360", "lm7805": a name and its model number written apart
 const NAME_NUMBER_GAP = /(^|[^0-9a-z])([a-z]{2,})[-\s](\d{3,})(?![0-9a-z])/g;
 
 function clean(s) {
   s = s.toLowerCase();
   for (const [a, b] of UNIT_FIXES) s = s.replaceAll(a, b);
-  return s.replace(UNIT_GAP, "$1$2");
+  return s.replace(ZERO_DECIMALS, "$1").replace(UNIT_GAP, "$1$2").replace(MILLIAMPS, (_, n) => `${Number(n) / 1000}a`);
 }
 
 export function tokens(s) {
@@ -74,7 +88,8 @@ function tokenWeight(t, nameTokens, nameCompact) {
     }
   }
   if (isDigit(t) && t.length >= 3 && nameTokens.some((nt) => foundIn(t, nt))) return 0.9; // 7805 ~ l7805cv
-  if (hasLetter(t) && hasDigit(t)) {
+  // a part number's digits can stand for it, a value's can't: 250ma is not 250v
+  if (hasLetter(t) && hasDigit(t) && !VALUE.test(t)) {
     const core = longestDigitRun(t);
     if (core.length >= 3 && nameTokens.some((nt) => foundIn(core, nt))) return 0.8; // lm7805 ~ l7805cv
   }
@@ -88,24 +103,32 @@ export function score(query, name) {
   const nameTokens = tokens(name);
   const nameCompact = compact(name);
   const weights = qTokens.map((t) => tokenWeight(t, nameTokens, nameCompact));
-  let s = (100 * weights.reduce((a, b) => a + b, 0)) / qTokens.length;
+  // a maker's name the product doesn't mention is left out rather than counted as missing,
+  // but only once a part number or value has matched: "Schneider contactor" still needs Schneider
+  const numbered = qTokens.some((t, i) => weights[i] > 0 && hasDigit(t));
+  const counted = qTokens.filter((t, i) => !numbered || weights[i] > 0 || !BRANDS.has(t)).length;
+  let s = (100 * weights.reduce((a, b) => a + b, 0)) / counted;
   // part numbers and values (7805, 10k, 100nf) must match; the words around them may not
   if (qTokens.some((t, i) => weights[i] === 0 && hasDigit(t))) s = Math.min(s, WEAK - 5);
   const cq = compact(query);
   if (cq.length >= 3 && foundIn(cq, nameCompact)) s += 10;
   s = Math.min(s, 100);
-  // "PCB for ESP32" is an accessory, not the ESP32 itself
+  // "PCB for ESP32" is an accessory, not the ESP32 itself,
+  // unless the search is for an accessory: "fuse holder" wants "Fuse Holder for T5x20"
+  const accessory = (t) => ACCESSORY_NAMES.has(t) || ACCESSORY_PREFIXES.some((p) => t.startsWith(p));
+  const inQuery = (t) => qTokens.some((q) => q.startsWith(t) || t.startsWith(q)); // wire ~ wires
   const raw = clean(name).split(SPLIT).map(stripDots).filter(Boolean);
   const matchedAt = raw
     .map((w, i) => (qTokens.some((t) => tokenWeight(t, [w], compact(w)) >= 0.8) ? i : -1))
     .filter((i) => i >= 0);
   const lastMatch = matchedAt.length ? Math.max(...matchedAt) : 0;
-  if (raw.slice(0, lastMatch).some((w) => ACCESSORY_WORDS.has(w) || (w.endsWith("for") && w.length > 3))) {
-    s -= 35;
-  } else if (
-    // boards, cables and cases that carry the part's name rank below the part
-    nameTokens.some((t) => (ACCESSORY_NAMES.has(t) || ACCESSORY_PREFIXES.some((p) => t.startsWith(p))) && !qTokens.includes(t))
+  if (
+    !qTokens.some(accessory) &&
+    raw.slice(0, lastMatch).some((w) => ACCESSORY_WORDS.has(w) || (w.endsWith("for") && w.length > 3))
   ) {
+    s -= 35;
+  } else if (nameTokens.some((t) => accessory(t) && !inQuery(t))) {
+    // boards, cables and cases that carry the part's name rank below the part
     s -= 30;
   }
   return Math.max(0, Math.trunc(s));
@@ -123,8 +146,10 @@ export function searchVariants(query) {
   // the shop doesn't write gets trimmed too (XKC-Y25-NPN -> XKC-Y25).
   const model = tidy
     .split(/\s+/)
+    .map((w) => w.replace(/^[^0-9a-z]+|[^0-9a-z]+$/g, "")) // "(t5x20mm)" -> "t5x20mm"
     .filter((w) => hasLetter(w) && hasDigit(w) && w.length >= 4)
-    .sort((a, b) => b.length - a.length)[0];
+    // a part number or size before a value: t5x20mm, not 0.25a
+    .sort((a, b) => VALUE.test(a) - VALUE.test(b) || b.length - a.length)[0];
   if (model) {
     if ((model.match(/-/g) || []).length >= 2) variants.push(model.slice(0, model.lastIndexOf("-")));
     variants.push(model);
@@ -136,7 +161,7 @@ export function searchVariants(query) {
       variants.push(q.replaceAll(t, ALIASES[t]));
       if (t.includes("x")) variants.push(q.replaceAll(t, t.replaceAll("x", "×")));
     }
-    if (hasLetter(t) && hasDigit(t)) {
+    if (hasLetter(t) && hasDigit(t) && !VALUE.test(t)) {
       const core = longestDigitRun(t);
       if (core.length >= 3) variants.push(q.replaceAll(t, core));
     }

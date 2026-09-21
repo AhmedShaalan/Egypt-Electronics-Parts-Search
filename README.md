@@ -166,9 +166,10 @@ Matching is what makes the results trustworthy, so it gets its own module ([`src
 | Values and part numbers must match | `10k resistor` does **not** match `910K` or `110 KOHM` |
 | Plurals and suffixes match | `resistor` matches `Resistors`; `esp32` matches `ESP32-S3` |
 | Units and symbols are normalized | `Ω` → `ohm`, `µ` → `u`, `×` → `x` |
-| Values keep their units | `12 V` is `12v` and `250 mA` is `250ma`, so `3.3V regulator` doesn't match a 3.3 ohm resistor |
+| Values keep their units | `12 V` is `12v`, `250 mA` is `0.25A` and `220.0 ohm` is `220 ohm`, so `3.3V regulator` doesn't match a 3.3 ohm resistor, and `fuse 250mA` doesn't match a 2A 250V fuse |
+| Makers' names are optional | `Omron Power Relay G2R-2 12VDC` matches `RELAY G2R-2-12VDC`; a name without the maker isn't counted as a worse match |
 | Common aliases | `16x2` ↔ `1602`, `20x4` ↔ `2004`, `12864` → `128x64` |
-| Accessories rank lower | "Acrylic case **for** Arduino UNO" and "ESP32 **breakout**" score well below the board itself |
+| Accessories rank lower | "Acrylic case **for** Arduino UNO" and "ESP32 **breakout**" score well below the board itself, unless the search is for the accessory: `fuse holder T5x20` matches "Fuse Holder on PCB **for** T5x20" |
 | Pack sizes are detected | "(10pcs)", "Pack of 5", "20 Pieces" |
 
 In a parts list, the default pick for each line is the **cheapest product within 25 points of that line's best match**. That keeps `L7805CV` as an option for `LM7805`, but stops a cheap accessory from winning on price. Shop totals use the same rule, so the "cheapest mix" and "one shop" figures are always comparable.
