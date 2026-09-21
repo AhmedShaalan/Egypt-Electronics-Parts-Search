@@ -3,7 +3,7 @@
 
 // Copying results and saved items to the clipboard, and the small menus that offer the formats.
 
-import { esc, money, toast } from "./common.js";
+import { money, toast } from "./common.js";
 
 // what the copy menu on the saved tab can put on the clipboard. Short formats are one item per
 // line; the one with links gives each item its own block. Lists with prices end with the total.
@@ -31,20 +31,6 @@ export function copyText(items, format) {
     text += `${format.block ? "\n\n" : "\n"}Total: ${money(items.reduce((sum, it) => sum + it.price, 0))}`;
   }
   return text;
-}
-
-// a copy icon that opens the format choices; with an id it copies that one item, otherwise the whole list
-export function copyMenu(title, id) {
-  const item = id == null ? "" : ` data-item="${esc(id)}"`;
-  return `<details class="menu${id == null ? "" : " right"}">
-    <summary class="icon-btn" title="${title}" aria-label="${title}">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-    </summary>
-    <div class="menu-list" role="menu">
-      <div class="menu-title">${id == null ? "Copy all" : "Copy"}</div>
-      ${COPY_FORMATS.map((f, i) => `<button type="button" role="menuitem" data-copy="${i}"${item}>${id == null ? f.label : f.one}</button>`).join("")}
-    </div>
-  </details>`;
 }
 
 // close an open menu when tapping anywhere else

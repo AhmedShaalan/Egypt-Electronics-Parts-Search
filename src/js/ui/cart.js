@@ -6,28 +6,6 @@
 import { SHOPS_BY_KEY } from "../shops.js";
 import { packsNeeded } from "../search.js";
 
-// a cart button in the parts list: shows its progress, and afterwards what it couldn't add
-export async function startCart(btn, key, entries) {
-  const label = btn.querySelector("span");
-  const idle = label.textContent;
-  const note = btn.closest("[data-cart-area]").querySelector(".cart-note");
-  const shop = SHOPS_BY_KEY[key].name;
-  const left = entries.filter(e => !e.product.cart).map(e => `“${e.line.query}”`);
-  btn.disabled = true;
-  note.textContent = "";
-  try {
-    await fillCart(key, entries, (done, total) => { label.textContent = done < total ? `${done + 1} of ${total}…` : idle; });
-    if (left.length) note.textContent = `Add ${left.join(", ")} on ${shop}'s page: ${left.length === 1 ? "it has" : "they have"} options to choose.`;
-  } catch (e) {
-    note.textContent = e.message;
-  } finally {
-    label.textContent = idle;
-    btn.disabled = false;
-  }
-}
-
-export const CART_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M2 3h3l2.7 12.4a1.5 1.5 0 0 0 1.5 1.1h8.9a1.5 1.5 0 0 0 1.5-1.1L21 7H6"/></svg>`;
-
 // the link that puts one product into its shop's cart, or null when it can't be done from here
 export const cartLink = p => p.cart ? SHOPS_BY_KEY[p.shop]?.cartSteps?.([{ ...p, qty: 1 }])[0] ?? null : null;
 export const cartShop = key => typeof SHOPS_BY_KEY[key]?.cartSteps === "function";
@@ -48,7 +26,7 @@ async function until(test, ms) {
 // they are left out. Each link has to reach the shop before the next, or the shop could
 // start a second cart: the tab goes back to a blank page of this site in between, and the shop's
 // page taking its place shows the shop has answered. `onStep(done, total)` reports progress.
-async function fillCart(key, entries, onStep) {
+export async function fillCart(key, entries, onStep) {
   const shop = SHOPS_BY_KEY[key];
   const items = entries.filter(e => e.product.cart).map(e => ({ ...e.product, qty: packsNeeded(e.line, e.product) }));
   if (!items.length) return;

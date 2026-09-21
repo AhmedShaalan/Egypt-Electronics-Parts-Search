@@ -26,33 +26,33 @@ Egypt Electronics Parts Search asks every shop at once, recognizes those names a
 ## Features
 
 **🔍 Search every shop at once**
-- Queries all 16 shops at the same time and merges the results into one list
-- Hides out-of-stock items automatically
-- Shows sale prices next to the original price, and the per-piece price for packs ("(10pcs)")
-- Sort by best match, cheapest, or cheapest per piece, or filter to one shop
-- Hover a result to copy it (name, price, shop, link), add it to the shop's cart, or add it to a new or saved parts list
-- Shows a label for any shop that failed or timed out, so a quiet shop is never mistaken for "not available"
-- Shows results as shops answer, without waiting for the slow ones; **stop** skips the shops still running, and any skipped shop can be fetched later with one click
+- Queries all 16 shops at the same time; results fill in as the shops answer
+- The same product at different shops is one card, cheapest first, with every shop's offer inside (or see every offer in one list)
+- Hides out-of-stock items automatically, and shows sale prices and the per-piece price for packs ("(10pcs)")
+- Sort by best match, cheapest, or cheapest per piece; tick shops on or off, or show only sale items or ones you can add to cart from here
+- Weaker matches are kept apart, each saying why it's probably a different part
+- A shop that failed, timed out or was skipped says so, and can be asked again with one click
 
 **🤖 Ask your AI assistant**
 - An [MCP server](#use-it-from-claude-or-another-ai-assistant) lets Claude or another AI assistant search the shops, price a parts list and re-check a price for you
 - Runs on your own computer with the same matching as the site: no account, key or fee
 
 **📋 Price a whole parts list**
-- Paste a parts list, one part per line, and get the **cheapest mix** across shops and the **best single shop** to buy everything from
-- A table of each shop's total and exactly which parts it's missing
+- Type or paste parts, one per line; each joins the list and is priced at every shop as it's added. Change a quantity, a part or its product right in the row
+- Choose how to buy: **Best overall** (parts plus delivery), **Lowest parts cost** or **Fewest shops**, or **Custom** once you pick a product yourself. Every row says why it's at that shop when a cheaper one exists
+- Delivery counts: set a fee per shop, or one for any shop, so an extra shop is only used when it saves more than its delivery
 - Counts packs: 20 resistors sold in 2-packs = 10 packs
-- If the tool picked the wrong product for a line, open its picker and choose another: every option shows its picture, shop, pack size and cost for your quantity, close matches first, with a box to filter by name or shop. The totals recalculate
+- Every offer for a part is a click away, with its picture, shop, pack and cost for your quantity; look-alikes are kept apart and never picked for you
 
 **🛒 Add to the shop's cart**
 - Put a search result straight into its shop's cart, in a new tab that opens on the cart
-- From a parts list, add one line's pick, fill each shop's cart with your picks (the cheapest mix or the ones you chose), or with everything one shop has, quantities included
+- From a parts list, fill each shop's cart with what the order has there, quantities included; for shops whose cart can't be filled from here, copy the order as a message for their WhatsApp or order form
 - Works at the 10 Shopify and WooCommerce shops (Future, DevBoards, Makers, Micro Ohm, Most, UGE, Ampere, Free, HD and Circuit); checkout stays on the shop's own site
 
 **⭐ Save and track**
-- Star any product to save it. **Refresh prices** re-checks every saved item at its shop and shows what went ▲ up, ▼ down, or out of stock
-- Save a parts list and reopen it later with fresh prices, or build one up from search results. It remembers the products you picked, and after you change it, **Save changes** updates it in place
-- Saved items stay private in your own browser. There are no accounts
+- Star any product to save it. **Update prices** re-checks every starred item at its shop and shows what went ▲ up, ▼ down, or out of stock, with a link to find it elsewhere
+- Name and save a parts list, switch between saved lists, and reopen one later with fresh prices, or build one up from search results. It remembers the products you picked
+- Saved items stay private in your own browser, with no accounts; **Back up** saves them to a file and **Restore** brings them back
 
 **📱 Works anywhere**
 - A plain website: open it on your laptop or phone, nothing to install
@@ -75,24 +75,22 @@ Open **[parts.ahmedshaalan.com](https://parts.ahmedshaalan.com/)**. On a phone, 
 
 ### Search
 
-Type a part number or a description: `LM7805`, `ESP32`, `10k resistor`, `HC-SR04`. Exact part numbers give the sharpest results.
+Type a part number or a description: `LM7805`, `ESP32`, `10k resistor`, `HC-SR04`. Exact part numbers give the sharpest results. Press `/` from anywhere on the tab to jump to the box; your recent searches wait under it.
 
 | You'll see | What it means |
 |---|---|
-| `UGE · 27` | UGE returned 27 matching in-stock products |
-| `UGE · …` (grey) | Still searching that shop; its results join the list when it answers |
-| `UGE · failed` (red) | That shop didn't answer. Hover or click it for the reason. It's retried after 2 minutes, not an hour |
-| `UGE · skipped` (amber) | You pressed **stop** (or **Show results so far**) before this shop answered. Hover and click **Fetch now** to search just this shop and merge its results in |
-| **searching 5 more shops… stop** | Results show once a few shops have answered with a match, and the rest are added as they answer. **stop** skips the shops still running |
-| **Show results so far** | Appears under the progress bar before any results show. Stops waiting for the rest and shows what's in |
+| **Searching 16 shops… 9 answered** | Results show once a few shops have answered with a match, and the rest join as they answer. **Stop waiting** skips the shops still running |
+| A card with **12 shops** | The same product at 12 shops: the cheapest shop and price, then the next few. Open it for every shop's offer. Only close matches are merged (the package, values like 5V, model codes like S3 or 30-pin and the pack size must agree); anything unsure has its own card. **Every offer** shows the plain list |
+| The **Shops** panel | Each shop's number of matches. Untick a shop to hide it, or **Only** to see just that one. Shops still searching spin; a shop that **didn't answer** or was **skipped** has **Try again** or **Search now** |
 | **Sale** | The shop is discounting it; the original price is struck through |
-| `0.50 EGP/pc` | The listing is a pack; this is the price per piece |
-| **Show N weaker matches** | Loosely related items (e.g. "PCB for ESP32"), kept out of the main list |
-| Copy, cart, add to list, ☆ | Appear when you hover a result (always shown on phones). Copy puts its name, price, shop or link on the clipboard; the cart puts it into the shop's cart in a new tab; add to list puts it in a saved parts list or a new one; ☆ saves it. The cart only shows for [shops that allow it](#supported-shops) |
+| `pack of 10 · 0.50 EGP each` | The listing is a pack; this is the price per piece |
+| **N weaker matches** | Loosely related items, folded at the bottom, each saying why it's probably a different part: the part number missing from its name, or that it's an accessory made for it |
+| Cart, ☆ and ⋯ | The cart puts it into the shop's cart in a new tab (only for [shops that allow it](#supported-shops)); ☆ saves it; ⋯ opens it, adds it to a parts list (in one click to the list you added to last) or copies it |
+| **Copy link** | A link that opens these results |
 
 ### Parts list
 
-Paste one part per line. All of these quantity formats work:
+The list is the page: type or paste parts in the **Add parts** box (<kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>Enter</kbd> adds them) and each becomes a row, priced at every shop as it's added. All of these quantity formats work:
 
 ```
 LM7805 x2
@@ -106,22 +104,33 @@ HC-SR04
 16x2 LCD
 ```
 
-Bullets and numbering are ignored, `#` lines are treated as comments, and names like `16x2 LCD`, `16 x 2 LCD`, `12 V relay`, `4 channel relay` or `555 timer` aren't mistaken for a quantity. Lists written as a spec sheet work too: notes after a comma or in brackets are left out of the search, so the line above is searched as `relay DPDT`. A single word or value after a comma stays: `Resistor, 10k, 1/4W` is searched as `Resistor 10k 1/4W`. Up to 40 lines per list; the result says if any lines were left out.
+Bullets and numbering are ignored, `#` lines are treated as comments, and names like `16x2 LCD`, `16 x 2 LCD`, `12 V relay`, `4 channel relay` or `555 timer` aren't mistaken for a quantity. Lists written as a spec sheet work too: notes after a comma or in brackets are left out of the search, so the line above is searched as `relay DPDT`. A single word or value after a comma stays: `Resistor, 10k, 1/4W` is searched as `Resistor 10k 1/4W`. A part already on the list gets the quantity added. Up to 40 parts per list.
 
-- **Cheapest mix:** for each part, the cheapest close match from any shop.
-- **Everything from one shop:** the cheapest shop that has every part, and how much more it costs than the mix. Buying from one shop usually saves on shipping, which isn't included in either total.
-- **Total by shop:** every shop's total, with the parts it's missing.
-- **Change a part:** the ✎ next to a line's name opens a box to search for another name or change the quantity. Only that line is priced again, with the cheapest close match picked, and the pasted list above gets the same edit. If no shop has the new name, the box stays open so you can try another.
-- **Change a pick:** each line shows its product (picture, name, shop and price). Click it to see the other options, close matches first and each sorted by the cost for your quantity, with a box to filter by name or shop; the cheapest is tagged. Arrow keys and Enter work too. ↗ opens the product at its shop.
-- **Add to cart:** the cart button on a line puts that line's product into its shop's cart (a faded cart means that shop can't be filled from here; hover it to see why). Under the mix, one button per shop puts your picks from that shop into its cart; each row of **Total by shop** has an **Add** button that puts everything that shop has from the list into its cart. The cart opens in a new tab, with each part's quantity (counting packs). A Shopify shop takes the whole list at once; a WooCommerce shop takes one product per link, so the tab adds them one after another and ends on the cart. Products with options to choose (a size, a colour) have to be added on the shop's page, and the page says which.
+| You'll see | What it means |
+|---|---|
+| A row | The part, its quantity (type it or use + and −), what it costs, and the product it would be bought as, with its shop. Click the product to see every offer: sorted by the cost for your quantity, with a box to filter by name or shop, and weaker matches below a line with why they're probably a different part. Choose one to buy that instead |
+| **Saves a delivery** | A cheaper offer exists at another shop, but buying this part where the rest of the order is costs less once delivery is counted |
+| **Look-alike skipped** | A cheaper product was left out because it's probably a different part |
+| **Check match** / **Not found** | Only weaker matches were found, so nothing is bought for it until you choose one; or no shop has it in stock |
+| ⋯ | **Change part** searches for another name or changes the quantity, for that row only; if no shop has the new name, the box stays open to try another. Also opens the product at its shop, or removes the row (with **Undo**) |
+| **How to buy** | **Best overall** is the lowest parts cost plus delivery; **Lowest parts cost** takes the cheapest product for each part wherever it is; **Fewest shops** means the fewest deliveries. Choosing a product yourself makes it **Custom**: the plan you were on, with your picks. The rows follow the choice, and when a change moves other parts to another shop, they light up and a message says so |
+| **Delivery fees** | One estimate for any shop, and your own figure for the shops you know. They're kept in this browser and apply to every list |
+| **Your order** | One basket per shop with what goes in it. **Fill cart at …** opens the shop with them in its cart, quantities set (counting packs); a Shopify shop takes them all at once, a WooCommerce shop one per link, so the tab adds them one after another and ends on the cart. Products with options to choose (a size, a colour) are added on the shop's page. For a shop whose cart can't be filled from here, open each part from the basket, or **Copy as message** for their WhatsApp or order form |
+| **Prices from 15 of 16 shops** | A shop didn't answer; **Try again** asks it again for every part |
+
+The list's name is its title. **Save** keeps it in this browser, the header says when there are unsaved changes, and **My lists** switches to another saved list, starts a new one or copies this one as text. The list on the tab is kept when the page is reloaded.
 
 ### Saved
 
-Items and lists you've starred. **Refresh prices** re-checks each saved item directly at its shop. Items that disappeared are marked **No longer listed**. The total counts only what's in stock.
+Two tabs, **Starred items** and **Parts lists**; the page opens on the one you used last.
 
-Opening a saved list prices it again and shows **Saved list: *name***. The products you picked instead of the cheapest are kept with the list and picked again when you open it; if one is sold out or gone, its line falls back to the cheapest and says **Your pick is no longer available**. Once you change a part, its quantity or a pick, **Save changes** updates the saved list, and **Save as new list** keeps the original. Pricing a different list stops it being tied to the saved one, so nothing is overwritten by accident.
+**Starred items** shows today's price for each item and, when it moved, how much since you starred it. **Update prices** re-checks each one directly at its shop. The filters pick out what got cheaper, pricier, or can't be bought now; an item out of stock or **No longer listed** has **Find elsewhere**, which searches every shop for it. Tick items to see what they cost together, then add them to a parts list, copy or remove them in one go. Removing has **Undo**.
 
-Saved items live in your browser's storage, so they're private to that browser and device. Clearing site data or using a private window removes them.
+**Parts lists** are cards with each list's first parts, its total and from how many shops. **Update prices** prices one list or all of them again, and each card shows how its total moved; **changed since** means parts were added after it was priced. The ⋯ menu opens, renames, duplicates, copies or deletes a list.
+
+Opening a saved list shows it on the **Parts list** tab and prices it again. The products you chose are kept with the list and chosen again when you open it; if one is sold out or gone, its row says **Your pick is gone** and the plan chooses again. A saved list's total includes delivery, using the plan it would be bought with.
+
+Saved items live in your browser's storage, so they're private to that browser and device. Clearing site data or using a private window removes them: **Back up** downloads them as a file, and **Restore** adds a backup's items and lists back.
 
 ## Use it from Claude or another AI assistant
 
@@ -141,7 +150,7 @@ For Claude Desktop or another client, add it to the client's MCP config:
 | Tool | What it does |
 |---|---|
 | `search_parts` | Searches every shop for one part: in-stock products, best match first, then cheapest. Can narrow to some shops and include weak matches. |
-| `price_parts_list` | Prices a parts list the same way the **Parts list** tab does: the pick per line, the cheapest mix, the cheapest single shop, and what each shop is missing. |
+| `price_parts_list` | Prices a parts list: the pick per line, the cheapest mix, the cheapest single shop, and what each shop is missing. |
 | `check_price` | Re-checks one product's price and stock at its shop. |
 | `list_shops` | The shops and the keys the other tools take. |
 
@@ -237,6 +246,9 @@ Egypt-Electronics-Parts-Search/
 ├── src/                    The website, built by Vite and published to GitHub Pages
 │   ├── index.html          The page's markup
 │   ├── css/site.css        Styles, light and dark
+│   ├── css/search.css      The Search tab's styles
+│   ├── css/saved.css       The Saved tab's styles
+│   ├── css/list.css        The Parts list tab's styles
 │   ├── public/             Copied as they are
 │   │   ├── icon.png        App icon (Icons8)
 │   │   ├── og-image.png    Link preview image
@@ -246,13 +258,15 @@ Egypt-Electronics-Parts-Search/
 │   └── js/                 config, shops, matching and search are shared with mcp/, so they stay plain JS
 │       ├── config.js       Relay URL, timeouts, cache times
 │       ├── shops.js        One connector per platform + the SHOPS list
-│       ├── matching.js     Query ↔ product-name scoring, aliases, pack sizes
+│       ├── matching.js     Query ↔ product-name scoring, aliases, pack sizes, why a match is weak
+│       ├── grouping.js     Which results are the same product at different shops
+│       ├── plans.js        Ways to buy a parts list: which product and shop for each part, delivery counted
 │       ├── search.js       Fan-out search, parts lists, saved items
 │       ├── main.js         The page: tabs, start-up
 │       └── ui/             The page's parts, one file each
-│           ├── search-tab.js, list-tab.js, saved.js
-│           ├── shops-tab.jsx The Shops tab, the first in Preact
-│           ├── picker.js, cart.js, add-to-list.js, copy.js
+│           ├── search-tab.jsx, list-tab.jsx, saved-tab.jsx, shops-tab.jsx  The tabs, in Preact
+│           ├── saved.js    What's saved, for the star, the count and the Saved tab
+│           ├── cart.js, add-to-list.js, copy.js
 │           └── common.js   Helpers they share
 ├── mcp/                    MCP server for AI assistants (Node, reuses src/js)
 │   └── server.js
@@ -361,8 +375,8 @@ class MyShop extends Shop {
 
 ## Limitations
 
-- **Matching is heuristic.** It handles part numbers well. Vague names like "LCD" or "sensor" need a glance at the pick, and some accessories still slip through as a strong match (for example, an I2C adapter board for `16x2 LCD`). The picker on each parts-list line is there for exactly this.
-- **Shipping isn't included** in any total.
+- **Matching is heuristic.** It handles part numbers well. Vague names like "LCD" or "sensor" need a glance at the pick, and some accessories still slip through as a strong match (for example, an I2C adapter board for `16x2 LCD`). Every parts-list row opens its offers for exactly this.
+- **Delivery fees are your estimates.** The parts list counts the fees you set; shops don't publish them in a form the site can read, and a fee can depend on where you are and how much you order. Search results don't include delivery.
 - **Add to cart works at 10 of the 16 shops**, and not for products with options to choose. Some products are only sold in multiples ("order in tens"); the cart then gets the next amount the shop accepts. Prices in the cart are the shop's current ones, which may have changed since the search.
 - **Shops change.** A site redesign or platform switch can break its connector. The shop then shows as `failed` rather than returning wrong data.
 - **A shop may block the relay.** Shops can refuse requests coming from Cloudflare's servers; that shop then shows as `failed`.

@@ -135,7 +135,7 @@ const compactText = memo((s) => compact(s).text);
 export function score(query, name) {
   const qTokens = queryTokens(query);
   if (!qTokens.length) return 0;
-  const { nameTokens, nameCompact, raw, rawCompact } = prepare(name);
+  const { nameTokens, nameCompact } = prepare(name);
   const weights = qTokens.map((t) => tokenWeight(t, nameTokens, nameCompact));
   // a maker's name the product doesn't mention is left out rather than counted as missing,
   // but only once a part number or value has matched: "Schneider contactor" still needs Schneider
@@ -151,24 +151,46 @@ export function score(query, name) {
   s = Math.min(s, 100);
   // what follows can only lower the score
   if (s < WEAK) return Math.max(0, Math.trunc(s));
-  // "PCB for ESP32" is an accessory, not the ESP32 itself,
-  // unless the search is for an accessory: "fuse holder" wants "Fuse Holder for T5x20"
-  const accessory = (t) => ACCESSORY_NAMES.has(t) || ACCESSORY_PREFIXES.some((p) => t.startsWith(p));
-  const inQuery = (t) => qTokens.some((q) => q.startsWith(t) || t.startsWith(q)); // wire ~ wires
+  const acc = accessoryOf(qTokens, name);
+  if (acc?.madeFor) s -= 35;
+  else if (acc) s -= 30;
+  return Math.max(0, Math.trunc(s));
+}
+
+const isAccessory = (t) => ACCESSORY_NAMES.has(t) || ACCESSORY_PREFIXES.some((p) => t.startsWith(p));
+
+// "PCB for ESP32" is an accessory, not the ESP32 itself, unless the search is for an accessory:
+// "fuse holder" wants "Fuse Holder for T5x20". Returns { madeFor: "for" } or { madeFor: "compatible" }
+// when the name is made for the part, { word: "case" } when it only carries the part's name, or null.
+function accessoryOf(qTokens, name) {
+  const { nameTokens, raw, rawCompact } = prepare(name);
   const matchedAt = raw
     .map((w, i) => (qTokens.some((t) => tokenWeight(t, [w], rawCompact[i]) >= 0.8) ? i : -1))
     .filter((i) => i >= 0);
   const lastMatch = matchedAt.length ? Math.max(...matchedAt) : 0;
-  if (
-    !qTokens.some(accessory) &&
-    raw.slice(0, lastMatch).some((w) => ACCESSORY_WORDS.has(w) || (w.endsWith("for") && w.length > 3))
-  ) {
-    s -= 35;
-  } else if (nameTokens.some((t) => accessory(t) && !inQuery(t))) {
-    // boards, cables and cases that carry the part's name rank below the part
-    s -= 30;
-  }
-  return Math.max(0, Math.trunc(s));
+  const madeFor = qTokens.some(isAccessory) ? null
+    : raw.slice(0, lastMatch).find((w) => ACCESSORY_WORDS.has(w) || (w.endsWith("for") && w.length > 3));
+  if (madeFor) return { madeFor: madeFor === "compatible" ? "compatible" : "for" };
+  // boards, cables and cases that carry the part's name rank below the part
+  const inQuery = (t) => qTokens.some((q) => q.startsWith(t) || t.startsWith(q)); // wire ~ wires
+  const word = nameTokens.find((t) => isAccessory(t) && !inQuery(t));
+  return word ? { word } : null;
+}
+
+// Why a product scored below a real match, in a few words for the results: the part number or
+// value it doesn't have, that it's an accessory, or the words it's missing.
+export function weakReason(query, name) {
+  const qTokens = queryTokens(query);
+  const { nameTokens, nameCompact } = prepare(name);
+  const missing = qTokens.filter((t) => tokenWeight(t, nameTokens, nameCompact) === 0 && !BRANDS.has(t));
+  const number = missing.find(hasDigit);
+  if (number) return `No “${number}” in its name`;
+  const acc = accessoryOf(qTokens, name);
+  if (acc?.madeFor === "compatible") return "Works with it, not the part itself";
+  if (acc?.madeFor) return "Made for it, not the part itself";
+  if (acc) return `An accessory: ${acc.word}`;
+  if (missing.length) return `No “${missing.join(" ")}” in its name`;
+  return "Only part of the name matches";
 }
 
 // Extra queries for shop search engines that only match literally: LM7805 -> 7805.

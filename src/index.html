@@ -72,6 +72,10 @@
 })();
 </script>
 <link rel="stylesheet" href="css/site.css">
+<link rel="stylesheet" href="css/components.css">
+<link rel="stylesheet" href="css/search.css">
+<link rel="stylesheet" href="css/saved.css">
+<link rel="stylesheet" href="css/list.css">
 </head>
 <body>
 <header>
@@ -101,53 +105,34 @@
   <!-- SEARCH -->
   <section id="tab-search" class="active">
     <h1>Compare electronics part prices across 16 Egyptian shops</h1>
-    <form class="searchbar" id="search-form">
-      <div class="search-field">
-        <input type="search" id="q" aria-label="Search for a part" placeholder="Search a part, e.g. LM7805, ESP32, 10k resistor" autocomplete="off" data-1p-ignore data-lpignore="true" data-bwignore data-form-type="other" autofocus>
-        <button class="search-clear" id="q-clear" type="button" title="Clear search" aria-label="Clear search" hidden>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
-        </button>
-      </div>
-      <button class="btn primary" type="submit">Search</button>
-    </form>
-    <div id="search-out"></div>
-
-    <div class="about" id="about">
-      <h2>About this site</h2>
-      <p>Egypt Electronics Parts Search is a free price-comparison tool for electronic components in Egypt. Type a part number or a description, such as <em>LM7805</em>, <em>ESP32</em> or <em>10k resistor</em>, and it searches 16 Egyptian online electronics shops at the same time (see the <a href="#shops">Shops</a> tab).
-        The results are merged into one list with in-stock items only, sale prices next to the original price, the per-piece price for packs, and sorting by best match or lowest price.</p>
-      <p>Paste a whole parts list, one part per line, to get the cheapest mix of shops and the single shop that can supply the most of it. Star any product to save it and re-check its price later. Nothing to install and no account needed: saved items stay in your browser.</p>
-      <p>I built this for myself because I was tired of searching every shop one by one. I'm not affiliated with any of the shops listed; all prices and stock come from their own websites, and every result links straight to the shop.</p>
-      <details class="ar" lang="ar" dir="rtl">
-        <summary>عن الموقع بالعربي</summary>
-        <p>موقع مجاني لمقارنة أسعار القطع والمكونات الإلكترونية في مصر. اكتب رقم القطعة أو وصفها، مثل <em>LM7805</em> أو <em>ESP32</em> أو مقاومة 10k، ويبحث الموقع في 16 متجر إلكترونيات مصري في نفس الوقت (تجدها في تبويب Shops). تُجمع النتائج في قائمة واحدة تعرض القطع المتوفرة فقط، مع سعر التخفيض بجانب السعر الأصلي، وسعر القطعة الواحدة في العبوات، مع إمكانية الترتيب حسب الأقرب للبحث أو الأرخص.</p>
-        <p>أضف قائمة قطع كاملة، كل قطعة في سطر، لتعرف أرخص توليفة من المتاجر وأفضل متجر واحد يوفر أكبر عدد منها. اضغط على النجمة لحفظ أي منتج وإعادة فحص سعره لاحقًا. لا يحتاج الموقع إلى حساب، والقطع المحفوظة تبقى في متصفحك فقط.</p>
-        <p>صنعت هذا الموقع لنفسي لأنني تعبت من البحث في كل متجر على حدة. لا تربطني أي علاقة بأي من المتاجر المذكورة؛ كل الأسعار والتوفر تأتي من مواقع المتاجر نفسها، وكل نتيجة تنقلك مباشرة إلى المتجر.</p>
-      </details>
-      <h2>Common questions</h2>
-      <div class="faq">
-      <details><summary>Where can I buy electronic components in Egypt?</summary><p>The 16 shops in the <a href="#shops">Shops</a> tab all sell online and deliver across Egypt. Search a part here to see which of them have it in stock right now and at what price.</p></details>
-      <details><summary>Which shop is cheapest for Arduino, ESP32 or Raspberry Pi parts?</summary><p>It changes from part to part, which is why this tool exists: search once and the results are sorted so the lowest price is easy to spot. Paste your whole list to find the cheapest single shop, which also saves on shipping.</p></details>
-      <details><summary>Are the prices live?</summary><p>Yes. Every search asks the shops' own websites, so prices and stock are what each shop lists. To avoid asking the shops again for the same part, answers are reused for up to an hour at two steps, so a price can be up to about two hours old.</p></details>
-      <details><summary>Is it free?</summary><p>Yes, and open source. There is no account, and saved items never leave your browser.</p></details>
-      </div>
-      <p>Open source under the AGPL-3.0 license · <a href="https://github.com/AhmedShaalan/Egypt-Electronics-Parts-Search" target="_blank" rel="noopener">Source on GitHub</a> · Built by <a href="https://ahmedshaalan.com" target="_blank" rel="noopener">Ahmed Shaalan</a>.</p>
+    <!-- sticks to the top once there are results -->
+    <div class="s-bar-wrap">
+      <form class="s-bar" id="search-form" role="search">
+        <div class="s-field">
+          <svg class="s-lens" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <input type="search" id="q" aria-label="Search for a part" placeholder="Part number or name, e.g. LM7805, ESP32, 10k resistor" autocomplete="off" spellcheck="false" data-1p-ignore data-lpignore="true" data-bwignore data-form-type="other" autofocus>
+          <kbd id="slash" title="Press / to search from anywhere" hidden>/</kbd>
+          <button class="s-clear" id="q-clear" type="button" title="Clear search" aria-label="Clear search" hidden>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+          </button>
+        </div>
+        <button class="btn primary" type="submit">Search</button>
+      </form>
     </div>
+    <!-- the status line, recent searches, the shop filters and the results (js/ui/search-tab.jsx) -->
+    <div id="search-app"></div>
   </section>
 
   <!-- PARTS LIST -->
   <section id="tab-list">
-    <textarea id="list-text" aria-label="Parts list, one part per line" placeholder="One part per line, for example:&#10;LM7805 x2&#10;ESP32&#10;10k resistor x20&#10;3x 100nf capacitor"></textarea>
-    <div class="toolbar" style="margin-top:10px">
-      <span class="grow">Quantity: <code>x2</code>, <code>2x</code>, <code>2pcs</code> or a count in front. Notes after a comma are ignored. Packs are counted, e.g. 20 resistors from 10-packs = 2 packs.</span>
-      <button class="btn primary" id="list-run">Find prices</button>
-    </div>
-    <div id="list-out"></div>
+    <!-- the list, its rows priced at every shop, and the order beside it (js/ui/list-tab.jsx) -->
+    <div id="list-app"></div>
   </section>
 
   <!-- SAVED -->
   <section id="tab-saved">
-    <div id="saved-out"></div>
+    <!-- starred items and saved parts lists (js/ui/saved-tab.jsx) -->
+    <div id="saved-app"></div>
   </section>
 
   <!-- SHOPS -->
@@ -189,7 +174,7 @@ npm install</code></pre>
     <h2>What the assistant can do</h2>
     <table class="tools">
       <tr><td><code>search_parts</code></td><td>Search every shop for one part: in-stock products, best match first, then cheapest.</td></tr>
-      <tr><td><code>price_parts_list</code></td><td>Price a whole list like the <a href="#list">Parts list</a> tab: the pick for each part, the cheapest mix of shops and the cheapest single shop.</td></tr>
+      <tr><td><code>price_parts_list</code></td><td>Price a whole list: the pick for each part, the cheapest mix of shops and the cheapest single shop. The <a href="#list">Parts list</a> tab also counts delivery.</td></tr>
       <tr><td><code>check_price</code></td><td>Re-check one product's price and stock at its shop.</td></tr>
       <tr><td><code>list_shops</code></td><td>The shops it searches.</td></tr>
     </table>
@@ -205,7 +190,35 @@ npm install</code></pre>
   </section>
 
 </main>
-<div class="toast" id="toast"></div>
+<!-- about this site and common questions, at the bottom of every tab -->
+<footer class="site-foot" id="about">
+  <div class="wrap foot-grid">
+    <div class="foot-about">
+      <h2>About this site</h2>
+      <p>Egypt Electronics Parts Search is a free price-comparison tool for electronic components in Egypt. Type a part number or a description, such as <em>LM7805</em>, <em>ESP32</em> or <em>10k resistor</em>, and it searches 16 Egyptian online electronics shops at the same time (see the <a href="#shops">Shops</a> tab).
+        The results are merged into one list with in-stock items only, sale prices next to the original price, the per-piece price for packs, and sorting by best match or lowest price.</p>
+      <p>Paste a whole parts list, one part per line, to see the cheapest way to buy it with delivery counted, or from the fewest shops, and fill each shop's cart. Star any product to save it and re-check its price later. Nothing to install and no account needed: saved items stay in your browser.</p>
+      <p>I built this for myself because I was tired of searching every shop one by one. I'm not affiliated with any of the shops listed; all prices and stock come from their own websites, and every result links straight to the shop.</p>
+      <details class="ar" lang="ar" dir="rtl">
+        <summary>عن الموقع بالعربي</summary>
+        <p>موقع مجاني لمقارنة أسعار القطع والمكونات الإلكترونية في مصر. اكتب رقم القطعة أو وصفها، مثل <em>LM7805</em> أو <em>ESP32</em> أو مقاومة 10k، ويبحث الموقع في 16 متجر إلكترونيات مصري في نفس الوقت (تجدها في تبويب Shops). تُجمع النتائج في قائمة واحدة تعرض القطع المتوفرة فقط، مع سعر التخفيض بجانب السعر الأصلي، وسعر القطعة الواحدة في العبوات، مع إمكانية الترتيب حسب الأقرب للبحث أو الأرخص.</p>
+        <p>أضف قائمة قطع كاملة، كل قطعة في سطر، لتعرف أرخص طريقة لشرائها مع حساب رسوم التوصيل، أو من أقل عدد من المتاجر، وتملأ سلة كل متجر. اضغط على النجمة لحفظ أي منتج وإعادة فحص سعره لاحقًا. لا يحتاج الموقع إلى حساب، والقطع المحفوظة تبقى في متصفحك فقط.</p>
+        <p>صنعت هذا الموقع لنفسي لأنني تعبت من البحث في كل متجر على حدة. لا تربطني أي علاقة بأي من المتاجر المذكورة؛ كل الأسعار والتوفر تأتي من مواقع المتاجر نفسها، وكل نتيجة تنقلك مباشرة إلى المتجر.</p>
+      </details>
+    </div>
+    <div class="foot-faq">
+      <h2>Common questions</h2>
+      <div class="faq">
+      <details><summary>Where can I buy electronic components in Egypt?</summary><p>The 16 shops in the <a href="#shops">Shops</a> tab all sell online and deliver across Egypt. Search a part here to see which of them have it in stock right now and at what price.</p></details>
+      <details><summary>Which shop is cheapest for Arduino, ESP32 or Raspberry Pi parts?</summary><p>It changes from part to part, which is why this tool exists: search once and the results are sorted so the lowest price is easy to spot. Paste your whole list in the Parts list tab: it weighs each shop's delivery fee against what buying there saves.</p></details>
+      <details><summary>Are the prices live?</summary><p>Yes. Every search asks the shops' own websites, so prices and stock are what each shop lists. To avoid asking the shops again for the same part, answers are reused for up to an hour at two steps, so a price can be up to about two hours old.</p></details>
+      <details><summary>Is it free?</summary><p>Yes, and open source. There is no account, and saved items never leave your browser.</p></details>
+      </div>
+    </div>
+  </div>
+  <div class="wrap foot-line">Open source under the AGPL-3.0 license · <a href="https://github.com/AhmedShaalan/Egypt-Electronics-Parts-Search" target="_blank" rel="noopener">Source on GitHub</a> · Built by <a href="https://ahmedshaalan.com" target="_blank" rel="noopener">Ahmed Shaalan</a>.</div>
+</footer>
+<div class="toast" id="toast" role="status"></div>
 <dialog class="modal" id="add-dialog" aria-labelledby="add-title">
   <form method="dialog" id="add-form">
     <h2 id="add-title">Add to a parts list</h2>
@@ -214,21 +227,6 @@ npm install</code></pre>
     <div class="modal-actions">
       <button type="button" class="btn" id="add-cancel">Cancel</button>
       <button type="submit" class="btn primary">Add</button>
-    </div>
-  </form>
-</dialog>
-<dialog class="modal" id="change-dialog" aria-labelledby="change-title">
-  <form method="dialog" id="change-form">
-    <h2 id="change-title">Change part</h2>
-    <p class="meta">Search every shop for another name; the cheapest close match is picked.</p>
-    <label class="modal-label" for="change-name">Part name or number</label>
-    <input type="text" id="change-name" maxlength="200" autocomplete="off" data-1p-ignore data-lpignore="true" data-bwignore data-form-type="other" required>
-    <label class="modal-label" for="change-qty" style="margin-top:12px">Quantity</label>
-    <input type="number" id="change-qty" min="1" max="9999" step="1" inputmode="numeric" required>
-    <p class="hint" id="change-status" role="status"></p>
-    <div class="modal-actions">
-      <button type="button" class="btn" id="change-cancel">Cancel</button>
-      <button type="submit" class="btn primary" id="change-go">Find prices</button>
     </div>
   </form>
 </dialog>

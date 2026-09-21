@@ -1,0 +1,46 @@
+/* SPDX-License-Identifier: AGPL-3.0-or-later · Copyright (C) 2026 Ahmed Shaalan */
+
+/* Pieces the Search, Saved and Parts list tabs all use. They keep the s- of the Search tab,
+   where they started. */
+
+.s-linkbtn {
+  background: none; border: 0; padding: 0; color: var(--accent); font: inherit; font-weight: 600; cursor: pointer;
+  text-decoration: underline; text-underline-offset: 2px;
+}
+.s-chip { font-size: 12px; font-weight: 600; padding: 1px 8px; border-radius: 99px; white-space: nowrap; }
+.s-chip.pick { background: var(--accent-soft); color: var(--accent); }
+.s-chip.sale { background: var(--good-soft); color: var(--good); }
+.s-chip.bad { background: var(--bad-soft); color: var(--bad); }
+.s-icon {
+  width: 34px; height: 34px; display: grid; place-items: center; flex: none; border: 0; background: none;
+  border-radius: 7px; color: var(--muted); cursor: pointer; list-style: none;
+}
+.s-icon::-webkit-details-marker { display: none; }
+.s-icon:hover, details[open] > .s-icon { background: var(--surface-2); color: var(--text); }
+.s-icon svg { width: 18px; height: 18px; }
+.s-icon-space { width: 34px; flex: none; }
+.s-chip.soft { background: var(--surface-2); color: var(--muted); }
+.s-muted { color: var(--muted); }
+.s-acts { display: flex; align-items: center; position: relative; }
+
+/* the ⋯ menus */
+.s-menu .menu-list { min-width: 230px; padding: 6px; background: var(--raised); border-color: var(--raised-border); box-shadow: 0 12px 32px rgb(0 0 0 / .3); z-index: 30; }
+.s-menu .menu-list button, .s-menu .menu-list a {
+  display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px 10px; border: 0; border-radius: 6px; background: none;
+  color: var(--text); text-decoration: none; font-size: 14px; text-align: left; white-space: nowrap; cursor: pointer;
+}
+.s-menu .menu-list button:hover, .s-menu .menu-list a:hover, .s-menu .menu-list :focus-visible { background: var(--raised-2); outline: none; }
+.s-menu .menu-list svg { width: 16px; height: 16px; color: var(--muted); flex: none; }
+.s-menu hr { border: 0; border-top: 1px solid var(--raised-border); margin: 4px 0; }
+.s-menu .menu-list .danger, .s-menu .menu-list .danger svg { color: var(--bad); }
+
+/* a bar that runs while something is loading, a spinner, and a row lighting up when it changes */
+.s-bar-anim { width: 90px; height: 4px; border-radius: 4px; background: var(--surface-2); overflow: hidden; position: relative; flex: none; }
+.s-bar-anim::after { content: ""; position: absolute; inset: 0; width: 40%; background: var(--accent); border-radius: 4px; animation: s-slide 1s ease-in-out infinite; }
+@keyframes s-slide { from { transform: translateX(-100%); } to { transform: translateX(260%); } }
+@keyframes s-spin { to { transform: rotate(360deg); } }
+@keyframes s-flash { from { background: var(--accent-soft); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .s-bar-anim::after { animation: none; }
+}

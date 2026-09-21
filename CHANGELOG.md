@@ -4,8 +4,28 @@ What changed on [parts.ahmedshaalan.com](https://parts.ahmedshaalan.com/), newes
 
 ## Unreleased
 
+### Added
+- Search results are grouped by product: the same part at different shops is one card, cheapest first, with every shop's offer inside. Only close matches are merged (the package, values like 5V or 1/4W, model codes like S3 or 30-pin, and the pack size must agree, and prices far apart stay apart); anything unsure stays on its own. "Every offer" shows the flat list.
+- Shops on the side: tick shops on or off with their match counts, or show only one. A shop that failed or was skipped says so there and can be asked again.
+- Weaker matches say why they're probably a different part: the part number or word missing from the name, or that it's an accessory made for the part.
+- Recent searches on the empty search page, "/" to jump to the search box, and a one-click "Add to ‹list›" for the list you added to last.
+- Saved has two tabs, Starred items and Parts lists, and opens on the one used last.
+- Starred items show how their price moved since they were starred, filter by cheaper, pricier or can't buy, and sort by newest, biggest drop, shop or price. An item out of stock or no longer listed has a "Find elsewhere" link that searches every shop for it. Tick several to see what they cost together, add them to a parts list in one go, copy or remove them.
+- Parts lists are cards with their first parts, their total and from how many shops, and a note when parts were added since they were priced. "Update prices" prices one list or all of them again and shows how each total moved. Lists can be duplicated, and a new one started from there.
+- Back up and Restore save everything to a file and bring it back, for a browser whose data gets cleared.
+- Remove and Delete have Undo instead of a confirmation box, and Rename is a small dialog instead of the browser's prompt.
+- Parts list: choose how to buy. Best overall (parts plus delivery), Lowest parts cost or Fewest shops, and Custom once you choose a product yourself. Each row says why it's at that shop when a cheaper one exists ("Saves a delivery", "Look-alike skipped"), and rows the plan moves to another shop light up.
+- Parts list: delivery fees, one for any shop and your own figure for the shops you know, kept in the browser and counted in every total.
+- Parts list: the order as one basket per shop, with "Fill cart at …" or, for shops whose cart can't be filled from here, "Copy as message" for their WhatsApp or order form.
+- Parts list: the list has a name and says when it has unsaved changes; "My lists" switches between saved lists, starts a new one or copies it as text. The list on the tab is kept when the page is reloaded.
+
 ### Changed
-- The site is now built with [Vite](https://vite.dev) before it's published, and the page is moving to [Preact](https://preactjs.com) components, starting with the Shops tab. It loads as one script and one stylesheet, whose names change with every release so browsers never keep an old copy. The site looks and works the same.
+- The Search tab is redesigned: the search bar sticks to the top once there are results, one status line shows how many shops have answered (with Stop waiting, Try again and Copy link), and each result has a cart button (where the shop allows it), a star and a ⋯ menu instead of four buttons on hover.
+- The about text and common questions move to a footer at the bottom of every tab.
+- Starred items no longer add up to a total: they aren't an order. Ticking some shows what those cost.
+- The Parts list tab is redesigned: the list is the page. Parts typed or pasted in join it as rows, each priced as it's added, and quantities, parts and products are changed in the row, so there's no Find prices step. Every offer for a part opens in its row, with weaker matches below a line saying why. The "Everything from one shop" card and the "Total by shop" table give way to Fewest shops and the baskets.
+- A saved parts list's total includes delivery, and the list remembers the products you chose.
+- The site is now built with [Vite](https://vite.dev) before it's published, and the Search, Parts list, Saved and Shops tabs are [Preact](https://preactjs.com) components. It loads as one script and one stylesheet, whose names change with every release so browsers never keep an old copy.
 
 ## 1.8.0 · 2026-09-21
 

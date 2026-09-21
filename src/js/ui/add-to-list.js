@@ -4,18 +4,43 @@
 // The dialog that adds a search result to a saved parts list.
 
 import { getSaved, addToList } from "../search.js";
-import { $, esc, toast } from "./common.js";
-import { partCount, reloadSaved } from "./saved.js";
+import { $, esc, toast, onBackdrop } from "./common.js";
+import { currentSaved, partCount, reloadSaved } from "./saved.js";
+import { openSavedList } from "./list-tab.jsx";
 
 let lastListId = null; // the list picked last time is picked again, for adding several parts in a row
 
-export function openAddToList(p) {
+// the list something was added to last, while it still exists, for adding the next part in one click
+export const lastList = () => currentSaved().lists.find(l => l.id === lastListId) || null;
+
+// the products' names go in as lines of the list, the first making a new list when `id` is null
+function addAll(id, ps, newName) {
+  let list = null;
+  for (const p of ps) {
+    list = addToList(id, p.name, newName);
+    id = list.id;
+  }
+  reloadSaved();
+  lastListId = list.id;
+  toast(`Added ${ps.length === 1 ? "" : `${ps.length} items `}to “${list.name}”`, { label: "Open list", run: () => openSavedList(list.id) });
+  return list;
+}
+
+export function addToLastList(p) {
+  const last = lastList();
+  if (!last) return openAddToList(p);
+  try { addAll(last.id, [p]); } catch (err) { toast(err.message); }
+}
+
+// `p` is a product or several; `onAdded` is called once they're in a list
+export function openAddToList(p, { onAdded } = {}) {
+  const ps = Array.isArray(p) ? p : [p];
   const dialog = $("#add-dialog");
   const lists = getSaved().lists;
   const picked = lists.some(l => l.id === lastListId) ? lastListId : lists[0]?.id;
   const newName = "Parts list " + new Date().toLocaleDateString();
   const nameInput = `<input type="text" id="add-name" value="${esc(newName)}" maxlength="80" autocomplete="off" data-1p-ignore data-lpignore="true" data-bwignore data-form-type="other" aria-label="Name of the new list">`;
-  $("#add-item").textContent = `${p.name} · ${p.shop_name}`;
+  $("#add-item").textContent = ps.length === 1 ? `${ps[0].name} · ${ps[0].shop_name}` : `${ps.length} items`;
   $("#add-picks").innerHTML = lists.length ? `
     <span class="modal-label">Choose a list</span>
     <div class="picks">
@@ -42,12 +67,10 @@ export function openAddToList(p) {
     const id = choice === "new" ? null : +choice;
     if (id === null && !name.value.trim()) { name.focus(); return; }
     try {
-      const list = addToList(id, p.name, name.value);
-      reloadSaved();
-      lastListId = list.id;
+      addAll(id, ps, name.value);
       dialog.close();
-      toast(`Added to “${list.name}”`);
-    } catch (err) { toast(err.message); }
+      onAdded?.();
+    } catch (err) { reloadSaved(); toast(err.message); }
   };
   dialog.showModal();
   if (lists.length) dialog.querySelector('input[name="add-to"]:checked').focus();
@@ -56,7 +79,4 @@ export function openAddToList(p) {
 
 $("#add-cancel").addEventListener("click", () => $("#add-dialog").close());
 // a click on the dimmed backdrop closes it too
-$("#add-dialog").addEventListener("click", e => {
-  const r = e.currentTarget.getBoundingClientRect();
-  if (e.target === e.currentTarget && (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom)) e.currentTarget.close();
-});
+$("#add-dialog").addEventListener("click", e => { if (onBackdrop(e)) e.currentTarget.close(); });

@@ -6,12 +6,17 @@
 import { warmUp } from "./search.js";
 import { $ } from "./ui/common.js";
 import { copy } from "./ui/copy.js";
-import { searchTabShown } from "./ui/search-tab.js";
-import "./ui/list-tab.js";
-import { loadSaved, reloadSaved } from "./ui/saved.js";
+import { searchTabShown } from "./ui/search-tab.jsx";
+import { listTabShown } from "./ui/list-tab.jsx";
+import { reloadSaved } from "./ui/saved.js";
+import { loadSaved } from "./ui/saved-tab.jsx";
 import { renderShops } from "./ui/shops-tab.jsx";
 
 $("#theme-toggle").addEventListener("click", () => window.toggleTheme());
+
+// the header's height, for what sticks under it (the search bar, the parts list's order); it wraps onto two lines on phones
+const header = $("header");
+new ResizeObserver(() => document.documentElement.style.setProperty("--header-h", `${header.offsetHeight}px`)).observe(header);
 
 // shows once the page has scrolled past the first screen
 const toTop = $("#to-top");
@@ -33,6 +38,7 @@ function showTab() {
   document.querySelectorAll("nav a").forEach(a => a.classList.toggle("active", a.dataset.tab === tab));
   document.querySelectorAll("main section").forEach(s => s.classList.toggle("active", s.id === "tab-" + tab));
   if (tab === "saved") loadSaved();
+  if (tab === "list") listTabShown();
   searchTabShown(tab === "search");
 }
 window.addEventListener("hashchange", showTab);

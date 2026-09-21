@@ -1,0 +1,200 @@
+/* SPDX-License-Identifier: AGPL-3.0-or-later · Copyright (C) 2026 Ahmed Shaalan */
+
+/* The Search tab (js/ui/search-tab.jsx). Its classes start with s- so they don't meet the other tabs'. */
+
+#tab-search h1 { font-size: 26px; letter-spacing: -0.015em; margin: 16px 0 14px; text-wrap: balance; }
+#tab-search.has-query h1 { display: none; }
+#tab-search .num, .s-price, .s-g-price, .s-f-count { font-variant-numeric: tabular-nums; }
+
+/* ---------- search bar: sticks under the header once there are results ---------- */
+.s-bar-wrap { background: var(--bg); margin-inline: -16px; padding: 4px 16px 10px; }
+#tab-search.has-query .s-bar-wrap { position: sticky; top: var(--header-h, 0px); z-index: 4; padding-top: 10px; }
+.s-bar { display: flex; gap: 8px; }
+.s-field { flex: 1; position: relative; min-width: 0; display: flex; }
+.s-lens { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: var(--muted); pointer-events: none; }
+.s-field input[type=search] { width: 100%; height: 48px; padding: 0 44px; font-size: 16px; }
+.s-field kbd {
+  position: absolute; right: 14px; top: 50%; transform: translateY(-50%); pointer-events: none;
+  font: 12px ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--muted); border: 1px solid var(--border); border-radius: 5px; padding: 1px 6px;
+}
+.s-field kbd[hidden] { display: none; }
+.s-clear {
+  position: absolute; right: 7px; top: 50%; transform: translateY(-50%); width: 34px; height: 34px;
+  display: grid; place-items: center; border: 0; background: none; border-radius: 7px; color: var(--muted); cursor: pointer;
+}
+.s-clear[hidden] { display: none; }
+.s-clear:hover { color: var(--text); background: var(--surface-2); }
+.s-clear svg { width: 18px; height: 18px; }
+.s-bar .btn.primary { height: 48px; padding-inline: 20px; font-size: 15px; }
+/* the browser's own clear button is tiny, and Firefox has none, so the page draws its own */
+.s-field input::-webkit-search-cancel-button { -webkit-appearance: none; appearance: none; }
+
+/* ---------- the star that saves an item ---------- */
+.s-star svg { fill: none; }
+.s-star.on, .s-star.on:hover { color: var(--star); }
+.s-star.on svg { fill: currentColor; }
+
+/* ---------- the status line: how the search went, and sharing it ---------- */
+.s-status {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; font-size: 13px; color: var(--muted);
+  min-height: 44px; padding-block: 0 8px; border-bottom: 1px solid var(--border);
+}
+.s-status b { color: var(--text); }
+.s-status-item { display: inline-flex; gap: 8px; align-items: center; }
+.s-fail { color: var(--bad); }
+.s-share { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; color: var(--muted); }
+.s-share svg { width: 15px; height: 15px; }
+/* ---------- before a search ---------- */
+.s-intro { padding-top: 14px; min-height: 40vh; }
+.s-recent { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 14px; }
+.s-lbl { color: var(--muted); font-size: 13px; margin-right: 2px; }
+.s-q-chip {
+  border: 1px solid var(--border); background: var(--surface); border-radius: 99px; padding: 4px 12px; cursor: pointer;
+  font: 13px ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+.s-q-chip:hover { border-color: var(--accent); color: var(--accent); }
+.s-recent .s-linkbtn { font-size: 13px; }
+.s-facts { list-style: none; display: flex; flex-wrap: wrap; gap: 6px 18px; padding: 0; margin: 22px 0 0; font-size: 13px; color: var(--muted); }
+.s-facts li { display: flex; align-items: center; gap: 7px; }
+.s-facts li::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+
+/* ---------- results, with the filters on the side ---------- */
+.s-layout { display: grid; grid-template-columns: 232px minmax(0, 1fr); gap: 24px; align-items: start; padding-top: 16px; }
+
+.s-filters {
+  position: sticky; top: calc(var(--header-h, 0px) + 84px); background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 14px; font-size: 14px; max-height: calc(100vh - var(--header-h, 0px) - 100px); overflow: auto;
+}
+.s-f-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin: 0 0 6px; }
+.s-f-sec + .s-f-head { margin-top: 16px; }
+.s-filters h3 { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 0; font-weight: 600; }
+.s-f-head .s-linkbtn { font-size: 12px; }
+.s-f-sec { display: grid; }
+.s-f-row { display: flex; align-items: center; gap: 8px; min-height: 30px; border-radius: 6px; padding-inline: 4px; margin-inline: -4px; }
+.s-f-row:hover { background: var(--surface-2); }
+.s-f-row label { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; cursor: pointer; }
+.s-f-row input { accent-color: var(--accent); margin: 0; flex: none; }
+.s-f-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.s-f-count { margin-left: auto; color: var(--muted); font-size: 13px; }
+.s-f-only { display: none; border: 0; background: none; color: var(--accent); font-size: 12px; font-weight: 600; padding: 0 2px; cursor: pointer; }
+.s-f-row:hover .s-f-only, .s-f-only:focus-visible { display: block; }
+@media (hover: none) { .s-f-only { display: block; } }
+.s-f-row.wait { color: var(--muted); }
+.s-dot { width: 14px; height: 14px; flex: none; border-radius: 50%; border: 2px solid var(--border); border-top-color: var(--accent); animation: s-spin .8s linear infinite; }
+.s-f-row.problem { color: var(--muted); padding-block: 3px; }
+.s-f-row.problem .s-f-name { flex: 1; white-space: normal; }
+.s-why { font-size: 12px; }
+.s-why.fail { color: var(--bad); }
+.s-f-row .s-linkbtn { font-size: 12px; margin-left: auto; white-space: nowrap; }
+.s-f-none { margin-top: 6px; font-size: 13px; color: var(--muted); }
+.s-f-none summary { cursor: pointer; }
+.s-f-none p { margin: 4px 0 0; }
+
+.s-res-head { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 12px; }
+.s-res-count { margin-right: auto; font-size: 14px; color: var(--muted); }
+.s-res-count b { color: var(--text); font-size: 16px; }
+.s-seg { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); padding: 2px; }
+.s-seg button { border: 0; background: none; padding: 4px 10px; border-radius: 6px; font-size: 13px; font-weight: 550; color: var(--muted); cursor: pointer; }
+.s-seg button[aria-pressed="true"] { background: var(--surface-2); color: var(--text); }
+.s-res-head select { padding: 6px 8px; font-size: 13px; border-radius: 8px; }
+.s-filters-btn { display: none; }
+
+/* ---------- product cards ---------- */
+.s-cards { display: grid; gap: 10px; }
+.s-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); position: relative; }
+.s-card.open { border-color: var(--raised-border); box-shadow: 0 4px 16px rgb(0 0 0 / .06); }
+.s-card:has(details[open]), .s-offer:has(details[open]) { z-index: 20; }
+.s-card.flash, .s-offer.flash { animation: s-flash 1.4s ease-out; }
+.s-g-head { display: flex; align-items: center; gap: 4px; padding: 10px 10px 10px 12px; }
+.s-g-toggle {
+  flex: 1; min-width: 0; display: grid; grid-template-columns: 56px minmax(0, 1fr) auto 20px; gap: 14px; align-items: center;
+  text-align: left; background: none; border: 0; padding: 0; border-radius: 8px; cursor: pointer;
+}
+.s-g-text { display: grid; gap: 2px; min-width: 0; }
+.s-g-name { font-weight: 600; font-size: 15px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.s-g-meta { font-size: 13px; color: var(--muted); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.s-g-meta b { color: var(--text); font-weight: 600; }
+.s-g-price { text-align: right; display: grid; white-space: nowrap; }
+.s-g-price b { font-size: 18px; font-weight: 750; }
+.s-g-price small { font-size: 12px; color: var(--muted); }
+.s-chev { width: 20px; height: 20px; color: var(--muted); transition: transform .15s; }
+.s-card.open .s-chev { transform: rotate(180deg); }
+.s-g-offers { border-top: 1px solid var(--border); background: var(--bg); border-radius: 0 0 var(--radius) var(--radius); padding: 4px 0; }
+.s-g-offers .s-offer + .s-offer { border-top: 1px dashed var(--border); }
+
+.s-thumb { width: 40px; height: 40px; border-radius: 7px; flex: none; background: var(--surface-2); object-fit: contain; display: block; }
+.s-thumb.big { width: 56px; height: 56px; border-radius: 8px; }
+
+/* an offer: picture, name and shop, price, buttons */
+.s-flat { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); }
+.s-flat .s-offer + .s-offer { border-top: 1px solid var(--border); }
+.s-offer { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto auto; gap: 12px; align-items: center; padding: 9px 10px 9px 12px; position: relative; }
+.s-card.single .s-offer { padding-block: 10px; }
+.s-card.single .s-offer, .s-flat .s-offer { grid-template-columns: 56px minmax(0, 1fr) auto auto; gap: 14px; }
+.s-card.single .s-thumb, .s-flat .s-thumb { width: 56px; height: 56px; border-radius: 8px; }
+.s-text { min-width: 0; display: grid; gap: 1px; }
+.s-top, .s-sub { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.s-sub { font-size: 13px; color: var(--muted); }
+.s-shop { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.s-link { color: inherit; text-decoration: none; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.s-top .s-link { font-weight: 550; }
+.s-link:hover { text-decoration: underline; text-underline-offset: 2px; }
+.s-shop-tag { color: var(--text); font-weight: 550; white-space: nowrap; }
+.s-price { text-align: right; display: grid; white-space: nowrap; }
+.s-price b { font-size: 16px; font-weight: 700; }
+.s-price s { color: var(--muted); font-size: 12px; }
+.s-price small { font-size: 12px; color: var(--muted); }
+.s-price-main { display: flex; gap: 6px; align-items: baseline; justify-content: flex-end; }
+
+/* placeholders while shops are still answering */
+.s-waiting { margin-top: 10px; }
+.s-waiting-note { font-size: 13px; color: var(--muted); margin: 4px 2px; }
+.s-skel { display: grid; grid-template-columns: 56px 1fr 80px; gap: 14px; align-items: center; padding: 12px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); }
+.s-skel i { display: block; height: 10px; border-radius: 5px; background: var(--surface-2); animation: s-pulse 1.2s ease-in-out infinite alternate; }
+.s-skel i.box { height: 56px; border-radius: 8px; }
+.s-lines { display: grid; gap: 8px; }
+@keyframes s-pulse { to { opacity: .45; } }
+
+.s-empty { background: var(--surface); border: 1px dashed var(--border); border-radius: var(--radius); padding: 28px 20px; text-align: center; }
+.s-empty h2 { font-size: 17px; margin: 0 0 6px; }
+.s-empty p { margin: 0 auto 12px; color: var(--muted); font-size: 14px; max-width: 52ch; }
+
+.s-weak { margin-top: 18px; }
+.s-weak > summary { cursor: pointer; font-size: 14px; font-weight: 600; padding: 8px 2px; list-style: none; display: flex; align-items: center; gap: 8px; }
+.s-weak > summary::-webkit-details-marker { display: none; }
+.s-weak > summary .s-chev { width: 16px; height: 16px; }
+.s-weak[open] > summary .s-chev { transform: rotate(180deg); }
+.s-weak > summary .s-muted { font-weight: 400; }
+.s-weak .s-flat { margin-top: 6px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .s-skel i, .s-dot, .s-card.flash, .s-offer.flash { animation: none; }
+}
+
+/* ---------- tablet: the filters open from a button ---------- */
+@media (max-width: 860px) {
+  .s-layout { grid-template-columns: minmax(0, 1fr); }
+  .s-filters { display: none; position: static; max-height: none; }
+  .s-layout.show-filters .s-filters { display: block; }
+  .s-filters-btn { display: inline-flex; }
+}
+
+/* ---------- phone ---------- */
+@media (max-width: 560px) {
+  #tab-search h1 { font-size: 21px; margin-top: 8px; }
+  .s-bar .btn.primary { padding-inline: 14px; }
+  .s-res-count { flex-basis: 100%; }
+  .s-g-toggle { grid-template-columns: 44px minmax(0, 1fr) auto; gap: 10px; }
+  .s-g-toggle .s-thumb.big { width: 44px; height: 44px; }
+  .s-g-toggle .s-chev { display: none; }
+  .s-card.single .s-offer, .s-flat .s-offer, .s-offer { grid-template-columns: 44px minmax(0, 1fr) auto; grid-template-areas: "th tx pr" "th ac ac"; row-gap: 2px; }
+  .s-offer .s-thumb, .s-card.single .s-offer .s-thumb, .s-flat .s-offer .s-thumb { grid-area: th; width: 44px; height: 44px; align-self: start; }
+  .s-offer .s-text { grid-area: tx; }
+  .s-offer .s-price { grid-area: pr; align-self: start; }
+  .s-offer .s-acts { grid-area: ac; justify-content: flex-end; margin-right: -6px; }
+  .s-share { margin-left: 0; }
+  /* names get two lines instead of being cut; the next-cheapest shops wait inside the card */
+  .s-g-name, .s-link { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+  .s-g-next { display: none; }
+  .s-g-price b { font-size: 16px; }
+}

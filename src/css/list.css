@@ -1,0 +1,258 @@
+/* SPDX-License-Identifier: AGPL-3.0-or-later · Copyright (C) 2026 Ahmed Shaalan */
+
+/* The Parts list tab (js/ui/list-tab.jsx). Its classes start with l- so they don't meet the other tabs';
+   the ⋯ menus, icon buttons and link buttons are the Search tab's (search.css). */
+
+#tab-list .num { font-variant-numeric: tabular-nums; }
+.l-muted { color: var(--muted); }
+
+/* ---------- header: the list's name, whether it's saved, and the saved lists ---------- */
+.l-head { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; padding-block: 8px 6px; }
+#tab-list .l-name {
+  font-size: 24px; font-weight: 700; letter-spacing: -0.01em; border: 1px solid transparent; border-radius: 8px;
+  background: transparent; padding: 2px 8px; margin-left: -9px; min-width: 0; width: min(100%, 24ch);
+}
+#tab-list .l-name:hover { border-color: var(--border); }
+#tab-list .l-name:focus { border-color: var(--accent); background: var(--surface); box-shadow: none; }
+.l-save-state { font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+.l-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--good); }
+.l-save-state.dirty .l-dot { background: var(--warn); }
+.l-head-actions { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; }
+.l-head-actions .btn { padding: 7px 12px; font-size: 14px; font-weight: 550; border-radius: 8px; }
+.l-lists summary.btn { display: inline-flex; align-items: center; gap: 6px; }
+.l-lists .menu-list { min-width: 260px; max-height: min(420px, 70vh); overflow-y: auto; }
+.l-lists .menu-list button { justify-content: space-between; }
+.l-lists .menu-list button small { color: var(--muted); flex: none; }
+.l-lists .menu-list button[aria-current] .l-menu-name { font-weight: 650; }
+.l-lists .menu-list button:disabled { opacity: .5; cursor: default; }
+.l-menu-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.l-chev { width: 18px; height: 18px; flex: none; color: var(--muted); transition: transform .15s; }
+
+.l-status { font-size: 13px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; padding-bottom: 14px; }
+.l-status b { color: var(--text); font-weight: 600; }
+.l-fail { color: var(--bad); }
+.l-status .s-linkbtn:disabled { color: var(--muted); text-decoration: none; cursor: default; }
+
+/* ---------- layout: the list, and the order beside it ---------- */
+.l-layout { display: grid; grid-template-columns: minmax(0, 1fr) 372px; gap: 24px; align-items: start; }
+.l-list-wrap { display: block; padding: 0; min-width: 0; }
+@media (max-width: 960px) { .l-layout { grid-template-columns: minmax(0, 1fr); } }
+
+/* ---------- the list ---------- */
+.l-list { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); }
+.l-intake { padding: 14px; border-bottom: 1px solid var(--border); }
+.l-list > .l-intake:last-child { border-bottom: 0; }
+.l-intake label { display: block; font-weight: 600; margin-bottom: 6px; }
+#tab-list .l-intake textarea {
+  display: block; width: 100%; resize: vertical; min-height: 88px; border-radius: 8px; padding: 10px 12px;
+  background: var(--bg); font: 14px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--text);
+}
+#tab-list .l-intake textarea:focus { background: var(--surface); }
+.l-intake-foot { display: flex; gap: 12px; align-items: center; margin-top: 8px; flex-wrap: wrap; }
+.l-hint { flex: 1; min-width: 220px; font-size: 12px; color: var(--muted); }
+.l-hint code, .l-hint kbd { font: 12px ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--surface-2); padding: 1px 4px; border-radius: 4px; }
+.l-intake-foot .btn { padding: 7px 14px; font-size: 14px; font-weight: 550; border-radius: 8px; }
+
+.l-cols, .l-row-main { display: grid; grid-template-columns: 68px minmax(0, 1fr) 96px 36px; gap: 6px 14px; }
+.l-cols {
+  padding: 8px 14px; font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em;
+  border-bottom: 1px solid var(--border);
+}
+.l-cols span:nth-child(3) { text-align: right; }
+.l-row { border-bottom: 1px solid var(--border); position: relative; }
+.l-row:last-child { border-bottom: 0; }
+.l-row.flash { animation: l-flash 1.4s ease-out; }
+@keyframes l-flash { from { background: var(--accent-soft); } }
+/* every row is two lines, the part then the product bought for it; the cost is on the part's line,
+   the quantity and the ⋯ menu sit centred beside both */
+.l-row-main { padding: 12px 14px; align-items: center; grid-template-areas: "qty name cost acts" "qty prod prod acts"; }
+.l-row:has(details[open]) { z-index: 26; }
+
+/* the number with a small + over − beside it, like a spinner */
+.l-qty { grid-area: qty; display: flex; border: 1px solid var(--border); border-radius: 8px; height: 38px; width: 68px; overflow: hidden; background: var(--surface); }
+.l-qty:focus-within { border-color: var(--accent); }
+#tab-list .l-qty input {
+  flex: 1; min-width: 0; width: 0; border: 0; border-radius: 0; text-align: center; padding: 0; background: transparent;
+  font: 600 14px ui-monospace, SFMono-Regular, Menlo, monospace; -moz-appearance: textfield; appearance: textfield; box-shadow: none;
+}
+.l-qty input::-webkit-inner-spin-button, .l-qty input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+.l-steps { display: flex; flex-direction: column; width: 22px; flex: none; border-left: 1px solid var(--border); }
+.l-steps button { flex: 1; border: 0; padding: 0; background: var(--surface-2); color: var(--muted); font-size: 13px; line-height: 1; cursor: pointer; }
+.l-steps button + button { border-top: 1px solid var(--border); }
+.l-steps button:hover:not(:disabled) { color: var(--text); background: var(--border); }
+.l-steps button:disabled { opacity: .45; cursor: default; }
+
+.l-name-line { grid-area: name; display: flex; align-items: center; gap: 8px; min-width: 0; flex-wrap: wrap; }
+.l-part { font: 600 15px ui-monospace, SFMono-Regular, Menlo, monospace; min-width: 0; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-block: 5px; }
+.l-chip { font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 99px; white-space: nowrap; }
+.l-chip.pick { background: var(--accent-soft); color: var(--accent); }
+.l-chip.warn { background: var(--warn-soft); color: var(--warn); }
+.l-chip.bad { background: var(--bad-soft); color: var(--bad); }
+.l-chip.soft { background: var(--surface-2); color: var(--muted); }
+.l-cost { grid-area: cost; text-align: right; font-weight: 700; font-size: 16px; white-space: nowrap; }
+.l-acts { grid-area: acts; display: flex; justify-content: flex-end; }
+@media (hover: hover) {
+  .l-acts { opacity: 0; transition: opacity .12s; }
+  .l-row:hover .l-acts, .l-row:focus-within .l-acts, .l-row:has(details[open]) .l-acts { opacity: 1; }
+}
+
+.l-product {
+  grid-area: prod; display: flex; align-items: center; gap: 10px; min-width: 0; width: 100%; text-align: left; font-size: 14px;
+  background: var(--bg); border: 1px solid transparent; border-radius: 8px; padding: 6px 10px 6px 6px; color: var(--text);
+}
+button.l-product { cursor: pointer; }
+button.l-product:hover { border-color: var(--border); }
+button.l-product[aria-expanded="true"] { border-color: var(--accent); }
+.l-product[aria-expanded="true"] .l-chev { transform: rotate(180deg); }
+.l-product.empty { color: var(--muted); font-size: 13px; padding: 10px; display: block; }
+button.l-product.empty { display: flex; }
+.l-product-text { flex: 1; min-width: 0; display: grid; }
+.l-product-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.l-product-meta { font-size: 13px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.l-shop { color: var(--text); font-weight: 550; }
+.l-thumb { width: 34px; height: 34px; border-radius: 7px; flex: none; background: var(--surface-2); object-fit: contain; display: block; }
+.l-thumb.big { width: 56px; height: 56px; border-radius: 8px; }
+.l-searching { display: flex; align-items: center; gap: 10px; }
+.l-bar-anim { width: 120px; height: 4px; border-radius: 4px; background: var(--surface-2); overflow: hidden; position: relative; flex: none; }
+.l-bar-anim::after { content: ""; position: absolute; inset: 0; width: 40%; background: var(--accent); border-radius: 4px; animation: l-slide 1s ease-in-out infinite; }
+@keyframes l-slide { from { transform: translateX(-100%); } to { transform: translateX(260%); } }
+@media (prefers-reduced-motion: reduce) { .l-bar-anim::after, .l-row.flash { animation: none; } }
+
+/* ---------- a row's offers: float over the rows below it ---------- */
+.l-options {
+  position: absolute; z-index: 25; top: calc(100% - 8px); left: 50%; transform: translateX(-50%); width: min(760px, calc(100% - 16px));
+  background: var(--raised); border: 1px solid var(--raised-border); border-radius: var(--radius);
+  box-shadow: 0 16px 40px rgb(0 0 0 / .35); padding: 12px; max-height: min(480px, 75vh);
+  display: flex; flex-direction: column; overflow: hidden;
+}
+#tab-list .l-filter { flex: none; width: 100%; border: 1px solid var(--raised-border); border-radius: 8px; padding: 7px 10px; background: var(--raised-2); font-size: 14px; margin-bottom: 10px; }
+/* only the offers scroll; the filter stays on top and the reason stays in view under them */
+.l-table-wrap { flex: 1 1 auto; min-height: 0; overflow: auto; border: 1px solid var(--raised-border); border-radius: 8px; }
+table.l-opts { width: 100%; border-collapse: collapse; border: 0; border-radius: 0; background: none; overflow: visible; font-size: 14px; }
+.l-opts th { position: sticky; top: 0; z-index: 1; text-align: left; font-size: 12px; font-weight: 500; color: var(--muted); padding: 7px 10px; background: var(--raised-2); border: 0; border-bottom: 1px solid var(--raised-border); white-space: nowrap; }
+.l-opts td { padding: 8px 10px; border: 0; border-bottom: 1px solid var(--raised-border); vertical-align: middle; }
+.l-opts tr:last-child td { border-bottom: 0; }
+.l-opts tbody tr { cursor: pointer; }
+.l-opts tbody tr:hover td { background: var(--raised-2); }
+.l-opts tr.chosen td { background: var(--accent-soft); }
+.l-opts tr.group td { background: var(--raised-2); font-size: 12px; color: var(--muted); cursor: default; padding-block: 6px; }
+.l-opts .r { text-align: right; white-space: nowrap; }
+.l-opts .r small, .l-opts .r .l-chip { display: inline-block; margin-top: 3px; }
+.l-opts .r b { display: block; }
+.l-pname { display: flex; gap: 12px; align-items: center; min-width: 240px; }
+.l-pname-text { display: grid; gap: 1px; }
+.l-pname-text small { font-size: 13px; color: var(--muted); }
+.l-pname-text .l-note { color: var(--warn); font-size: 12px; }
+.l-shop-cell { white-space: nowrap; }
+.l-shop-cell small { display: block; font-size: 12px; color: var(--muted); }
+.l-pname-text .l-shop-inline { display: none; color: var(--text); font-size: 12px; }
+.l-delta { color: var(--muted); font-size: 12px; }
+.l-radio { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--muted); display: inline-block; vertical-align: middle; flex: none; }
+input.l-radio { appearance: none; margin: 0; cursor: pointer; background: none; }
+input.l-radio:checked { border: 5px solid var(--accent); }
+input.l-radio:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.l-why { font-size: 13px; color: var(--muted); margin: 10px 0 0; }
+.l-why b { color: var(--text); font-weight: 600; }
+
+/* ---------- the order ---------- */
+.l-order { min-width: 0; position: sticky; top: calc(var(--header-h, 0px) + 16px); display: grid; gap: 14px; }
+.l-panel { min-width: 0; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; }
+.l-panel h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 0 0 10px; font-weight: 600; }
+/* with no parts, a note over the panel points at the box to type in */
+.l-panel.has-overlay { position: relative; overflow: hidden; }
+.l-overlay {
+  position: absolute; inset: 0; z-index: 2; display: grid; place-items: center; padding: 24px; text-align: center;
+  background: color-mix(in srgb, var(--surface) 82%, transparent); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
+  color: var(--text); font-weight: 600;
+}
+.l-strats { display: grid; gap: 6px; }
+.l-strat {
+  display: grid; grid-template-columns: 18px 1fr auto; gap: 2px 10px; align-items: center; text-align: left; width: 100%;
+  border: 1px solid var(--border); background: var(--surface); border-radius: 8px; padding: 9px 11px; cursor: pointer; color: var(--text);
+}
+.l-strat:hover:not(:disabled) { border-color: var(--muted); }
+.l-strat[aria-checked="true"] { border-color: var(--accent); background: var(--accent-soft); }
+.l-strat[aria-checked="true"] .l-radio { border: 5px solid var(--accent); }
+.l-strat .l-radio { grid-row: span 2; }
+.l-strat:disabled, .l-strat.off { border-style: dashed; background: transparent; cursor: default; }
+.l-strat:disabled .t, .l-strat:disabled .l-radio, .l-strat.off .t, .l-strat.off .l-radio { opacity: .55; }
+.l-strat .t { font-weight: 600; font-size: 14px; }
+.l-strat .v { font-weight: 700; }
+.l-strat .s { grid-column: 2 / 4; font-size: 12px; color: var(--muted); }
+.l-rec { font-size: 11px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: .05em; margin-left: 6px; }
+.l-total { font-size: 34px; font-weight: 750; letter-spacing: -0.02em; line-height: 1.1; margin-top: 14px; }
+.l-total-sub { font-size: 13px; color: var(--muted); margin-top: 4px; }
+
+.l-fee-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font-size: 13px; }
+.l-fee-list li { display: grid; grid-template-columns: minmax(0, 1fr) 64px auto 28px; align-items: center; gap: 6px; color: var(--muted); }
+#tab-list .l-fee-list select, #tab-list .l-fee-list input {
+  border-radius: 6px; padding: 5px 7px; background: var(--bg); font-size: 13px; color: var(--text);
+}
+#tab-list .l-fee-list select { width: 100%; text-overflow: ellipsis; }
+#tab-list .l-fee-list select:disabled { color: var(--muted); }
+#tab-list .l-fee-list input { width: 64px; font: 600 13px ui-monospace, SFMono-Regular, Menlo, monospace; text-align: right; }
+.l-fee-list .s-icon { width: 28px; height: 28px; }
+.l-fee-list .s-icon svg { width: 15px; height: 15px; }
+.l-fee-list li.l-fee-add { display: block; margin-top: 6px; }
+
+.l-basket { border-top: 1px solid var(--border); padding-top: 12px; margin-top: 12px; }
+.l-basket:first-of-type { border-top: 0; margin-top: 0; padding-top: 0; }
+.l-basket-head { display: flex; align-items: baseline; gap: 10px; }
+.l-basket-head b { font-size: 15px; }
+.l-sub { font-weight: 600; margin-left: auto; }
+.l-basket ul { list-style: none; padding: 0; margin: 6px 0 10px; font-size: 13px; display: grid; gap: 3px; }
+.l-basket li { display: flex; gap: 8px; align-items: center; min-width: 0; }
+.l-basket li span:first-child { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); }
+.l-basket li code { font: 12px ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--text); }
+.l-basket li .num { margin-left: auto; white-space: nowrap; flex: none; color: var(--muted); }
+.l-item-link { color: inherit; text-decoration: underline; text-decoration-color: var(--border); text-underline-offset: 2px; }
+.l-item-link:hover { color: var(--text); text-decoration-color: currentColor; }
+.l-basket .btn { width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 7px 12px; font-size: 14px; font-weight: 550; border-radius: 8px; }
+.l-basket .btn svg { width: 17px; height: 17px; flex: none; }
+.l-cart-actions { display: flex; gap: 8px; }
+.l-cart-actions .btn.l-icon-only { width: auto; flex: none; padding-inline: 10px; }
+.l-how { font-size: 12px; color: var(--muted); margin: 6px 0 0; }
+
+/* ---------- the Change part dialog ---------- */
+.l-dialog form { display: grid; }
+.l-dialog .modal-label { margin: 12px 0 6px; }
+.l-dialog h2 + .modal-label { margin-top: 10px; }
+.l-dialog input[type=text] { width: 100%; font-size: 16px; }
+.l-dialog input[type=number] { width: 110px; font-size: 16px; }
+.l-dialog input:disabled { opacity: .6; }
+.l-dlg-hint { font-size: 12px; color: var(--muted); margin: 8px 0 0; }
+.l-dlg-error { font-size: 13px; color: var(--bad); margin: 8px 0 0; }
+.l-dlg-status { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--muted); margin-top: 8px; }
+.l-dlg-status .l-bar-anim { width: 90px; }
+
+/* ---------- phones: the total sits in a bar at the bottom ---------- */
+.l-mobile-bar {
+  display: none; position: fixed; left: 0; right: 0; bottom: 0; z-index: 8; background: var(--surface); border-top: 1px solid var(--border);
+  padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px)); align-items: center; gap: 12px;
+}
+.l-mobile-bar .t { font-size: 20px; font-weight: 750; }
+.l-mobile-bar .s { font-size: 12px; color: var(--muted); }
+.l-mobile-bar .btn { margin-left: auto; padding: 8px 14px; font-weight: 550; }
+@media (max-width: 960px) {
+  .l-mobile-bar { display: flex; }
+  .l-order { position: static; }
+  #tab-list.active { padding-bottom: 72px; }
+  body:has(#tab-list.active .l-mobile-bar) .to-top { bottom: calc(84px + env(safe-area-inset-bottom)); }
+}
+@media (max-width: 640px) {
+  .l-cols { display: none; }
+  .l-row-main { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "name cost" "prod prod" "qty acts"; gap: 8px 10px; }
+  .l-options { width: calc(100% - 16px); padding: 10px; }
+  /* the shop goes under the product's name, so the offers fit without scrolling sideways */
+  .l-shop-cell { display: none; }
+  .l-pname-text .l-shop-inline { display: block; }
+  .l-pname { min-width: 0; gap: 8px; }
+  .l-opts .l-thumb.big { width: 40px; height: 40px; }
+  .l-opts td, .l-opts th { padding-inline: 6px; }
+  .l-opts td:first-child, .l-opts th:first-child { padding-right: 0; }
+  .l-opts td:last-child, .l-opts th:last-child { padding-left: 0; }
+  .l-opts .s-icon { width: 28px; }
+  #tab-list .l-name { font-size: 20px; }
+  .l-head-actions { margin-left: 0; }
+  .l-product .l-count { display: none; }
+}

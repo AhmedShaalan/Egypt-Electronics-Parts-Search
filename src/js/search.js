@@ -230,7 +230,7 @@ async function mapLimited(items, max, fn) {
 // onProgress(done, total) is called as each distinct part is priced
 // A parts-list line from a search: its strong matches, or the best weaker ones when there
 // are none, cheapest first. `row` is the line of the pasted text it came from.
-function listLine(query, qty, result, row) {
+export function listLine(query, qty, result, row) {
   const strong = result.results.filter((r) => r.score >= STRONG);
   const candidates = (strong.length ? strong : result.results.slice(0, 15))
     .slice()
@@ -364,6 +364,9 @@ export function saveItem(p) {
       name: p.name,
       url: p.url,
       image: p.image,
+      // whether its shop's cart can take it from a link, as in the search results
+      ...(p.cart ? { cart: true } : {}),
+      ...(p.cart_rules ? { cart_rules: p.cart_rules } : {}),
       saved_price: p.price,
       price: p.price,
       in_stock: true,
@@ -382,16 +385,32 @@ export function unsaveItem(p) {
   store(data);
 }
 
-export function deleteItem(id) {
+// removes items, returning them as stored so restoreSaved() can put them back
+export function deleteItems(ids) {
   const data = load();
-  data.items = data.items.filter((it) => it.id !== id);
+  const removed = data.items.filter((it) => ids.includes(it.id));
+  data.items = data.items.filter((it) => !ids.includes(it.id));
+  store(data);
+  return removed;
+}
+
+// puts back items and lists taken out by deleteItems() or deleteList(), for Undo
+export function restoreSaved({ items = [], lists = [] }) {
+  const data = load();
+  const has = (arr, x) => arr.some((y) => y.id === x.id);
+  data.items.push(...items.filter((it) => !has(data.items, it)));
+  data.lists.push(...lists.filter((l) => !has(data.lists, l)));
   store(data);
 }
 
-export async function refreshItems() {
+// onProgress(done, total) is called as each item is checked
+export async function refreshItems(onProgress) {
   const updates = new Map();
   let failed = 0;
-  await mapLimited(load().items, 6, async (it) => {
+  let done = 0;
+  const items = load().items;
+  onProgress?.(0, items.length);
+  await mapLimited(items, 6, async (it) => {
     const shop = SHOPS_BY_KEY[it.shop];
     if (!shop) return;
     try {
@@ -402,6 +421,7 @@ export async function refreshItems() {
     } catch {
       failed++;
     }
+    onProgress?.(++done, items.length);
   });
   // saved again from scratch: items saved or removed while the prices were being checked stay that way
   const data = load();
@@ -410,17 +430,21 @@ export async function refreshItems() {
   return { items: getSaved().items, failed };
 }
 
-// `picks` keeps the products chosen instead of the cheapest: { part name: "shop|ref" }
-export function saveList(name, text, total, picks = {}) {
+// `picks` keeps the products chosen instead of the cheapest: { part name: "shop|ref" }.
+// `total` and `shops` are what it cost and from how many shops when it was priced.
+export function saveList(name, text, total, picks = {}, shops = null) {
   if (!text.trim()) throw new Error("The list is empty");
   const data = load();
+  const t = now();
   const list = {
     id: data.nextId++,
     name: name.trim().slice(0, 80) || "Parts list",
     text,
     picks,
     saved_total: total ?? null,
-    saved_at: now(),
+    saved_shops: shops,
+    saved_at: t,
+    priced_at: t,
   };
   data.lists.push(list);
   if (!store(data)) throw new Error("Couldn't save: this browser blocks storage");
@@ -428,12 +452,13 @@ export function saveList(name, text, total, picks = {}) {
 }
 
 // saves a changed list over the saved one it was opened from; null if that one was deleted
-export function updateList(id, text, total, picks = {}) {
+export function updateList(id, text, total, picks = {}, shops = null) {
   if (!text.trim()) throw new Error("The list is empty");
   const data = load();
   const list = data.lists.find((l) => l.id === id);
   if (!list) return null;
-  Object.assign(list, { text, picks, saved_total: total ?? null, saved_at: now() });
+  const t = now();
+  Object.assign(list, { text, picks, saved_total: total ?? null, saved_shops: shops, saved_at: t, priced_at: t, changed: false });
   if (!store(data)) throw new Error("Couldn't save: this browser blocks storage");
   return { id: list.id, name: list.name };
 }
@@ -460,7 +485,8 @@ export function addToList(id, name, newName) {
   else if (lines.length >= MAX_LIST_LINES) throw new Error(`That list is full: a list can have ${MAX_LIST_LINES} parts`);
   else lines.push(withQty(1));
   list.text = lines.join("\n");
-  list.saved_total = null; // the total it was saved at no longer covers the list
+  // the total it was priced at no longer covers the list
+  if (list.saved_total != null) list.changed = true;
   if (!store(data)) throw new Error("Couldn't save: this browser blocks storage");
   return { id: list.id, name: list.name };
 }
@@ -473,8 +499,61 @@ export function renameList(id, name) {
   store(data);
 }
 
+// removes a list, returning it as stored so restoreSaved() can put it back
 export function deleteList(id) {
   const data = load();
+  const removed = data.lists.filter((l) => l.id === id);
   data.lists = data.lists.filter((l) => l.id !== id);
   store(data);
+  return removed;
+}
+
+export function duplicateList(id) {
+  const data = load();
+  const list = data.lists.find((l) => l.id === id);
+  if (!list) return null;
+  const copy = { ...list, id: data.nextId++, name: `${list.name} (copy)`.slice(0, 80), saved_at: now() };
+  data.lists.push(copy);
+  if (!store(data)) throw new Error("Couldn't save: this browser blocks storage");
+  return { id: copy.id, name: copy.name };
+}
+
+// stores what a saved list costs now, after it was priced again (see list-tab.jsx), unless it was
+// changed or deleted meanwhile. Returns the total it had before, or null.
+export function setListPrice(id, text, total, shops) {
+  const data = load();
+  const list = data.lists.find((l) => l.id === id);
+  if (!list || list.text !== text) return null;
+  const before = list.changed ? null : list.saved_total;
+  Object.assign(list, { saved_total: Math.round(total * 100) / 100, saved_shops: shops, priced_at: now(), changed: false });
+  store(data);
+  return before;
+}
+
+// ---------- backing up and restoring ----------
+
+export function exportSaved() {
+  const { items, lists } = load();
+  return { app: "egypt-parts-search", version: 1, exported_at: now(), items, lists };
+}
+
+// Adds what a backup holds to this browser; what's already here is left as it is. Returns
+// how many items and lists were added.
+export function importSaved(backup) {
+  if (!backup || !Array.isArray(backup.items) || !Array.isArray(backup.lists)) throw new Error("That file isn't a backup from this site");
+  const data = load();
+  let items = 0;
+  let lists = 0;
+  for (const it of backup.items) {
+    if (!it?.shop || !it.ref || data.items.some((x) => x.shop === it.shop && x.ref === it.ref)) continue;
+    data.items.push({ ...it, id: data.nextId++ });
+    items++;
+  }
+  for (const l of backup.lists) {
+    if (typeof l?.text !== "string" || data.lists.some((x) => x.name === l.name && x.text === l.text)) continue;
+    data.lists.push({ ...l, id: data.nextId++ });
+    lists++;
+  }
+  if (!store(data)) throw new Error("Couldn't save: this browser blocks storage");
+  return { items, lists };
 }
