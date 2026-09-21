@@ -181,6 +181,19 @@
     padding: 11px 12px; outline: none; min-width: 0;
   }
   input[type=search] { flex: 1; font-size: 16px; }
+  .search-field { position: relative; flex: 1; display: flex; min-width: 0; }
+  .search-field input { padding-right: 42px; }
+  /* the browser's own clear button is tiny, and Firefox has none, so the page draws its own */
+  input[type=search]::-webkit-search-cancel-button { -webkit-appearance: none; appearance: none; }
+  .search-clear {
+    position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
+    width: 32px; height: 32px; border-radius: 50%; border: 0; background: none; color: var(--muted);
+    display: grid; place-items: center; cursor: pointer;
+  }
+  .search-clear[hidden] { display: none; }
+  .search-clear:hover { color: var(--text); background: var(--surface-2); }
+  .search-clear:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .search-clear svg { width: 18px; height: 18px; }
   input:focus, textarea:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
   textarea { width: 100%; min-height: 150px; resize: vertical; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 14px; }
 
@@ -327,6 +340,17 @@
   }
   .toast.show { opacity: 1; transform: translateX(-50%); }
 
+  .to-top {
+    position: fixed; right: 20px; bottom: calc(20px + env(safe-area-inset-bottom)); z-index: 9;
+    width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; cursor: pointer;
+    background: var(--surface); color: var(--text); border: 1px solid var(--border); box-shadow: 0 2px 10px rgb(0 0 0 / .15);
+    opacity: 0; visibility: hidden; transform: translateY(12px); transition: opacity .2s, transform .2s, visibility .2s;
+  }
+  .to-top.show { opacity: 1; visibility: visible; transform: none; }
+  .to-top:hover { background: var(--surface-2); }
+  .to-top:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .to-top svg { width: 20px; height: 20px; }
+
   @media (max-width: 560px) {
     header .icons { order: 1; }
     header nav { order: 2; width: 100%; }
@@ -366,7 +390,12 @@
   <section id="tab-search">
     <h1>Compare electronics part prices across 16 Egyptian shops</h1>
     <form class="searchbar" id="search-form">
-      <input type="search" id="q" placeholder="Search a part, e.g. LM7805, ESP32, 10k resistor" autocomplete="off" autofocus>
+      <div class="search-field">
+        <input type="search" id="q" placeholder="Search a part, e.g. LM7805, ESP32, 10k resistor" autocomplete="off" autofocus>
+        <button class="search-clear" id="q-clear" type="button" title="Clear search" aria-label="Clear search" hidden>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
       <button class="btn primary" type="submit">Search</button>
     </form>
     <div id="search-out"></div>
@@ -434,6 +463,9 @@
 
 </main>
 <div class="toast" id="toast"></div>
+<button class="to-top" id="to-top" type="button" title="Back to top" aria-label="Back to top">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+</button>
 
 <script type="module">
 import { SHOPS } from "./js/shops.js";
@@ -446,6 +478,7 @@ const STRONG = 70;
 
 let savedKeys = new Set();
 let search = null;          // last search response
+let searchRun = 0;          // bumped by each search and by clearing, so a stale result is dropped
 let showWeak = false;
 let shopFilter = "";        // shop key picked from the chips, "" = all shops
 let listData = null;        // last parts-list response
@@ -464,6 +497,15 @@ function toast(msg) {
 }
 
 $("#theme-toggle").addEventListener("click", () => window.toggleTheme());
+
+// shows once the page has scrolled past the first screen
+const toTop = $("#to-top");
+const updateToTop = () => toTop.classList.toggle("show", scrollY > innerHeight);
+addEventListener("scroll", updateToTop, { passive: true });
+toTop.addEventListener("click", () => {
+  const smooth = !matchMedia("(prefers-reduced-motion: reduce)").matches;
+  scrollTo({ top: 0, behavior: smooth ? "smooth" : "auto" });
+});
 
 /* ---------- tabs ---------- */
 function showTab() {
@@ -565,12 +607,26 @@ async function runSearch(q) {
   };
   showWeak = false;
   shopFilter = "";
+  const run = ++searchRun;
   try {
-    search = await searchAll(q, { onProgress: (done, total) => setProgress(progress, done, total, "shops"), skip: skip.signal });
+    const result = await searchAll(q, { onProgress: (done, total) => setProgress(progress, done, total, "shops"), skip: skip.signal });
+    if (run !== searchRun) return;
+    search = result;
     renderSearch();
   } catch (e) {
-    out.innerHTML = `<div class="empty">${esc(e.message)}</div>`;
+    if (run === searchRun) out.innerHTML = `<div class="empty">${esc(e.message)}</div>`;
   }
+}
+
+// empties the box and the results, bringing back the intro underneath
+function clearSearch() {
+  searchRun++;
+  search = null;
+  $("#q").value = "";
+  $("#search-out").innerHTML = "";
+  currentQuery = "";
+  setSearchUrl("");
+  updateClear();
 }
 
 const fetching = new Set(); // shop keys being fetched after a skip
@@ -1033,7 +1089,16 @@ function renderShops() {
 }
 
 /* ---------- start ---------- */
-$("#q").addEventListener("search", e => { if (!e.target.value.trim()) { currentQuery = ""; setSearchUrl(""); } });
+// Escape in the box clears it too (the browser's own "search" event)
+$("#q").addEventListener("search", e => { if (!e.target.value.trim()) clearSearch(); });
+
+// the × in the search box only shows while there is something to clear
+function updateClear() { $("#q-clear").hidden = !$("#q").value; }
+$("#q").addEventListener("input", updateClear);
+$("#q-clear").addEventListener("click", () => {
+  clearSearch();
+  $("#q").focus();
+});
 
 // opened with a shared link? fill the box, and run it as soon as the search tab is shown
 const sharedQuery = (new URLSearchParams(location.search).get("q") || "").trim();
@@ -1041,6 +1106,7 @@ if (sharedQuery) {
   $("#q").value = sharedQuery;
   pendingQuery = sharedQuery;
 }
+updateClear();
 renderShops();
 showTab();
 saved = getSaved();
