@@ -6,4 +6,5 @@
 export { ListApp } from "./list-app.jsx";
 export { listTabShown } from "./pricing.js";
 export { openSavedList, startNewList, priceSavedList, askToLeave } from "./actions.js";
-export { hasUnsaved } from "./state.js";
+export { hasUnsaved, feesToBackUp, restoreFees } from "./state.js";
+export { LeaveDialog } from "./leave-dialog.jsx";

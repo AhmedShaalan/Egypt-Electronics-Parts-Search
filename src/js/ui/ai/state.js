@@ -37,4 +37,4 @@ export function setOs(os) {
   set({ os });
 }
 // quotes around a pasted path are dropped
-export const setPath = path => set({ path: path.replace(/^["']|["']$/g, "") });
+export const setPath = path => set({ path: path.replace(/^\s*["']|["']\s*$/g, "") });

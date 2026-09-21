@@ -62,9 +62,10 @@ export function Offers({ r, c, filter }) {
   const low = good[0] ? lineCost(line, good[0].x) : 0;
   const tr = ({ x, i }) => (
     <tr key={i} class={x === c ? "chosen" : ""} onClick={e => !e.target.closest("a, input") && choose(r.id, i)}>
-      <td><input type="radio" class="l-radio" name={`pick-${r.id}`} checked={x === c}
-        aria-label={`${x.name} at ${x.shop_name}, ${money(lineCost(line, x))}`} onClick={() => choose(r.id, i)} onKeyDown={moveAmong} /></td>
       <td>
+        {/* the chosen offer is the highlighted row; the radio is there for the keyboard and screen readers */}
+        <input type="radio" class="l-pick sr-only" name={`pick-${r.id}`} checked={x === c}
+          aria-label={`${x.name} at ${x.shop_name}, ${money(lineCost(line, x))}`} onClick={() => choose(r.id, i)} onKeyDown={moveAmong} />
         <span class="l-pname"><Thumb class="l-thumb" p={x} big />
           <span class="l-pname-text">{x.name}<small class="num">{priceDetail(line, x)}</small>
             <small class="l-shop-inline">{x.shop_name}{x.cart ? "" : " · order on their site"}</small>
@@ -84,12 +85,12 @@ export function Offers({ r, c, filter }) {
         onInput={e => set({ filters: { ...store.state.filters, [r.id]: e.currentTarget.value } })} />
       <div class="l-table-wrap">
         <table class="l-opts">
-          <thead><tr><th><span class="sr-only">Chosen</span></th><th>Product</th><th class="l-shop-cell">Shop</th><th class="r">Your cost</th><th><span class="sr-only">Open</span></th></tr></thead>
+          <thead><tr><th>Product</th><th class="l-shop-cell">Shop</th><th class="r">Your cost</th><th><span class="sr-only">Open</span></th></tr></thead>
           <tbody>
             {good.map(tr)}
-            {weak.length ? <tr class="group"><td colspan="5">Weaker matches, probably a different part. Never picked for you.</td></tr> : null}
+            {weak.length ? <tr class="group"><td colspan="4">Weaker matches, probably a different part. Never picked for you.</td></tr> : null}
             {weak.map(tr)}
-            {list.length ? null : <tr class="group"><td colspan="5">Nothing matches “{filter}”.</td></tr>}
+            {list.length ? null : <tr class="group"><td colspan="4">Nothing matches “{filter}”.</td></tr>}
           </tbody>
         </table>
       </div>

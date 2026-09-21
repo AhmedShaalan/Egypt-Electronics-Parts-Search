@@ -5,27 +5,38 @@ What changed on [parts.ahmedshaalan.com](https://parts.ahmedshaalan.com/), newes
 ## Unreleased
 
 ### Added
-- Search results are grouped by product: the same part at different shops is one card, cheapest first, with every shop's offer inside. Only close matches are merged (the package, values like 5V or 1/4W, model codes like S3 or 30-pin, and the pack size must agree, and prices far apart stay apart); anything unsure stays on its own. "Every offer" shows the flat list.
-- Shops on the side: tick shops on or off with their match counts, or show only one. A shop that failed or was skipped says so there and can be asked again.
+- Search results can be grouped by product: with "By product", the same part at different shops is one card, cheapest first, with every shop's offer inside. Only close matches are merged (the package, values like 5V or 1/4W, model codes like S3 or 30-pin, and the pack size must agree, and prices far apart stay apart); anything unsure stays on its own. "Every offer", the list of every shop's offers, is still the default.
+- Shops on the side: tick shops on or off with their match counts, or show only one. A shop that failed or was skipped says so there and can be asked again. Below them, show only what's on sale or what can go in the cart from here. On a phone, all of this opens from a Filters button.
 - Weaker matches say why they're probably a different part: the part number or word missing from the name, or that it's an accessory made for the part.
-- Recent searches on the empty search page, "/" to jump to the search box, and a one-click "Add to ‹list›" for the list you added to last.
+- A search with no in-stock match suggests searching the part number alone, and says when there are weaker matches below.
+- Recent searches on the empty search page (or examples to try before there are any), "/" to jump to the search box, and a one-click "Add to ‹list›" for the list you added to last.
 - Saved has two tabs, Starred items and Parts lists, and opens on the one used last.
-- Starred items show how their price moved since they were starred, filter by cheaper, pricier or can't buy, and sort by newest, biggest drop, shop or price. An item out of stock or no longer listed has a "Find elsewhere" link that searches every shop for it. Tick several to see what they cost together, add them to a parts list in one go, copy or remove them.
+- Starred items show how their price moved since they were starred, filter by cheaper, pricier or can't buy, and sort by newest, biggest drop, shop or price. An item out of stock or no longer listed has a "Find elsewhere" link that searches every shop for it. Tick several to see what they cost together, add them to a parts list in one go, copy or remove them. Items starred from now on have a cart button, like in the search results, at the shops that allow it. Update prices shows how far it's got, then what changed.
 - Parts lists are cards with their first parts, their total and from how many shops, and a note when parts were added since they were priced. "Update prices" prices one list or all of them again and shows how each total moved. Lists can be duplicated, and a new one started from there.
-- Back up and Restore save everything to a file and bring it back, for a browser whose data gets cleared.
+- Back up and Restore save starred items, parts lists and delivery fees to a file and bring them back, for a browser whose data gets cleared. Fees already set in the browser restored to are kept.
 - Remove and Delete have Undo instead of a confirmation box, and Rename is a small dialog instead of the browser's prompt.
-- Parts list: choose how to buy. Best overall (parts plus delivery), Lowest parts cost or Fewest shops, and Your picks once you choose a product yourself. Each row says why it's at that shop when a cheaper one exists ("Saves a delivery", "Look-alike skipped"), and rows the plan moves to another shop light up.
+- Parts list: choose how to buy. Best overall (parts plus delivery), Cheapest parts, any shop, or Fewest shops, and Your picks once you choose a product yourself. When a part is at a pricier shop to save a delivery, its offers say so, and rows the plan moves to another shop light up.
 - Parts list: delivery fees, one for any shop and your own figure for the shops you know, kept in the browser and counted in every total.
 - Parts list: the order as one basket per shop, with "Fill cart at …" or, for shops whose cart can't be filled from here, "Copy as message" for their WhatsApp or order form.
-- Parts list: the list has a name and says when it has unsaved changes; "My lists" switches between saved lists, starts a new one or copies it as text. The list on the tab is kept when the page is reloaded.
+- Parts list: the list has a name and says when it has unsaved changes; "My lists" switches between saved lists, starts a new one or copies it as text. Quantities have + and − buttons, a removed row has Undo, and a shop that didn't answer can be asked again for every part at once. The list on the tab is kept when the page is reloaded. Leaving the tab or closing the page with unsaved changes asks first.
+- An About tab: why the site exists, how a search runs, what's kept and counted, what it can't do yet, common questions, short terms of use and credits.
+- Shops: find a shop by name, and show only those whose cart can be filled from here.
+- AI: the setup steps change to match the app (Claude Code, Claude Desktop, Cursor or another) and the computer picked, with a check after each step, questions to try, fixes for the usual problems, and how to update or remove it.
+- The site's name at the top goes back to the Search tab.
 
 ### Changed
 - The Search tab is redesigned: the search bar sticks to the top once there are results, one status line shows how many shops have answered (with Stop waiting, Try again and Copy link), and each result has a cart button (where the shop allows it), a star and a ⋯ menu instead of four buttons on hover.
-- The about text and common questions move to a footer at the bottom of every tab.
+- The about text and common questions move to the About tab. The footer keeps links to the terms of use, privacy and the source, and stays at the bottom of the window when a tab is short.
 - Starred items no longer add up to a total: they aren't an order. Ticking some shows what those cost.
-- The Parts list tab is redesigned: the list is the page. Parts typed or pasted in join it as rows, each priced as it's added, and quantities, parts and products are changed in the row, so there's no Find prices step. Every offer for a part opens in its row, with weaker matches below a line saying why. The "Everything from one shop" card and the "Total by shop" table give way to Fewest shops and the baskets.
+- The Parts list tab is redesigned: the list is the page. Parts typed or pasted in join it as rows at the top, each priced as it's added, and quantities, parts and products are changed in the row, so there's no Find prices step. Change part only changes the name now; the quantity is set in the row. Every offer for a part opens in its row, with weaker matches below a line saying why. The "Everything from one shop" card and the "Total by shop" table give way to Fewest shops and the baskets.
+- Parts added to a saved list from a search result or from Saved go at its top, like on the Parts list tab.
 - A saved parts list's total includes delivery, and the list remembers the products you chose.
-- The site is now built with [Vite](https://vite.dev) before it's published, and the Search, Parts list, Saved and Shops tabs are [Preact](https://preactjs.com) components. It loads as one script and one stylesheet, whose names change with every release so browsers never keep an old copy.
+- The link preview image, shown when the site's address is shared, shows the redesigned search.
+- The site is now built with [Vite](https://vite.dev) before it's published, and every tab is a [Preact](https://preactjs.com) component, each in its own folder with its own styles. It loads as one script and one stylesheet, whose names change with every release so browsers never keep an old copy.
+
+### Fixed
+- A model written with a space or joined up ("mini 360", "Mini360") finds the shops that only list it with a dash ("Mini-360"), so it gets the same results as "mini-360". The MCP server searches the same way.
+- Pressing Search again for what's already shown, however it's written, asks the shops again instead of showing the same results.
 
 ## 1.8.0 · 2026-09-21
 

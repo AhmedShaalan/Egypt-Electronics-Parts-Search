@@ -50,6 +50,8 @@ const MILLIAMPS = /(?<![0-9a-z.])(\d+(?:\.\d+)?)ma(?![0-9a-z])/g;
 const VALUE = /^\d+(?:\.\d+)?(?:v|mv|vdc|vac|a|ma|mah|ah|w|kw|ohm|kohm|k|uf|nf|pf|mm|hz|khz|mhz)$/;
 // "Mini-360", "LM 7805" -> "mini360", "lm7805": a name and its model number written apart
 const NAME_NUMBER_GAP = /(^|[^0-9a-z])([a-z]{2,})[-\s](\d{3,})(?![0-9a-z])/g;
+// "mini360" -> "mini-360", for shops that only find the name with its dash
+const NAME_NUMBER = /(^|[^0-9a-z-])([a-z]{2,})(\d{3,})(?![0-9a-z-])/g;
 
 function clean(s) {
   s = s.toLowerCase();
@@ -215,6 +217,8 @@ export function searchVariants(query) {
   }
   // and the description without its extras: "12v 2a power supply with barrel jack"
   variants.push(tidy.split(/\s+(?:with|for)\s+/)[0]);
+  // some shops find "Mini-360" only when the search has the dash too
+  variants.push(tidy.replace(NAME_NUMBER, "$1$2-$3"));
   for (const t of tokens(query)) {
     if (ALIASES[t]) {
       variants.push(q.replaceAll(t, ALIASES[t]));

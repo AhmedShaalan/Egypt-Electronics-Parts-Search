@@ -15,7 +15,7 @@
 .s-field input[type=search] { width: 100%; height: 48px; padding: 0 44px; font-size: 16px; }
 .s-field kbd {
   position: absolute; right: 14px; top: 50%; transform: translateY(-50%); pointer-events: none;
-  font: 12px ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--muted); border: 1px solid var(--border); border-radius: 5px; padding: 1px 6px;
+  font: 12px var(--mono); color: var(--muted); border: 1px solid var(--border); border-radius: 5px; padding: 1px 6px;
 }
 .s-field kbd[hidden] { display: none; }
 .s-clear {
@@ -50,7 +50,7 @@
 .s-lbl { color: var(--muted); font-size: 13px; margin-right: 2px; }
 .s-q-chip {
   border: 1px solid var(--border); background: var(--surface); border-radius: 99px; padding: 4px 12px; cursor: pointer;
-  font: 13px ui-monospace, SFMono-Regular, Menlo, monospace;
+  font: 13px var(--mono);
 }
 .s-q-chip:hover { border-color: var(--accent); color: var(--accent); }
 .s-recent .s-linkbtn { font-size: 13px; }

@@ -19,7 +19,7 @@ import { fill, orderMessage } from "./actions.js";
 
 const STRATEGIES = [
   ["best", "parts + delivery, lowest"],
-  ["cheap", "cheapest product for each part"],
+  ["cheap", "more shops can mean more delivery"],
   ["fewest", "fewest deliveries to wait for"],
 ];
 
@@ -93,7 +93,7 @@ function Basket({ shop, entries, fee, filling }) {
   const busy = filling?.shop === shop;
   return (
     <div class="l-basket">
-      <div class="l-basket-head"><b>{sh.name}</b>{cartable ? null : <span class="l-chip soft">Add by hand</span>}<span class="num l-sub">{money(sub)}</span></div>
+      <div class="l-basket-head"><b>{sh.name}</b><span class="num l-sub">{money(sub)}</span></div>
       <ul>
         {entries.map(e => (
           <li key={e.row.id}>

@@ -11,7 +11,7 @@ Find a part, see every in-stock price side by side, and price a whole parts list
 
 `16 shops` · `live prices` · `out-of-stock hidden` · `works on your phone` · `free, no sign-up` · [`MCP for AI assistants`](#use-it-from-claude-or-another-ai-assistant) · [`AGPL-3.0 license`](LICENSE)
 
-<img src=".github/screenshots/search.png" alt="Search results for LM7805 across 16 Egyptian shops, sorted by match and price" width="760">
+<img src=".github/screenshots/search.png" alt="Search results for LM7805: 24 matches from all 16 shops, best match first, with the shops and their match counts on the side" width="760">
 
 </div>
 
@@ -38,8 +38,8 @@ Egypt Electronics Parts Search asks every shop at once, recognizes those names a
 - Runs on your own computer with the same matching as the site: no account, key or fee
 
 **📋 Price a whole parts list**
-- Type or paste parts, one per line; each joins the list and is priced at every shop as it's added. Change a quantity, a part or its product right in the row
-- Choose how to buy: **Best overall** (parts plus delivery), **Lowest parts cost** or **Fewest shops**, or **Your picks** once you pick a product yourself. Every row says why it's at that shop when a cheaper one exists
+- Type or paste parts, one per line; each joins the top of the list and is priced at every shop as it's added. Change a quantity, a part or its product right in the row
+- Choose how to buy: **Best overall** (parts plus delivery), **Cheapest parts, any shop** or **Fewest shops**, or **Your picks** once you pick a product yourself. When a part is at a pricier shop to save a delivery, its offers say so
 - Delivery counts: set a fee per shop, or one for any shop, so an extra shop is only used when it saves more than its delivery
 - Counts packs: 20 resistors sold in 2-packs = 10 packs
 - Every offer for a part is a click away, with its picture, shop, pack and cost for your quantity; look-alikes are kept apart and never picked for you
@@ -52,19 +52,20 @@ Egypt Electronics Parts Search asks every shop at once, recognizes those names a
 **⭐ Save and track**
 - Star any product to save it. **Update prices** re-checks every starred item at its shop and shows what went ▲ up, ▼ down, or out of stock, with a link to find it elsewhere
 - Name and save a parts list, switch between saved lists, and reopen one later with fresh prices, or build one up from search results. It remembers the products you picked
-- Saved items stay private in your own browser, with no accounts; **Back up** saves them to a file and **Restore** brings them back
+- Saved items stay private in your own browser, with no accounts; **Back up** saves them and your delivery fees to a file, and **Restore** brings them back
 
 **📱 Works anywhere**
 - A plain website: open it on your laptop or phone, nothing to install
 - Follows your system's light or dark mode
+- The **Shops** tab lists every shop covered and which ones take Add to cart; **About** explains how a search runs, what's kept, what it can't do yet, and the terms of use
 
 <table>
 <tr>
-<td width="62%"><img src=".github/screenshots/parts-list.png" alt="A seven-part list priced across shops: cheapest mix 837 EGP versus 1,105 EGP from a single shop"></td>
+<td width="62%"><img src=".github/screenshots/parts-list.png" alt="A seven-part list priced across shops: Best overall 983 EGP from 2 shops with delivery, against 1,037 EGP for the cheapest parts from 4 shops and 1,155 EGP from one shop, with the order in one basket per shop"></td>
 <td width="38%"><img src=".github/screenshots/phone-dark.png" alt="ESP32 search results on a phone in dark mode"></td>
 </tr>
 <tr>
-<td align="center"><sub>Parts list: cheapest mix vs. one shop</sub></td>
+<td align="center"><sub>Parts list: how to buy, delivery counted</sub></td>
 <td align="center"><sub>Phone, dark mode</sub></td>
 </tr>
 </table>
@@ -80,7 +81,7 @@ Type a part number or a description: `LM7805`, `ESP32`, `10k resistor`, `HC-SR04
 | You'll see | What it means |
 |---|---|
 | **Searching 16 shops… 9 answered** | Results show once a few shops have answered with a match, and the rest join as they answer. **Stop waiting** skips the shops still running |
-| A card with **12 shops** | The same product at 12 shops: the cheapest shop and price, then the next few. Open it for every shop's offer. Only close matches are merged (the package, values like 5V, model codes like S3 or 30-pin and the pack size must agree); anything unsure has its own card. **Every offer** shows the plain list |
+| **Every offer** or **By product** | Every offer, the default, lists each shop's offer on its own. By product puts the same product at different shops in one card, with the cheapest shop and price, then the next few; open it for every shop's offer. Only close matches are merged (the package, values like 5V, model codes like S3 or 30-pin and the pack size must agree); anything unsure has its own card |
 | The **Shops** panel | Each shop's number of matches. Untick a shop to hide it, or **Only** to see just that one. Shops still searching spin; a shop that **didn't answer** or was **skipped** has **Try again** or **Search now** |
 | **Sale** | The shop is discounting it; the original price is struck through |
 | `pack of 10 · 0.50 EGP each` | The listing is a pack; this is the price per piece |
@@ -90,7 +91,7 @@ Type a part number or a description: `LM7805`, `ESP32`, `10k resistor`, `HC-SR04
 
 ### Parts list
 
-The list is the page: type or paste parts in the **Add parts** box (<kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>Enter</kbd> adds them) and each becomes a row, priced at every shop as it's added. All of these quantity formats work:
+The list is the page: type or paste parts in the **Add parts** box (<kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>Enter</kbd> adds them) and each becomes a row at the top of the list, in the order you wrote them, priced at every shop as it's added. All of these quantity formats work:
 
 ```
 LM7805 x2
@@ -108,12 +109,10 @@ Bullets and numbering are ignored, `#` lines are treated as comments, and names 
 
 | You'll see | What it means |
 |---|---|
-| A row | The part, its quantity (type it or use + and −), what it costs, and the product it would be bought as, with its shop. Click the product to see every offer: sorted by the cost for your quantity, with a box to filter by name or shop, and weaker matches below a line with why they're probably a different part. Choose one to buy that instead |
-| **Saves a delivery** | A cheaper offer exists at another shop, but buying this part where the rest of the order is costs less once delivery is counted |
-| **Look-alike skipped** | A cheaper product was left out because it's probably a different part |
+| A row | The part, its quantity (type it or use + and −), what it costs, and the product it would be bought as, with its shop. Click the product to see every offer: sorted by the cost for your quantity, with a box to filter by name or shop, and weaker matches below a line with why they're probably a different part. Choose one to buy that instead. When the plan buys it at a pricier shop to save a delivery, a line above the offers says so |
 | **Check match** / **Not found** | Only weaker matches were found, so nothing is bought for it until you choose one; or no shop has it in stock |
-| ⋯ | **Change part** searches for another name or changes the quantity, for that row only; if no shop has the new name, the box stays open to try another. Also opens the product at its shop, or removes the row (with **Undo**) |
-| **How to buy** | **Best overall** is the lowest parts cost plus delivery; **Lowest parts cost** takes the cheapest product for each part wherever it is; **Fewest shops** means the fewest deliveries. Choosing a product yourself makes it **Your picks**: the plan you were on, with your picks. The rows follow the choice, and when a change moves other parts to another shop, they light up and a message says so |
+| ⋯ | **Change part** searches for another name, for that row only; if no shop has the new name, the box stays open to try another. Also opens the product at its shop, or removes the row (with **Undo**) |
+| **How to buy** | **Best overall** is the lowest parts cost plus delivery; **Cheapest parts, any shop** takes the cheapest product for each part wherever it is, so its delivery to more shops can make it cost more in all; **Fewest shops** means the fewest deliveries. Choosing a product yourself makes it **Your picks**: the plan you were on, with your picks. The rows follow the choice, and when a change moves other parts to another shop, they light up and a message says so |
 | **Delivery fees** | One estimate for any shop, and your own figure for the shops you know. They're kept in this browser and apply to every list |
 | **Your order** | One basket per shop with what goes in it. **Fill cart at …** opens the shop with them in its cart, quantities set (counting packs); a Shopify shop takes them all at once, a WooCommerce shop one per link, so the tab adds them one after another and ends on the cart. Products with options to choose (a size, a colour) are added on the shop's page. For a shop whose cart can't be filled from here, open each part from the basket, or **Copy as message** for their WhatsApp or order form |
 | **Prices from 15 of 16 shops** | A shop didn't answer; **Try again** asks it again for every part |
@@ -130,7 +129,7 @@ Two tabs, **Starred items** and **Parts lists**; the page opens on the one you u
 
 Opening a saved list shows it on the **Parts list** tab and prices it again. The products you chose are kept with the list and chosen again when you open it; if one is sold out or gone, its row says **Your pick is gone** and the plan chooses again. A saved list's total includes delivery, using the plan it would be bought with.
 
-Saved items live in your browser's storage, so they're private to that browser and device. Clearing site data or using a private window removes them: **Back up** downloads them as a file, and **Restore** adds a backup's items and lists back.
+Saved items live in your browser's storage, so they're private to that browser and device. Clearing site data or using a private window removes them: **Back up** downloads them as a file, with your delivery fees, and **Restore** adds a backup's items and lists back. It takes the backup's delivery fees only if this browser has none of its own set.
 
 ## Use it from Claude or another AI assistant
 
@@ -194,10 +193,10 @@ The catch: browsers only let a website read another site's data if that site all
 ```
 
 1. **Fan out.** A search runs against all shops in parallel, and the results show as they come in: once three shops have answered with a match, then each shop as it answers. Each shop gets 25 seconds; a slow or broken shop is marked failed instead of holding up the rest. You can also stop waiting early: the shops still running are marked skipped, and each can be fetched on its own afterwards.
-2. **Widen the net.** Shop search engines match text literally, and WooCommerce matches several words as one phrase, so the app also sends variants: `12 V 2 A` → `12v 2a`, `Mini-360 buck converter` → `mini360`, `XKC-Y25-NPN level sensor` → `xkc-y25`, `power supply with barrel jack` → `power supply`, `LM7805` → `7805`, `16x2 LCD` → `1602 LCD`. Variants only widen what the shops return; scoring still decides what matches.
+2. **Widen the net.** Shop search engines match text literally, and WooCommerce matches several words as one phrase, so the app also sends variants: `12 V 2 A` → `12v 2a`, `Mini-360 buck converter` → `mini360`, `mini 360` → `mini-360`, `XKC-Y25-NPN level sensor` → `xkc-y25`, `power supply with barrel jack` → `power supply`, `LM7805` → `7805`, `16x2 LCD` → `1602 LCD`. Variants only widen what the shops return; scoring still decides what matches.
 3. **Score.** Every product name is scored 0–100 against your query (see below). Scores of 70+ are shown as matches, 45–69 as weaker matches, and anything lower is dropped.
 4. **Filter and sort.** Out-of-stock and zero-price items are removed, and results are sorted by score, then price.
-5. **Cache.** Results are kept for an hour (2 minutes if any shop failed). A search with skipped shops isn't cached until every skipped shop has been fetched, so searching again asks all of them. The relay also caches shop responses for an hour, shared across everyone who uses the site, so a price can be up to about two hours old. Starting a new search stops the one it replaces.
+5. **Cache.** Results are kept for an hour (2 minutes if any shop failed). A search with skipped shops isn't cached until every skipped shop has been fetched, so searching again asks all of them. Pressing Search again for the search already shown asks the shops again too. The relay also caches shop responses for an hour, shared across everyone who uses the site, so a price can be up to about two hours old. Starting a new search stops the one it replaces.
 
 ### The relay
 
@@ -249,6 +248,8 @@ Egypt-Electronics-Parts-Search/
 │   ├── css/search.css      The Search tab's styles
 │   ├── css/saved.css       The Saved tab's styles
 │   ├── css/list.css        The Parts list tab's styles
+│   ├── css/shops.css, ai.css, about.css  The Shops, AI and About tabs' styles
+│   ├── css/components.css  Pieces more than one tab uses
 │   ├── public/             Copied as they are
 │   │   ├── icon.png        App icon (Icons8)
 │   │   ├── avatar.jpg      My GitHub profile picture, for the About tab
@@ -262,13 +263,15 @@ Egypt-Electronics-Parts-Search/
 │       ├── matching.js     Query ↔ product-name scoring, aliases, pack sizes, why a match is weak
 │       ├── grouping.js     Which results are the same product at different shops
 │       ├── plans.js        Ways to buy a parts list: which product and shop for each part, delivery counted
+│       ├── list-model.js   A parts list's rows and what's worked out from them, without the page
 │       ├── search.js       Fan-out search, parts lists, saved items
 │       ├── main.js         The page: tabs, start-up
-│       └── ui/             The page's parts, one file each
-│           ├── search-tab.jsx, list-tab.jsx, saved-tab.jsx, shops-tab.jsx  The tabs, in Preact
+│       └── ui/             The page's parts
+│           ├── search/, list/, saved/, shops/, ai/, about/  One folder per tab, in Preact
+│           ├── components.jsx, icons.jsx, store.js, use-modal.js  What the tabs share
 │           ├── saved.js    What's saved, for the star, the count and the Saved tab
 │           ├── cart.js, add-to-list.js, copy.js
-│           └── common.js   Helpers they share
+│           └── common.js, format.js, storage.js  Helpers they share
 ├── mcp/                    MCP server for AI assistants (Node, reuses src/js)
 │   └── server.js
 ├── worker/                 Cloudflare Worker relay
@@ -301,7 +304,7 @@ npx wrangler deploy
 
 Wrangler prints the relay's address, like `https://egypt-parts-relay.yourname.workers.dev`.
 
-**3. Point the site at it.** Put that address in `PRODUCTION_RELAY` in [`src/js/config.js`](src/js/config.js). Also point the GitHub icon link in `src/index.html` at your fork: under the AGPL, visitors to your copy must be able to get its source. Replace `parts.ahmedshaalan.com` with your own address in `src/index.html` (the canonical link, the `og:` and `twitter:` tags and the structured data), `src/public/sitemap.xml` and `src/public/robots.txt`, and delete `src/public/CNAME` and the Google verification file unless you use your own. Then commit and push.
+**3. Point the site at it.** Put that address in `PRODUCTION_RELAY` in [`src/js/config.js`](src/js/config.js). Also point the links to the source at your fork: under the AGPL, visitors to your copy must be able to get its source. They're the GitHub icon and the footer's **Source on GitHub** in `src/index.html`, and the addresses at the top of `src/js/ui/about/about-app.jsx`, `src/js/ui/shops/shops-app.jsx` and `src/js/ui/ai/` (`ai-app.jsx`, `setup.jsx`). Replace `parts.ahmedshaalan.com` with your own address in `src/index.html` (the canonical link, the `og:` and `twitter:` tags and the structured data), `src/public/sitemap.xml` and `src/public/robots.txt`, and delete `src/public/CNAME` and the Google verification file unless you use your own. Then commit and push.
 
 **4. Turn on GitHub Pages.** In your fork: **Settings → Pages → Build and deployment**, set **Source** to **GitHub Actions**. The included workflow ([`.github/workflows/pages.yml`](.github/workflows/pages.yml)) builds the site and publishes it on every push to `main` that touches it. Run it once from the **Actions** tab (or push a change) and the site appears at `https://yourname.github.io/<repo-name>/` about a minute later.
 
@@ -401,7 +404,7 @@ If you run your own copy, please don't lower the cache times or raise the parall
 
 JavaScript (ES modules) · [Preact](https://preactjs.com) · [Vite](https://vite.dev) · [GitHub Pages](https://pages.github.com) · [Cloudflare Workers](https://workers.cloudflare.com)
 
-The search code in `src/js` (connectors, matching, totals) has no dependencies and runs unchanged in the browser and in the MCP server. The page is moving to Preact components one tab at a time.
+The search code in `src/js` (connectors, matching, totals) has no dependencies and runs unchanged in the browser and in the MCP server. Every tab is a Preact component, in its own folder under `src/js/ui/` with its own stylesheet.
 
 ## Changelog
 

@@ -16,7 +16,11 @@ const EXAMPLE_PATH = {
 const TERMINAL = { mac: "Terminal", win: "PowerShell", linux: "a terminal" };
 // where each app keeps its MCP servers
 const CONFIG_FILE = {
-  desktop: { mac: "~/Library/Application Support/Claude/claude_desktop_config.json", win: "%APPDATA%\\Claude\\claude_desktop_config.json" },
+  desktop: {
+    mac: "~/Library/Application Support/Claude/claude_desktop_config.json",
+    win: "%APPDATA%\\Claude\\claude_desktop_config.json",
+    linux: "~/.config/Claude/claude_desktop_config.json",
+  },
   cursor: { mac: "~/.cursor/mcp.json", win: "%USERPROFILE%\\.cursor\\mcp.json", linux: "~/.cursor/mcp.json" },
 };
 const Menu = ({ children }) => <span class="ai-menu-path">{children}</span>;
@@ -71,18 +75,20 @@ function ConfigSteps({ s }) {
       <h3>Add it to {name}</h3>
       <p>
         {app === "desktop" ? <>In Claude Desktop open <Menu>Settings → Developer → Edit Config</Menu>. That opens the file</>
-          : app === "cursor" ? <>In Cursor open <Menu>Settings → MCP → Add new global MCP server</Menu>. That opens the file</>
+          : app === "cursor" ? <>In Cursor open its settings, find <Menu>MCP</Menu> (the menu's name changes between versions) and add a new global MCP server. That opens the file</>
           : <>Find where your app adds MCP servers, usually under Settings. Most take the same JSON; if it asks for fields instead, the command is <code>node</code> and the argument is the path above.</>}
         {file ? <> <code>{file}</code>. Replace what's in it with this:</> : null}
       </p>
       <Code text={config} />
+      {app === "desktop" && os === "linux" ? <Ok>Claude Desktop for Linux is in beta. If it isn't on your computer, <button class="s-linkbtn" type="button" onClick={() => setApp("code")}>Claude Code</button> works on Linux too.</Ok> : null}
       <div class="ai-callout"><strong>Already has other servers in it?</strong> Don't replace the file. Add only the <code>"egypt-parts": {"{ … }"}</code> part inside <code>"mcpServers"</code>, with a comma after the server before it.</div>
       {os === "win" ? <Ok>The backslashes are doubled on purpose; the file needs them that way.</Ok> : null}
     </li>
     <li>
       <h3>Restart {app === "other" ? "the app" : APPS[app]}</h3>
       <p>{app === "desktop"
-        ? <>Quit it fully, {os === "win" ? <>by right-clicking its icon in the taskbar tray and choosing <strong>Quit</strong></> : <>with <kbd class="ai-kbd">⌘Q</kbd></>}; closing the window isn't enough. Then open it again.</>
+        ? <>Quit it fully, {os === "win" ? <>by right-clicking its icon in the taskbar tray and choosing <strong>Quit</strong></>
+          : os === "linux" ? <>from its icon in the system tray or its menu</> : <>with <kbd class="ai-kbd">⌘Q</kbd></>}; closing the window isn't enough. Then open it again.</>
         : "Close it and open it again so it reads the new settings."}</p>
       <Ok>{app === "desktop"
         ? <>Worked if <strong>egypt-parts</strong> is listed under the ⚙ button in a new chat, next to your other connectors.</>
@@ -119,12 +125,7 @@ export function Steps({ s }) {
             <Code out label="It should print a line like">egypt-parts: node {EXAMPLE_PATH[os]} - <b>✓ Connected</b></Code>
             <Ok><code>--scope user</code> makes it work in every folder, not only this one.</Ok>
           </li>
-        : app === "desktop" && os === "linux"
-          ? <li>
-              <h3>Add it to your app</h3>
-              <div class="ai-callout"><strong>Claude Desktop isn't made for Linux.</strong> Use <button class="s-linkbtn" type="button" onClick={() => setApp("code")}>Claude Code</button> instead, or pick <button class="s-linkbtn" type="button" onClick={() => setApp("other")}>another app</button>.</div>
-            </li>
-          : <ConfigSteps s={s} />}
+        : <ConfigSteps s={s} />}
       <li>
         <h3>Try it</h3>
         <p>Start a new chat and ask:</p>
@@ -160,8 +161,8 @@ export function Trouble({ s }) {
   ];
   // keyed by place, so a question stays open when the app or computer changes its wording
   return (
-    <div class="ai-trouble">
-      {items.map(([q, a], i) => <details key={i}><summary>{q}</summary><div class="ai-ans">{a}</div></details>)}
+    <div class="s-qa">
+      {items.map(([q, a], i) => <details key={i}><summary>{q}</summary><div class="s-qa-ans">{a}</div></details>)}
     </div>
   );
 }

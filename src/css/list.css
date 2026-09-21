@@ -48,12 +48,12 @@
 .l-intake label { display: block; font-weight: 600; margin-bottom: 6px; }
 #tab-list .l-intake textarea {
   display: block; width: 100%; resize: vertical; min-height: 88px; border-radius: 8px; padding: 10px 12px;
-  background: var(--bg); font: 14px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--text);
+  background: var(--bg); font: 14px/1.5 var(--mono); color: var(--text);
 }
 #tab-list .l-intake textarea:focus { background: var(--surface); }
 .l-intake-foot { display: flex; gap: 12px; align-items: center; margin-top: 8px; flex-wrap: wrap; }
 .l-hint { flex: 1; min-width: 220px; font-size: 12px; color: var(--muted); }
-.l-hint code, .l-hint kbd { font: 12px ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--surface-2); padding: 1px 4px; border-radius: 4px; }
+.l-hint code, .l-hint kbd { font: 12px var(--mono); background: var(--surface-2); padding: 1px 4px; border-radius: 4px; }
 .l-intake-foot .btn { padding: 7px 14px; font-size: 14px; font-weight: 550; border-radius: 8px; }
 
 .l-cols, .l-row-main { display: grid; grid-template-columns: 68px minmax(0, 1fr) 96px 36px; gap: 6px 14px; }
@@ -76,7 +76,7 @@
 .l-qty:focus-within { border-color: var(--accent); }
 #tab-list .l-qty input {
   flex: 1; min-width: 0; width: 0; border: 0; border-radius: 0; text-align: center; padding: 0; background: transparent;
-  font: 600 14px ui-monospace, SFMono-Regular, Menlo, monospace; -moz-appearance: textfield; appearance: textfield; box-shadow: none;
+  font: 600 14px var(--mono); -moz-appearance: textfield; appearance: textfield; box-shadow: none;
 }
 .l-qty input::-webkit-inner-spin-button, .l-qty input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
 .l-steps { display: flex; flex-direction: column; width: 22px; flex: none; border-left: 1px solid var(--border); }
@@ -86,7 +86,7 @@
 .l-steps button:disabled { opacity: .45; cursor: default; }
 
 .l-name-line { grid-area: name; display: flex; align-items: center; gap: 8px; min-width: 0; flex-wrap: wrap; }
-.l-part { font: 600 15px ui-monospace, SFMono-Regular, Menlo, monospace; min-width: 0; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-block: 5px; }
+.l-part { font: 600 15px var(--mono); min-width: 0; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-block: 5px; }
 .l-chip { font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 99px; white-space: nowrap; }
 .l-chip.pick { background: var(--accent-soft); color: var(--accent); }
 .l-chip.warn { background: var(--warn-soft); color: var(--warn); }
@@ -135,7 +135,11 @@ table.l-opts { width: 100%; border-collapse: collapse; border: 0; border-radius:
 .l-opts tr:last-child td { border-bottom: 0; }
 .l-opts tbody tr { cursor: pointer; }
 .l-opts tbody tr:hover td { background: var(--raised-2); }
-.l-opts tr.chosen td { background: var(--accent-soft); }
+/* the chosen offer, even under the pointer: with no radio, this is what shows it */
+.l-opts tr.chosen td, .l-opts tbody tr.chosen:hover td { background: var(--accent-soft); }
+.l-opts tr.chosen .l-pname-text { font-weight: 600; }
+/* the offer the arrow keys are on */
+.l-opts tr:has(.l-pick:focus-visible) { outline: 2px solid var(--accent); outline-offset: -2px; }
 .l-opts tr.group td { background: var(--raised-2); font-size: 12px; color: var(--muted); cursor: default; padding-block: 6px; }
 .l-opts .r { text-align: right; white-space: nowrap; }
 .l-opts .r small, .l-opts .r .l-chip { display: inline-block; margin-top: 3px; }
@@ -149,9 +153,6 @@ table.l-opts { width: 100%; border-collapse: collapse; border: 0; border-radius:
 .l-pname-text .l-shop-inline { display: none; color: var(--text); font-size: 12px; }
 .l-delta { color: var(--muted); font-size: 12px; }
 .l-radio { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--muted); display: inline-block; vertical-align: middle; flex: none; }
-input.l-radio { appearance: none; margin: 0; cursor: pointer; background: none; }
-input.l-radio:checked { border: 5px solid var(--accent); }
-input.l-radio:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .l-why { font-size: 13px; color: var(--muted); margin: 10px 0 0; }
 .l-why b { color: var(--text); font-weight: 600; }
 
@@ -191,7 +192,7 @@ input.l-radio:focus-visible { outline: 2px solid var(--accent); outline-offset: 
 }
 #tab-list .l-fee-list select { width: 100%; text-overflow: ellipsis; }
 #tab-list .l-fee-list select:disabled { color: var(--muted); }
-#tab-list .l-fee-list input { width: 64px; font: 600 13px ui-monospace, SFMono-Regular, Menlo, monospace; text-align: right; -moz-appearance: textfield; appearance: textfield; }
+#tab-list .l-fee-list input { width: 64px; font: 600 13px var(--mono); text-align: right; -moz-appearance: textfield; appearance: textfield; }
 .l-fee-list input::-webkit-inner-spin-button, .l-fee-list input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
 .l-fee-list .s-icon { width: 28px; height: 28px; }
 .l-fee-list .s-icon svg { width: 15px; height: 15px; }
@@ -205,7 +206,7 @@ input.l-radio:focus-visible { outline: 2px solid var(--accent); outline-offset: 
 .l-basket ul { list-style: none; padding: 0; margin: 6px 0 10px; font-size: 13px; display: grid; gap: 3px; }
 .l-basket li { display: flex; gap: 8px; align-items: center; min-width: 0; }
 .l-basket li span:first-child { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); }
-.l-basket li code { font: 12px ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--text); }
+.l-basket li code { font: 12px var(--mono); color: var(--text); }
 .l-basket li .num { margin-left: auto; white-space: nowrap; flex: none; color: var(--muted); }
 .l-basket li.l-deliv { border-top: 1px dashed var(--border); padding-top: 3px; }
 .l-item-link { color: inherit; text-decoration: underline; text-decoration-color: var(--border); text-underline-offset: 2px; }
@@ -221,7 +222,6 @@ input.l-radio:focus-visible { outline: 2px solid var(--accent); outline-offset: 
 .l-dialog .modal-label { margin: 12px 0 6px; }
 .l-dialog h2 + .modal-label { margin-top: 10px; }
 .l-dialog input[type=text] { width: 100%; font-size: 16px; }
-.l-dialog input[type=number] { width: 110px; font-size: 16px; }
 .l-dialog input:disabled { opacity: .6; }
 .l-dlg-hint { font-size: 12px; color: var(--muted); margin: 8px 0 0; }
 .l-leave-text { font-size: 14px; color: var(--muted); margin: 6px 0 0; }
@@ -253,7 +253,6 @@ input.l-radio:focus-visible { outline: 2px solid var(--accent); outline-offset: 
   .l-pname { min-width: 0; gap: 8px; }
   .l-opts .l-thumb.big { width: 40px; height: 40px; }
   .l-opts td, .l-opts th { padding-inline: 6px; }
-  .l-opts td:first-child, .l-opts th:first-child { padding-right: 0; }
   .l-opts td:last-child, .l-opts th:last-child { padding-left: 0; }
   .l-opts .s-icon { width: 28px; }
   #tab-list .l-name { font-size: 20px; }

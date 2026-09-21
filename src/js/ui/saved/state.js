@@ -10,7 +10,7 @@ import { copy } from "../copy.js";
 import { currentSaved, onSavedChange, reloadSaved } from "../saved.js";
 import { loadText, saveText } from "../storage.js";
 import { createStore } from "../store.js";
-import { priceSavedList } from "../list/index.js";
+import { priceSavedList, feesToBackUp, restoreFees } from "../list/index.js";
 
 export const store = createStore({
   tab: loadText("saved-tab") === "lists" ? "lists" : "items", // the one used last
@@ -140,7 +140,9 @@ export const copyList = (l, withTotal) => copy(`${l.name}\n\n${listParts(l).join
 /* ---------- backing up ---------- */
 
 export function backUp() {
-  const blob = new Blob([JSON.stringify(exportSaved(), null, 1)], { type: "application/json" });
+  // delivery fees go along, though they're the Parts list's rather than saved
+  const fees = feesToBackUp();
+  const blob = new Blob([JSON.stringify({ ...exportSaved(), ...(fees ? { delivery_fees: fees } : {}) }, null, 1)], { type: "application/json" });
   const a = Object.assign(document.createElement("a"), {
     href: URL.createObjectURL(blob),
     download: `egypt-parts-saved-${new Date().toISOString().slice(0, 10)}.json`,
@@ -153,10 +155,14 @@ export function backUp() {
 export async function restoreFrom(file) {
   if (!file) return;
   try {
-    const added = importSaved(JSON.parse(await file.text()));
+    const backup = JSON.parse(await file.text());
+    const added = importSaved(backup);
+    // fees already set in this browser are kept
+    const fees = restoreFees(backup.delivery_fees);
     reloadSaved();
-    toast(added.items || added.lists
-      ? `Restored ${[added.items && plural(added.items, "item"), added.lists && plural(added.lists, "list")].filter(Boolean).join(" and ")}`
+    const what = [added.items && plural(added.items, "item"), added.lists && plural(added.lists, "list"), fees && "your delivery fees"].filter(Boolean);
+    toast(what.length
+      ? `Restored ${what.length > 1 ? `${what.slice(0, -1).join(", ")} and ${what.at(-1)}` : what[0]}`
       : "Nothing new in that backup: it's all here already");
   } catch (e) {
     toast(e instanceof SyntaxError ? "That file isn't a backup from this site" : e.message);

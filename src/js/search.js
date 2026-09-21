@@ -123,16 +123,18 @@ export function mergeShop(result, fetched) {
   return merged;
 }
 
-const searchKey = (query) => tokens(query).join(" ") || query.trim().toLowerCase();
+// searches written differently that find the same thing ("mini-360", "Mini 360") share a key
+export const searchKey = (query) => tokens(query).join(" ") || query.trim().toLowerCase();
 
 // options: onProgress(done, total, partial) per finished shop; skip, an AbortSignal that stops waiting
 // for the shops still running and returns what is already in; cancel, an AbortSignal for a
-// caller that no longer wants the answer. Identical searches running at once share one run,
-// which stops early (like a skip) once every caller has cancelled.
-export async function searchAll(query, { onProgress, skip, cancel } = {}) {
+// caller that no longer wants the answer; fresh, to ask the shops even when the answer is
+// remembered. Identical searches running at once share one run, which stops early (like a
+// skip) once every caller has cancelled.
+export async function searchAll(query, { onProgress, skip, cancel, fresh = false } = {}) {
   const key = searchKey(query);
   const hit = cache.get(key);
-  if (hit && Date.now() < hit.expires) return { ...hit.result, cached: true };
+  if (hit && !fresh && Date.now() < hit.expires) return { ...hit.result, cached: true };
   let run = inflight.get(key);
   if (!run) {
     const stop = new AbortController();
@@ -464,7 +466,7 @@ export function updateList(id, text, total, picks = {}, shops = null) {
 }
 
 // Adds a product to a saved list, or to a new one when id is null. The list is text, so the
-// product goes in as a line with its name; adding the same part again raises its quantity.
+// product goes in as a line with its name, at the top; adding the same part again raises its quantity.
 export function addToList(id, name, newName) {
   const data = load();
   let list = id == null ? null : data.lists.find((l) => l.id === id);
@@ -483,7 +485,7 @@ export function addToList(id, name, newName) {
   const same = lines.findIndex((l) => l.trim().replace(/\s+x\d+$/i, "").toLowerCase() === line.toLowerCase());
   if (same >= 0) lines[same] = withQty(qtyOf(lines[same]) + 1);
   else if (lines.length >= MAX_LIST_LINES) throw new Error(`That list is full: a list can have ${MAX_LIST_LINES} parts`);
-  else lines.push(withQty(1));
+  else lines.unshift(withQty(1));
   list.text = lines.join("\n");
   // the total it was priced at no longer covers the list
   if (list.saved_total != null) list.changed = true;

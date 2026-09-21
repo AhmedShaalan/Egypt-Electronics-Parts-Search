@@ -79,7 +79,7 @@
 .v-lcard.updating .v-l-meta b { opacity: .5; }
 .v-l-parts { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 5px; }
 .v-l-parts li {
-  font: 12px ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--bg); border: 1px solid var(--border); border-radius: 6px;
+  font: 12px var(--mono); background: var(--bg); border: 1px solid var(--border); border-radius: 6px;
   padding: 2px 7px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .v-l-parts li.v-more { font-family: inherit; color: var(--muted); border-style: dashed; }

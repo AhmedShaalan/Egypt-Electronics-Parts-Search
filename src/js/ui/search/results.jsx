@@ -55,8 +55,8 @@ export function Results({ s, v }) {
         </div>
         <button class="btn small s-filters-btn" type="button" aria-expanded={s.showFilters} onClick={() => set({ showFilters: !s.showFilters })}>Filters{nFilters ? ` · ${nFilters}` : ""}</button>
         <div class="s-seg" role="group" aria-label="View">
-          <button type="button" aria-pressed={s.view === "group"} onClick={() => set({ view: "group" })}>By product</button>
           <button type="button" aria-pressed={s.view === "flat"} onClick={() => set({ view: "flat" })}>Every offer</button>
+          <button type="button" aria-pressed={s.view === "group"} onClick={() => set({ view: "group" })}>By product</button>
         </div>
         <select aria-label="Sort" value={s.sort} onChange={e => set({ sort: e.currentTarget.value })}>
           <option value="match">Best match</option>

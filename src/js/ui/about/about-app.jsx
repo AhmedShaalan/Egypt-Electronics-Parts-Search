@@ -2,8 +2,7 @@
 // Copyright (C) 2026 Ahmed Shaalan
 
 // The About tab: why the site exists, how a search runs, what's kept and counted, what it can't
-// do, common questions, and credits. The other tabs' footer has a shorter
-// version, and links here.
+// do, common questions, terms of use, and credits.
 
 import { useRef } from "preact/hooks";
 import { SHOPS } from "../../shops.js";
@@ -17,12 +16,13 @@ const SUGGEST_URL = `${NEW_ISSUE}?title=${encodeURIComponent("Add a shop: ")}`;
 const VERSION = import.meta.env.APP_VERSION;
 const N = SHOPS.length;
 const CARTS = SHOPS.filter(s => cartShop(s.key)).length;
-// the shops browsers may read directly: the two on Shopify, El Gammal, MTM, VoltX and Electra (shops.js)
-const DIRECT = 6;
+// the shops browsers may read directly: the two on Shopify, El Gammal, MTM and VoltX; Electra
+// only for its catalog, its prices and stock come through the relay (shops.js)
+const DIRECT = 5;
 
 const SECTIONS = [
   ["about-why", "Why it exists"], ["about-how", "How it works"], ["about-privacy", "Your privacy"],
-  ["about-limits", "What it can't do"], ["about-faq", "Common questions"], ["about-credits", "Credits"],
+  ["about-limits", "What it can't do"], ["about-faq", "Common questions"], ["about-terms", "Terms of use"], ["about-credits", "Credits"],
 ];
 
 const Ext = ({ href, children }) => <a href={href} target="_blank" rel="noopener">{children}</a>;
@@ -96,6 +96,17 @@ const FAQ = [
   ["Can I use it from an AI assistant?", <p>Yes. The <a href="#ai">AI</a> tab sets it up in Claude or another assistant in about two minutes.</p>],
 ];
 
+const TERMS = [
+  ["Prices and stock are for information only", "They come from the shops' sites and can be out of date by up to about two hours. The shop's own site is always final."],
+  ["Check the part before you buy", "Results are matched automatically and can be wrong, especially for weaker matches and vague names."],
+  ["You buy from the shop, not from this site", "The shop handles your order, payment, delivery, warranty and returns. This site never sees or takes part in them."],
+  ["Not affiliated with any shop", "Shop names and product pictures belong to their owners and are shown only to link to them. No shop pays to be listed or ranked."],
+  ["Shops can ask to be removed or corrected", <><Ext href={NEW_ISSUE}>Get in touch</Ext> and it's done promptly.</>],
+  ["Provided as-is", "The site is free, with no promise that it's always available, complete or accurate, and no responsibility for decisions made using it."],
+];
+// change it with the terms
+const TERMS_UPDATED = "22 September 2026";
+
 const CREDITS = [
   ["App icon", "https://icons8.com/icon/set/transistor/color", "Transistor by Icons8"],
   ["Built with", "https://preactjs.com", "Preact"],
@@ -144,14 +155,14 @@ export function AboutApp() {
 
         <section id="about-how">
           <h2>How it works</h2>
-          <p class="ab-h-sub">Everything runs in your browser. The site has no server of its own and no database.</p>
+          <p class="ab-h-sub">Everything runs in your browser. Apart from a small relay (below), the site has no server of its own, and no database.</p>
           <ol class="ab-flow">
             {FLOW.map(([title, text]) => <li key={title}><h3>{title}</h3><p>{text}</p></li>)}
           </ol>
           <div class="ab-relay">
             <span class="ab-ic"><RelayIcon /></span>
             <strong>Why some searches go through a relay</strong>
-            <span>Browsers only let a site read another site if it allows it. {DIRECT} shops do; for the other {N - DIRECT}, a small relay on Cloudflare fetches the shop's page and hands it back. It keeps the shops' answers for an hour, but not who asked, so the shops aren't asked the same thing again and again. That means a price can be up to about two hours old.</span>
+            <span>Browsers only let a site read another site if it allows it. {DIRECT} shops do, and Electra does for its catalog; for the other {N - DIRECT - 1}, and Electra's prices and stock, a small relay on Cloudflare fetches the shop's page and hands it back. It keeps the shops' answers for an hour, but not who asked, so the shops aren't asked the same thing again and again.</span>
           </div>
         </section>
 
@@ -174,9 +185,18 @@ export function AboutApp() {
         <section id="about-faq">
           <h2>Common questions</h2>
           <p class="ab-h-sub">Something else? <Ext href={NEW_ISSUE}>Ask on GitHub</Ext>.</p>
-          <div class="ab-faq">
-            {FAQ.map(([q, a], i) => <details key={q} open={i === 0}><summary>{q}</summary><div class="ab-ans">{a}</div></details>)}
+          <div class="s-qa">
+            {FAQ.map(([q, a], i) => <details key={q} open={i === 0}><summary>{q}</summary><div class="s-qa-ans">{a}</div></details>)}
           </div>
+        </section>
+
+        <section id="about-terms">
+          <h2>Terms of use</h2>
+          <p class="ab-h-sub">By using the site you accept these. They're short on purpose.</p>
+          <ol class="ab-terms">
+            {TERMS.map(([title, text]) => <li key={title}><strong>{title}</strong><span>{text}</span></li>)}
+          </ol>
+          <p class="ab-updated">Last updated {TERMS_UPDATED}.</p>
         </section>
 
         <section id="about-credits">

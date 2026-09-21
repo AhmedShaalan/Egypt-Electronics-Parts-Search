@@ -5,7 +5,7 @@
 
 import { SHOPS } from "../../shops.js";
 import { lineCost } from "../../search.js";
-import { MAX_QTY, cheapestGood, weakCheaper, isPick } from "../../list-model.js";
+import { MAX_QTY, isPick } from "../../list-model.js";
 import { money, safeUrl, priceDetail } from "../common.js";
 import { plural } from "../format.js";
 import { Thumb, Menu, NumField, memo } from "../components.jsx";
@@ -38,16 +38,8 @@ function RowMenu({ r, c }) {
   );
 }
 
-// why the plan took this product, when a cheaper one was there; in full under the offers (Why)
-function WhyChip({ r, c }) {
-  if (isPick(r, c)) return <span class="l-chip pick">Your pick</span>;
-  const low = cheapestGood(r.line);
-  if (low && lineCost(r.line, low) < lineCost(r.line, c)) {
-    return <span class="l-chip soft" title={`${money(lineCost(r.line, c) - lineCost(r.line, low))} more here, one delivery fewer`}>Saves a delivery</span>;
-  }
-  if (weakCheaper(r.line, c)) return <span class="l-chip warn" title="A cheaper look-alike was skipped because it's probably a different part">Look-alike skipped</span>;
-  return null;
-}
+// a product chosen by hand says so; why the plan took a pricier one is under the offers (Why)
+const PickChip = ({ r, c }) => (isPick(r, c) ? <span class="l-chip pick">Your pick</span> : null);
 
 // `c` is the product the plan buys for the row, `open` whether its offers show, `flash` whether
 // it just changed. It's drawn again only when one of those changed.
@@ -72,7 +64,7 @@ export const Row = memo(({ r, c, open, flash, filter }) => {
       ? <button class="l-product empty" type="button" aria-expanded={open} onClick={toggle}><span class="l-product-text">{msg}</span><Chevron class="l-chev" /></button>
       : <div class="l-product empty">{msg}</div>;
   } else {
-    chip = <WhyChip r={r} c={c} />;
+    chip = <PickChip r={r} c={c} />;
     cost = money(lineCost(r.line, c));
     product = (
       <button class="l-product" type="button" aria-expanded={open} onClick={toggle} title={`${plural(n, "offer")}. Click to compare`}>

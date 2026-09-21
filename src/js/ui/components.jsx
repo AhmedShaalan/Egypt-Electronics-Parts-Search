@@ -36,11 +36,22 @@ export function Thumb({ p, big, class: cls }) {
 // it; the arrow keys, Escape and clicking elsewhere are handled for every details.menu (copy.js).
 export function Menu({ label, summary, class: cls = "", children }) {
   return (
-    <details class={`menu right s-menu ${cls}`.trim()} onClick={e => { if (e.target.closest('[role="menuitem"]')) e.currentTarget.open = false; }}>
+    <details class={`menu right s-menu ${cls}`.trim()} onToggle={e => { if (e.currentTarget.open) keepOnScreen(e.currentTarget.querySelector(".menu-list")); }}
+      onClick={e => { if (e.target.closest('[role="menuitem"]')) e.currentTarget.open = false; }}>
       {summary ?? <summary class="s-icon" title="More" aria-label={label}><DotsIcon /></summary>}
       <div class="menu-list" role="menu">{children}</div>
     </details>
   );
+}
+
+// moves an open menu sideways as far as it takes to stay 8px inside the screen, since where its
+// button is changes as the page narrows
+function keepOnScreen(list) {
+  list.style.translate = "";
+  const { left, right } = list.getBoundingClientRect();
+  const room = document.documentElement.clientWidth - 8;
+  const by = left < 8 ? 8 - left : right > room ? Math.max(room - right, 8 - left) : 0;
+  if (by) list.style.translate = `${by}px 0`;
 }
 
 // A number box that keeps what's being typed while the page redraws around it. Numbers are held
@@ -79,17 +90,26 @@ export function useCurrentSection(page) {
       if (p) {
         const r = p.el.getBoundingClientRect();
         const onScreen = r.top < innerHeight && r.bottom > 0;
-        if (onScreen || !p.seen) { p.seen ||= onScreen; return; }
+        if (onScreen || !p.seen) { p.seen ||= onScreen; setCurrent(p.el.id); return; }
         picked.current = null;
       }
       const atEnd = innerHeight + scrollY >= document.documentElement.scrollHeight - 2;
       const reached = sections.filter(el => el.getBoundingClientRect().top <= innerHeight * 0.2);
       setCurrent((atEnd ? sections.at(-1) : reached.at(-1) ?? sections[0]).id);
     };
-    update();
+    // an address that goes straight to a section marks it, like picking it from the contents
+    const fromAddress = () => {
+      const el = sections.find(x => `#${x.id}` === location.hash);
+      if (el) picked.current = { el, seen: false };
+      update();
+    };
+    fromAddress();
+    addEventListener("hashchange", fromAddress);
     addEventListener("scroll", update, { passive: true });
-    addEventListener("resize", update, { passive: true });
-    return () => { removeEventListener("scroll", update); removeEventListener("resize", update); };
+    // also when its tab is shown, which changes its size from nothing
+    const shown = new ResizeObserver(update);
+    shown.observe(page.current);
+    return () => { removeEventListener("hashchange", fromAddress); removeEventListener("scroll", update); shown.disconnect(); };
   }, []);
   const pick = id => { picked.current = { el: document.getElementById(id), seen: false }; setCurrent(id); };
   return [current, pick];

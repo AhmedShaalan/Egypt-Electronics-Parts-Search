@@ -2,7 +2,9 @@
 // Copyright (C) 2026 Ahmed Shaalan
 
 // Asks before leaving a list with unsaved changes: for another tab, another saved list or a new one.
-// The list on the tab is kept either way; saving is what puts it in Saved.
+// The list on the tab is kept either way; saving is what puts it in Saved. It's drawn outside the
+// tabs (main.js), since the Saved tab asks too, while the Parts list tab is hidden: a dialog
+// inside a hidden tab would block the page without showing.
 
 import { store, set } from "./state.js";
 import { save } from "./actions.js";
@@ -19,9 +21,9 @@ export function LeaveDialog() {
   };
   const name = s.name.trim() || "This list";
   return (
-    <dialog class="modal l-dialog l-leave" {...modal.props} aria-labelledby="l-leave-title" onClose={() => set({ leaving: null })}>
+    <dialog class="modal l-dialog l-leave" {...modal.props} aria-labelledby="l-leave-title" aria-describedby="l-leave-text" onClose={() => set({ leaving: null })}>
       <h2 id="l-leave-title">Unsaved changes</h2>
-      <p class="l-leave-text">“{name}” has changes that aren't saved. Save it to find it later under Saved.</p>
+      <p class="l-leave-text" id="l-leave-text">“{name}” has changes that aren't saved. Save it to find it later under Saved.</p>
       <div class="modal-actions">
         <button type="button" class="btn" onClick={modal.close}>Stay</button>
         <button type="button" class="btn" onClick={leave}>Leave without saving</button>

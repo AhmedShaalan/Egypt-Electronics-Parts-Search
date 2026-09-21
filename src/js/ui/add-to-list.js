@@ -13,10 +13,11 @@ let lastListId = null; // the list picked last time is picked again, for adding 
 // the list something was added to last, while it still exists, for adding the next part in one click
 export const lastList = () => currentSaved().lists.find(l => l.id === lastListId) || null;
 
-// the products' names go in as lines of the list, the first making a new list when `id` is null
+// the products' names go in as lines of the list, the first making a new list when `id` is null.
+// Each goes in at the top, so they're added last first to keep their order.
 function addAll(id, ps, newName) {
   let list = null;
-  for (const p of ps) {
+  for (const p of [...ps].reverse()) {
     list = addToList(id, p.name, newName);
     id = list.id;
   }

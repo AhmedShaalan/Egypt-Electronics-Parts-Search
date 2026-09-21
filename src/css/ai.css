@@ -2,7 +2,6 @@
 
 /* The AI tab (js/ui/ai/). Its classes start with ai- so they don't meet the other tabs'. */
 
-#tab-ai { --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
 #tab-ai code { font-family: var(--mono); }
 .ai-guide code { font-size: 13px; }
 /* the parts the contents link to stop below the header */
@@ -85,6 +84,8 @@ p.ai-ok { font-size: 13px; color: var(--muted); display: flex; gap: 6px; align-i
 .ai-code > .ai-copy { position: absolute; top: 5px; right: 5px; }
 .ai-code.out pre { color: var(--muted); }
 .ai-code.out b { color: var(--good); font-weight: 600; }
+/* a shade darker on the grey, to be read as easily as the text around it */
+:root:not([data-dark]) .ai-code.out b { color: color-mix(in srgb, var(--good) 85%, black); }
 .ai-code-label { font-size: 12px; color: var(--muted); font-weight: 600; margin: 0 0 5px; display: block; }
 .ai-copy { width: 34px; height: 34px; display: grid; place-items: center; flex: none; border: 0; background: none; border-radius: 7px; color: var(--muted); cursor: pointer; }
 .ai-copy:hover { background: var(--surface); color: var(--text); }
@@ -121,21 +122,8 @@ p.ai-ok { font-size: 13px; color: var(--muted); display: flex; gap: 6px; align-i
 .ai-know strong { display: block; font-size: 14px; }
 .ai-know li span:not(.ai-ic) { font-size: 14px; color: var(--muted); }
 
-.ai-trouble { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); }
-.ai-trouble details + details { border-top: 1px solid var(--border); }
-.ai-trouble summary { padding: 13px 16px; cursor: pointer; font-weight: 600; font-size: 14.5px; list-style: none; display: flex; align-items: center; gap: 12px; }
-.ai-trouble summary::-webkit-details-marker { display: none; }
-.ai-trouble summary:hover { background: var(--surface-2); }
-.ai-trouble details:first-child summary { border-radius: var(--radius) var(--radius) 0 0; }
-.ai-trouble details:last-child:not([open]) summary { border-radius: 0 0 var(--radius) var(--radius); }
-.ai-trouble summary::after {
-  content: ""; margin-left: auto; width: 7px; height: 7px; flex: none; border: solid var(--muted); border-width: 0 2px 2px 0;
-  transform: translateY(-2px) rotate(45deg); transition: transform .15s;
-}
-.ai-trouble details[open] summary::after { transform: translateY(1px) rotate(-135deg); }
-.ai-ans { padding: 0 16px 16px; font-size: 14px; color: var(--muted); }
-.ai-ans p { margin: 0 0 8px; }
-.ai-ans .ai-code { margin-top: 4px; }
+.s-qa-ans .ai-code { margin-top: 4px; }
+
 
 .ai-glance { list-style: none; margin: 0 0 14px; padding: 0; display: grid; gap: 10px; font-size: 14px; }
 .ai-glance li { display: grid; grid-template-columns: 18px minmax(0, 1fr); gap: 10px; }

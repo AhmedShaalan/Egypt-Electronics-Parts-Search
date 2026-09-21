@@ -5,6 +5,7 @@
 // tab makes through change(), which lights up the rows the plan moved because of them.
 
 import { MAX_LIST_LINES } from "../../config.js";
+import { SHOPS_BY_KEY } from "../../shops.js";
 import { createPlanner } from "../../plans.js";
 import { newRow, planRows, unpriced } from "../../list-model.js";
 import { toast } from "../common.js";
@@ -13,7 +14,7 @@ import { currentSaved, onSavedChange } from "../saved.js";
 import { loadJSON, saveJSON } from "../storage.js";
 import { createStore } from "../store.js";
 
-export const PLAN_NAMES = { best: "Best overall", cheap: "Lowest parts cost", fewest: "Fewest shops", custom: "Your picks" };
+export const PLAN_NAMES = { best: "Best overall", cheap: "Cheapest parts, any shop", fewest: "Fewest shops", custom: "Your picks" };
 export const newName = () => "Parts list " + new Date().toLocaleDateString();
 
 // The rows are described in list-model.js.
@@ -56,6 +57,19 @@ function loadFees() {
 export function setFees(fees) {
   saveJSON("delivery-fees", fees);
   change({ fees });
+}
+
+// the fees for a backup, or null while they've never been changed from the default
+export const feesToBackUp = () => (loadJSON("delivery-fees", null) ? store.state.fees : null);
+
+// a backup's fees, taken only by a browser that has none of its own yet. True if they were.
+export function restoreFees(f) {
+  if (typeof f?.default !== "number" || loadJSON("delivery-fees", null)) return false;
+  const fee = v => (typeof v === "number" && v >= 0 && v <= 9999 ? v : null);
+  if (fee(f.default) == null) return false;
+  const byShop = Object.fromEntries(Object.entries(f.byShop ?? {}).filter(([k, v]) => SHOPS_BY_KEY[k] && fee(v) != null));
+  setFees({ default: f.default, byShop });
+  return true;
 }
 
 // the list on the tab survives a reload; it's priced again when the tab is next shown. It's

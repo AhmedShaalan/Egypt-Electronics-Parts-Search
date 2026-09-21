@@ -4,7 +4,7 @@
 // The Search tab's state and searching: the search box, the address bar's ?q=, recent searches,
 // and asking shops again.
 
-import { searchAll, fetchShop, mergeShop } from "../../search.js";
+import { searchAll, searchKey, fetchShop, mergeShop } from "../../search.js";
 import { STRONG } from "../../matching.js";
 import { $, toast, announce } from "../common.js";
 import { plural } from "../format.js";
@@ -23,7 +23,7 @@ export const store = createStore({
   fetching: new Set(), // shops being asked again, after failing or being skipped
   flash: "",          // a shop whose results just came in
   sort: "match",
-  view: "group",
+  view: "flat",       // every offer; "group" puts each product's offers in one card
   hidden: new Set(),  // shops unticked in the filters
   saleOnly: false,
   cartOnly: false,
@@ -85,6 +85,8 @@ export function searchFor(q) {
 export async function runSearch(q) {
   q = q.trim();
   if (q.length < 2) return;
+  // searching again for what's on screen asks the shops again, rather than showing the same answer
+  const fresh = !!store.state.result && searchKey(q) === searchKey(store.state.query);
   $("#q").value = q;
   updateBox();
   setSearchUrl(q);
@@ -105,7 +107,7 @@ export async function runSearch(q) {
     set({ result: partial, shown });
   };
   try {
-    const result = await searchAll(q, { onProgress, skip: skip.signal, cancel: cancel.signal });
+    const result = await searchAll(q, { onProgress, skip: skip.signal, cancel: cancel.signal, fresh });
     if (run !== searchRun) return;
     set({ result, shown: true });
     const n = result.results.filter(r => r.score >= STRONG).length;

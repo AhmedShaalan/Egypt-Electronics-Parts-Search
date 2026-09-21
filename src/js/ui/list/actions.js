@@ -17,7 +17,8 @@ import { price, stopRow, stopAll, currentRun } from "./pricing.js";
 
 /* ---------- changing the list ---------- */
 
-// adds the parts typed or pasted in, one per line; false when there was nothing to add
+// adds the parts typed or pasted in, one per line, at the top of the list in the order they're
+// written; false when there was nothing to add
 export function addText(text) {
   const parsed = text.split(/\r?\n/).map(parseLine).filter(Boolean);
   if (!parsed.length) { toast("Type a part name or number"); return false; }
@@ -29,12 +30,13 @@ export function addText(text) {
     // a part already on the list gets the quantity added
     const same = rows.findIndex(r => r.query.toLowerCase() === q.toLowerCase());
     if (same >= 0) { rows[same] = withQty(rows[same], rows[same].qty + n); more++; continue; }
-    if (rows.length >= MAX_LIST_LINES) { left++; continue; }
-    const r = newRow(q, n);
-    rows.push(r);
-    added.push(r);
+    // or twice in what was pasted
+    const twice = added.findIndex(r => r.query.toLowerCase() === q.toLowerCase());
+    if (twice >= 0) { added[twice] = withQty(added[twice], added[twice].qty + n); continue; }
+    if (rows.length + added.length >= MAX_LIST_LINES) { left++; continue; }
+    added.push(newRow(q, n));
   }
-  change({ rows });
+  change({ rows: [...added, ...rows] });
   price(added.map(r => r.id));
   const said = [added.length && `Added ${plural(added.length, "part")}`, more && `${plural(more, "part")} already on the list got more`].filter(Boolean).join(", ");
   toast(left ? `${said || "Nothing added"}. A list can have ${MAX_LIST_LINES} parts, so ${left} ${left === 1 ? "was" : "were"} left out` : said);

@@ -13,7 +13,6 @@ import { Head, ShopsStatus, Intake } from "./head.jsx";
 import { Row } from "./row.jsx";
 import { Order } from "./order.jsx";
 import { ChangeDialog } from "./change-dialog.jsx";
-import { LeaveDialog } from "./leave-dialog.jsx";
 
 export function ListApp() {
   const s = store.use();
@@ -47,6 +46,5 @@ export function ListApp() {
         </div>
       : null}
     <ChangeDialog r={s.editing != null ? rowById(s.editing) : null} />
-    <LeaveDialog />
   </>;
 }

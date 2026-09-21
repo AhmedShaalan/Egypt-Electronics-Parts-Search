@@ -3,7 +3,6 @@
 /* The About tab (js/ui/about/). Its classes start with ab- so they don't meet the other tabs';
    the cards beside it are shared (components.css). */
 
-#tab-about { --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
 /* the parts the contents link to stop below the header */
 #tab-about [id] { scroll-margin-top: calc(var(--header-h, 0px) + 16px); }
 
@@ -73,21 +72,17 @@
 .ab-limits strong { font-size: 14.5px; }
 .ab-limits span { color: var(--muted); }
 
-/* questions */
-.ab-faq { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); }
-.ab-faq details + details { border-top: 1px solid var(--border); }
-.ab-faq summary { padding: 13px 16px; cursor: pointer; font-weight: 600; font-size: 14.5px; list-style: none; display: flex; align-items: center; gap: 12px; }
-.ab-faq summary::-webkit-details-marker { display: none; }
-.ab-faq summary:hover { background: var(--surface-2); }
-.ab-faq details:first-child summary { border-radius: var(--radius) var(--radius) 0 0; }
-.ab-faq details:last-child:not([open]) summary { border-radius: 0 0 var(--radius) var(--radius); }
-.ab-faq summary::after {
-  content: ""; margin-left: auto; width: 7px; height: 7px; flex: none; border: solid var(--muted); border-width: 0 2px 2px 0;
-  transform: translateY(-2px) rotate(45deg); transition: transform .15s;
+/* terms of use */
+.ab-terms { list-style: none; margin: 0; padding: 0; counter-reset: t; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); }
+.ab-terms li { counter-increment: t; display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: 2px 12px; padding: 13px 16px; font-size: 14px; }
+.ab-terms li + li { border-top: 1px solid var(--border); }
+.ab-terms li::before {
+  content: counter(t); grid-row: span 2; width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center;
+  background: var(--surface-2); color: var(--muted); font-weight: 700; font-size: 12px;
 }
-.ab-faq details[open] summary::after { transform: translateY(1px) rotate(-135deg); }
-.ab-ans { padding: 0 16px 16px; font-size: 14px; color: var(--muted); }
-.ab-ans p { margin: 0; }
+.ab-terms strong { font-size: 14.5px; }
+.ab-terms span { color: var(--muted); }
+.ab-doc p.ab-updated { font-size: 13px; color: var(--muted); margin: 10px 0 0; }
 
 /* credits */
 .ab-credits { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 24px; }
@@ -108,9 +103,6 @@
 .ab-ver { display: flex; justify-content: space-between; align-items: baseline; font-size: 14px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
 .ab-ver a { color: var(--accent); font-weight: 600; font-size: 13px; text-underline-offset: 2px; }
 
-/* on the About tab the footer is only its last line: the page above has the rest */
-body:has(#tab-about.active) .foot-grid { display: none; }
-body:has(#tab-about.active) .foot-line { margin-top: 0; padding-top: 0; border-top: 0; }
 
 @media (max-width: 900px) {
   .ab-body { grid-template-columns: minmax(0, 1fr); }

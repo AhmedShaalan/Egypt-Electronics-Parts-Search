@@ -8,7 +8,7 @@ import { h, render } from "preact";
 import { warmUp } from "./search.js";
 import { $ } from "./ui/common.js";
 import { SearchApp, searchTabShown, setUpSearchBox } from "./ui/search/index.js";
-import { ListApp, listTabShown, hasUnsaved, askToLeave } from "./ui/list/index.js";
+import { ListApp, LeaveDialog, listTabShown, hasUnsaved, askToLeave } from "./ui/list/index.js";
 import { SavedApp } from "./ui/saved/index.js";
 import { reloadSaved } from "./ui/saved.js";
 import { ShopsApp } from "./ui/shops/index.js";
@@ -51,13 +51,17 @@ function showTab() {
   const hash = location.hash.slice(1);
   const part = hash && !TABS.includes(hash) ? document.getElementById(hash) : null;
   const tab = tabOf(hash);
-  // gone back or sent to another tab from the list: it stays on the list while asking
+  // gone back or sent to another tab from the list: it stays on the list while asking. The list
+  // goes back on top of the entry Back went to, so that entry is still there after Stay.
   if (listHolds(location.hash || "#search")) {
-    history.replaceState(null, "", "#list");
+    history.pushState(null, "", "#list");
     return;
   }
   mayLeaveList = false;
-  document.querySelectorAll("header nav a").forEach(a => a.classList.toggle("active", a.dataset.tab === tab));
+  document.querySelectorAll("header nav a").forEach(a => {
+    a.classList.toggle("active", a.dataset.tab === tab);
+    if (a.dataset.tab === tab) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
+  });
   document.querySelectorAll("main > section").forEach(s => s.classList.toggle("active", s.id === "tab-" + tab));
   // within the tab being read (its contents, "What can I ask?") it glides there, unless motion is reduced
   const smooth = tab === shownTab && !matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -103,6 +107,7 @@ render(h(SavedApp), $("#saved-app"));
 render(h(ShopsApp), $("#shops-app"));
 render(h(AiApp), $("#ai-app"));
 render(h(AboutApp), $("#about-app"));
+render(h(LeaveDialog), $("#leave-app"));
 showTab();
 // the catalogs searched in the browser are a few MB, so they load once a search is being typed
 for (const el of [$("#q"), $("#list-text")]) el.addEventListener("input", warmUp, { once: true });
