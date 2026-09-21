@@ -245,12 +245,17 @@
   .star { border: 0; background: none; font-size: 20px; cursor: pointer; color: var(--muted); padding: 4px; line-height: 1; border-radius: 8px; }
   .star:hover { color: var(--text); background: var(--surface-2); }
   .star.on { color: #e3a008; }
-  /* copy and add-to-list on a search result show on hover, and always on touch screens */
-  .row .reveal { display: flex; align-items: center; gap: 2px; opacity: 0; transition: opacity .15s; }
-  .row:hover .reveal, .row:focus-within .reveal, .row .reveal:has(details[open]) { opacity: 1; }
-  @media (hover: none) { .row .reveal { opacity: 1; } }
+  /* copy, add-to-list and save on a search result show on hover, and always on touch screens;
+     a filled star stays, so saved results are easy to spot */
+  .row .reveal { display: flex; align-items: center; gap: 2px; }
+  .row .reveal > * { opacity: 0; transition: opacity .15s; }
+  .row:hover .reveal > *, .row:has(:focus-visible) .reveal > *, .row .reveal:has(details[open]) > *, .row .reveal > .on { opacity: 1; }
+  @media (hover: none) { .row .reveal > * { opacity: 1; } }
   .row .reveal > .icon-btn { padding: 4px; }
   .row .reveal > .icon-btn svg { width: 18px; height: 18px; }
+  .save svg { fill: none; }
+  .save.on, .save.on:hover { color: #e3a008; }
+  .save.on svg { fill: currentColor; }
 
   dialog.modal {
     width: min(440px, calc(100vw - 32px)); padding: 20px; border: 1px solid var(--border); border-radius: var(--radius);
@@ -576,7 +581,7 @@ async function toggleSave(p, btn) {
     if (on) { storeItem(p); savedKeys.add(key(p)); } else { storeUnsave(p); savedKeys.delete(key(p)); }
     if (btn) {
       btn.classList.toggle("on", on);
-      btn.textContent = on ? "★" : "☆";
+      btn.setAttribute("aria-pressed", on);
       btn.title = btn.ariaLabel = on ? "Remove from saved" : "Save";
     }
     updateSavedCount();
@@ -821,8 +826,10 @@ function resultRow(p) {
           <button type="button" class="icon-btn" data-add-list="${esc(key(p))}" title="Add to a parts list" aria-label="Add to a parts list">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h11M3 12h11M3 18h7M18 14v8M14 18h8"/></svg>
           </button>
+          <button type="button" class="icon-btn save${saved ? " on" : ""}" data-save="${esc(key(p))}" title="${saved ? "Remove from saved" : "Save"}" aria-label="${saved ? "Remove from saved" : "Save"}" aria-pressed="${saved}">
+            <svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="m12 2.8 2.8 5.7 6.3.9-4.6 4.4 1.1 6.3-5.6-3-5.6 3 1.1-6.3-4.6-4.4 6.3-.9z"/></svg>
+          </button>
         </span>
-        <button class="star ${saved ? "on" : ""}" data-save="${esc(key(p))}" title="${saved ? "Remove from saved" : "Save"}" aria-label="${saved ? "Remove from saved" : "Save"}">${saved ? "★" : "☆"}</button>
       </div>
     </div>`;
 }
