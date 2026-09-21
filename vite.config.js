@@ -6,7 +6,8 @@
 // old cached scripts. Files in src/public/ are copied as they are.
 
 import { readFileSync } from "node:fs";
-import { defineConfig } from "vite";
+import { fileURLToPath } from "node:url";
+import { createServer, defineConfig } from "vite";
 import preact from "@preact/preset-vite";
 
 // the site's version, for the About tab
@@ -16,11 +17,55 @@ const { version } = JSON.parse(readFileSync(new URL("mcp/package.json", import.m
 const changelog = readFileSync(new URL("CHANGELOG.md", import.meta.url), "utf8");
 const released = changelog.match(new RegExp(`^## ${version.replaceAll(".", "\\.")} · (\\d{4}-\\d{2}-\\d{2})`, "m"))?.[1] ?? "";
 
+// The Shops, AI and About tabs read the same for everyone, so the build writes them into the page:
+// search engines and link readers that don't run scripts see them too (js/prerender.js). The
+// page's scripts then draw them afresh. Also writes the sitemap, dated the day of the build.
+function prerender() {
+  return {
+    name: "prerender-tabs",
+    apply: "build",
+    async transformIndexHtml(html) {
+      const vite = await createServer({
+        configFile: fileURLToPath(import.meta.url),
+        server: { middlewareMode: true, hmr: false, ws: false },
+        appType: "custom",
+        logLevel: "error",
+      });
+      try {
+        const { tabs } = await vite.ssrLoadModule("/js/prerender.js");
+        for (const [id, body] of Object.entries(tabs())) {
+          const empty = `<div id="${id}"></div>`;
+          if (!html.includes(empty)) throw new Error(`prerender: no ${empty} in index.html`);
+          html = html.replace(empty, () => `<div id="${id}">${body}</div>`);
+        }
+        return html;
+      } finally {
+        await vite.close();
+      }
+    },
+    generateBundle() {
+      const today = new Date().toISOString().slice(0, 10);
+      this.emitFile({
+        type: "asset",
+        fileName: "sitemap.xml",
+        source: `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://parts.ahmedshaalan.com/</loc>
+    <lastmod>${today}</lastmod>
+  </url>
+</urlset>
+`,
+      });
+    },
+  };
+}
+
 export default defineConfig({
   root: "src",
   // relative, so a fork also works at https://yourname.github.io/<repo-name>/
   base: "./",
-  plugins: [preact()],
+  plugins: [preact(), prerender()],
   define: {
     "import.meta.env.APP_VERSION": JSON.stringify(site.version),
     "import.meta.env.MCP_VERSION": JSON.stringify(version),

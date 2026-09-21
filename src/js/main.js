@@ -98,15 +98,40 @@ document.addEventListener("click", e => {
   part.scrollIntoView({ behavior: smooth ? "smooth" : "auto" });
 });
 
+// the menus (Menu in ui/components.jsx): tapping anywhere else closes an open one
+document.addEventListener("click", e => {
+  document.querySelectorAll("details.menu[open]").forEach(d => { if (!d.contains(e.target)) d.open = false; });
+});
+
+// in an open menu: Escape closes it, the arrow keys move between its items
+document.addEventListener("keydown", e => {
+  const menu = e.target.closest?.("details.menu[open]");
+  if (!menu) return;
+  const items = [...menu.querySelectorAll('[role="menuitem"]')];
+  if (e.key === "Escape") {
+    e.preventDefault();
+    menu.open = false;
+    menu.querySelector("summary").focus();
+  } else if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+    e.preventDefault();
+    const i = items.indexOf(document.activeElement);
+    const next = e.key === "ArrowDown" ? (i + 1) % items.length : (i <= 0 ? items.length : i) - 1;
+    items[next]?.focus();
+  }
+});
+
 /* ---------- start ---------- */
 reloadSaved();
 setUpSearchBox();
 render(h(SearchApp), $("#search-app"));
 render(h(ListApp), $("#list-app"));
 render(h(SavedApp), $("#saved-app"));
-render(h(ShopsApp), $("#shops-app"));
-render(h(AiApp), $("#ai-app"));
-render(h(AboutApp), $("#about-app"));
+// the build wrote these three into the page for search engines (vite.config.js); they're drawn
+// afresh, for this visitor (the AI tab's computer, say), over an emptied box
+for (const [App, el] of [[ShopsApp, $("#shops-app")], [AiApp, $("#ai-app")], [AboutApp, $("#about-app")]]) {
+  el.replaceChildren();
+  render(h(App), el);
+}
 render(h(LeaveDialog), $("#leave-app"));
 showTab();
 // the catalogs searched in the browser are a few MB, so they load once a search is being typed

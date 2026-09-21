@@ -251,10 +251,10 @@ Egypt-Electronics-Parts-Search/
 │   ├── css/shops.css, ai.css, about.css  The Shops, AI and About tabs' styles
 │   ├── css/components.css  Pieces more than one tab uses
 │   ├── public/             Copied as they are
-│   │   ├── icon.png        App icon (Icons8)
+│   │   ├── icon.png, icon-96.png  App icon (Icons8), at 64 and 96 pixels
 │   │   ├── avatar.jpg      My GitHub profile picture, for the About tab
 │   │   ├── og-image.png    Link preview image
-│   │   ├── robots.txt, sitemap.xml
+│   │   ├── robots.txt
 │   │   ├── CNAME           The custom domain for GitHub Pages
 │   │   └── google….html    Google Search Console verification
 │   └── js/                 config, shops, matching and search are shared with mcp/, so they stay plain JS
@@ -266,6 +266,7 @@ Egypt-Electronics-Parts-Search/
 │       ├── list-model.js   A parts list's rows and what's worked out from them, without the page
 │       ├── search.js       Fan-out search, parts lists, saved items
 │       ├── main.js         The page: tabs, start-up
+│       ├── prerender.js    The Shops, AI and About tabs as HTML, for the build to write into the page
 │       └── ui/             The page's parts
 │           ├── search/, list/, saved/, shops/, ai/, about/  One folder per tab, in Preact
 │           ├── components.jsx, icons.jsx, store.js, use-modal.js  What the tabs share
@@ -278,7 +279,7 @@ Egypt-Electronics-Parts-Search/
 │   ├── src/index.js
 │   └── wrangler.toml       Worker name and allowed origins
 ├── package.json            The site's build: Vite + Preact
-├── vite.config.js
+├── vite.config.js          The build; also writes the Shops, AI and About tabs into the page and dates the sitemap
 ├── .github/
 │   ├── workflows/pages.yml Builds and publishes the site on every push to main
 │   └── screenshots/        Images for this README
@@ -304,7 +305,7 @@ npx wrangler deploy
 
 Wrangler prints the relay's address, like `https://egypt-parts-relay.yourname.workers.dev`.
 
-**3. Point the site at it.** Put that address in `PRODUCTION_RELAY` in [`src/js/config.js`](src/js/config.js). Also point the links to the source at your fork: under the AGPL, visitors to your copy must be able to get its source. They're the GitHub icon and the footer's **Source on GitHub** in `src/index.html`, and the addresses at the top of `src/js/ui/about/about-app.jsx`, `src/js/ui/shops/shops-app.jsx` and `src/js/ui/ai/` (`ai-app.jsx`, `setup.jsx`). Replace `parts.ahmedshaalan.com` with your own address in `src/index.html` (the canonical link, the `og:` and `twitter:` tags and the structured data), `src/public/sitemap.xml` and `src/public/robots.txt`, and delete `src/public/CNAME` and the Google verification file unless you use your own. Then commit and push.
+**3. Point the site at it.** Put that address in `PRODUCTION_RELAY` in [`src/js/config.js`](src/js/config.js). Also point the links to the source at your fork: under the AGPL, visitors to your copy must be able to get its source. They're the GitHub icon and the footer's **Source on GitHub** in `src/index.html`, and the addresses at the top of `src/js/ui/about/about-app.jsx`, `src/js/ui/shops/shops-app.jsx` and `src/js/ui/ai/` (`ai-app.jsx`, `setup.jsx`). Replace `parts.ahmedshaalan.com` with your own address in `src/index.html` (the canonical link, the `og:` and `twitter:` tags and the structured data), the sitemap in `vite.config.js` and `src/public/robots.txt`, and delete `src/public/CNAME` and the Google verification file unless you use your own. Then commit and push.
 
 **4. Turn on GitHub Pages.** In your fork: **Settings → Pages → Build and deployment**, set **Source** to **GitHub Actions**. The included workflow ([`.github/workflows/pages.yml`](.github/workflows/pages.yml)) builds the site and publishes it on every push to `main` that touches it. Run it once from the **Actions** tab (or push a change) and the site appears at `https://yourname.github.io/<repo-name>/` about a minute later.
 

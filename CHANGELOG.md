@@ -32,6 +32,7 @@ What changed on [parts.ahmedshaalan.com](https://parts.ahmedshaalan.com/), newes
 - Parts added to a saved list from a search result or from Saved go at its top, like on the Parts list tab.
 - A saved parts list's total includes delivery, and the list remembers the products you chose.
 - The link preview image, shown when the site's address is shared, shows the redesigned search.
+- The Shops, AI and About tabs are part of the page as it's sent, so search engines and link readers that don't run scripts read them too. The page also tells search engines the site's name, and gives them a larger icon to show beside it in their results.
 - The site is now built with [Vite](https://vite.dev) before it's published, and every tab is a [Preact](https://preactjs.com) component, each in its own folder with its own styles. It loads as one script and one stylesheet, whose names change with every release so browsers never keep an old copy.
 
 ### Fixed

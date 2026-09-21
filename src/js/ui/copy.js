@@ -35,25 +35,3 @@ export function copyText(items, format) {
   }
   return text;
 }
-
-// close an open menu when tapping anywhere else
-document.addEventListener("click", e => {
-  document.querySelectorAll("details.menu[open]").forEach(d => { if (!d.contains(e.target)) d.open = false; });
-});
-
-// in an open menu: Escape closes it, the arrow keys move between its items
-document.addEventListener("keydown", e => {
-  const menu = e.target.closest?.("details.menu[open]");
-  if (!menu) return;
-  const items = [...menu.querySelectorAll('[role="menuitem"]')];
-  if (e.key === "Escape") {
-    e.preventDefault();
-    menu.open = false;
-    menu.querySelector("summary").focus();
-  } else if (e.key === "ArrowDown" || e.key === "ArrowUp") {
-    e.preventDefault();
-    const i = items.indexOf(document.activeElement);
-    const next = e.key === "ArrowDown" ? (i + 1) % items.length : (i <= 0 ? items.length : i) - 1;
-    items[next]?.focus();
-  }
-});

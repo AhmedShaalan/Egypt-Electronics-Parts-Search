@@ -7,8 +7,11 @@
 <title>Egypt Electronics Parts Search · Compare prices at 16 shops</title>
 <meta name="description" content="Search 16 Egyptian electronics shops at once and compare in-stock prices for parts like LM7805 and ESP32. Price a whole parts list. Free, no sign-up.">
 <link rel="canonical" href="https://parts.ahmedshaalan.com/">
-<link rel="icon" type="image/png" href="/icon.png">
-<link rel="apple-touch-icon" href="/icon.png">
+<meta name="robots" content="max-image-preview:large">
+<!-- Google shows an icon beside the site in its results only from 48×48 up, in multiples of 48 -->
+<link rel="icon" type="image/png" sizes="96x96" href="/icon-96.png">
+<link rel="icon" type="image/png" sizes="64x64" href="/icon.png">
+<link rel="apple-touch-icon" href="/icon-96.png">
 <meta name="theme-color" content="#f6f5f1" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#141412" media="(prefers-color-scheme: dark)">
 
@@ -33,21 +36,42 @@
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
-  "@type": "WebApplication",
-  "name": "Egypt Electronics Parts Search",
-  "alternateName": "بحث قطع الإلكترونيات في مصر",
-  "url": "https://parts.ahmedshaalan.com/",
-  "description": "Search 16 Egyptian electronics shops at once and compare in-stock prices for parts like LM7805 and ESP32. Price a whole parts list. Free, no sign-up.",
-  "applicationCategory": "ShoppingApplication",
-  "operatingSystem": "Any",
-  "browserRequirements": "Requires JavaScript",
-  "inLanguage": "en",
-  "isAccessibleForFree": true,
-  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "EGP" },
-  "image": "https://parts.ahmedshaalan.com/og-image.png?v=2",
-  "author": { "@type": "Person", "name": "Ahmed Shaalan", "url": "https://ahmedshaalan.com" },
-  "license": "https://www.gnu.org/licenses/agpl-3.0.html",
-  "codeRepository": "https://github.com/AhmedShaalan/Egypt-Electronics-Parts-Search"
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": "https://parts.ahmedshaalan.com/#website",
+      "name": "Egypt Electronics Parts Search",
+      "alternateName": ["Egypt Parts Search", "بحث قطع الإلكترونيات في مصر"],
+      "url": "https://parts.ahmedshaalan.com/",
+      "inLanguage": "en",
+      "publisher": { "@id": "https://ahmedshaalan.com/#me" }
+    },
+    {
+      "@type": "WebApplication",
+      "name": "Egypt Electronics Parts Search",
+      "alternateName": "بحث قطع الإلكترونيات في مصر",
+      "url": "https://parts.ahmedshaalan.com/",
+      "isPartOf": { "@id": "https://parts.ahmedshaalan.com/#website" },
+      "description": "Search 16 Egyptian electronics shops at once and compare in-stock prices for parts like LM7805 and ESP32. Price a whole parts list. Free, no sign-up.",
+      "applicationCategory": "ShoppingApplication",
+      "operatingSystem": "Any",
+      "browserRequirements": "Requires JavaScript",
+      "inLanguage": "en",
+      "isAccessibleForFree": true,
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "EGP" },
+      "image": "https://parts.ahmedshaalan.com/og-image.png?v=2",
+      "author": { "@id": "https://ahmedshaalan.com/#me" },
+      "license": "https://www.gnu.org/licenses/agpl-3.0.html",
+      "codeRepository": "https://github.com/AhmedShaalan/Egypt-Electronics-Parts-Search"
+    },
+    {
+      "@type": "Person",
+      "@id": "https://ahmedshaalan.com/#me",
+      "name": "Ahmed Shaalan",
+      "url": "https://ahmedshaalan.com",
+      "sameAs": ["https://github.com/AhmedShaalan"]
+    }
+  ]
 }
 </script>
 <script>
