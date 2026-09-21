@@ -16,12 +16,15 @@ export const COPY_FORMATS = [
     line: it => `${oneLine(it)}\n${money(it.price)} · ${it.shop_name}\n${it.url}` },
 ];
 
-export async function copy(text) {
+// says `done` once it's on the clipboard; true if it got there
+export async function copy(text, done = "Copied") {
   try {
     await navigator.clipboard.writeText(text);
-    toast("Copied");
+    toast(done);
+    return true;
   } catch {
     toast("Couldn't copy");
+    return false;
   }
 }
 

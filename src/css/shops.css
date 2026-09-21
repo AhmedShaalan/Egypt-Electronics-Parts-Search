@@ -1,0 +1,56 @@
+/* SPDX-License-Identifier: AGPL-3.0-or-later · Copyright (C) 2026 Ahmed Shaalan */
+
+/* The Shops tab (js/ui/shops/). Its classes start with sh- so they don't meet the other tabs';
+   the filter chips are shared (components.css). */
+
+.sh-head { padding-top: 8px; }
+.sh-head h1 { font-size: 26px; letter-spacing: -0.015em; margin: 0; }
+.sh-sub { margin: 4px 0 0; color: var(--muted); font-size: 14px; max-width: 62ch; }
+
+.sh-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; margin: 22px 0 14px; }
+.sh-find { position: relative; flex: 0 1 260px; min-width: 180px; }
+.sh-find svg { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: var(--muted); pointer-events: none; }
+.sh-find input { width: 100%; border-radius: 8px; padding: 7px 10px 7px 32px; font-size: 14px; }
+
+.sh-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 12px; }
+.sh-shop {
+  position: relative; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px;
+  display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 0 12px; align-items: center;
+}
+.sh-shop:hover { border-color: var(--accent); }
+.sh-mark {
+  width: 40px; height: 40px; border-radius: 9px; display: grid; place-items: center; font-weight: 750; font-size: 16px;
+  background: hsl(var(--h) 55% 91%); color: hsl(var(--h) 50% 28%);
+}
+:root[data-dark] .sh-mark { background: hsl(var(--h) 28% 20%); color: hsl(var(--h) 65% 76%); }
+.sh-shop.cart .sh-mark { grid-row: span 2; }
+.sh-name {
+  font-weight: 650; color: var(--text); text-decoration: none; min-width: 0; max-width: 100%; justify-self: start;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+/* the name's link covers the whole card */
+.sh-name::after { content: ""; position: absolute; inset: 0; border-radius: var(--radius); }
+.sh-name:focus-visible { outline: none; }
+.sh-name:focus-visible::after { outline: 2px solid var(--accent); outline-offset: 2px; }
+.sh-shop:hover .sh-name { text-decoration: underline; text-underline-offset: 2px; }
+.sh-badge { grid-column: 2; justify-self: start; margin-top: 3px; display: inline-flex; align-items: center; gap: 5px; font-size: 13px; font-weight: 600; color: var(--accent); }
+.sh-badge svg { width: 13px; height: 13px; }
+
+.sh-none { grid-column: 1 / -1; text-align: center; padding: 36px 16px; color: var(--muted); background: var(--surface); border: 1px dashed var(--border); border-radius: var(--radius); }
+.sh-none p { margin: 0 0 10px; }
+
+.sh-suggest {
+  margin-top: 28px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px 24px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px;
+}
+.sh-suggest h2 { font-size: 16px; margin: 0 0 4px; }
+.sh-suggest p { margin: 0; color: var(--muted); font-size: 14px; max-width: 62ch; }
+.sh-suggest .btn, .sh-none .btn { padding: 7px 12px; font-size: 14px; font-weight: 550; border-radius: 8px; text-decoration: none; }
+.sh-suggest .btn { margin-left: auto; }
+.sh-how { margin: 12px 0 0; color: var(--muted); font-size: 13px; }
+
+@media (max-width: 600px) {
+  .sh-head h1 { font-size: 22px; }
+  .sh-find { flex: 1 1 100%; }
+  .sh-suggest .btn { margin-left: 0; }
+}

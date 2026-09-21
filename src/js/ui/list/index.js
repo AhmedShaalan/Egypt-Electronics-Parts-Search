@@ -1,0 +1,9 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (C) 2026 Ahmed Shaalan
+
+// The Parts list tab, as the rest of the page uses it.
+
+export { ListApp } from "./list-app.jsx";
+export { listTabShown } from "./pricing.js";
+export { openSavedList, startNewList, priceSavedList, askToLeave } from "./actions.js";
+export { hasUnsaved } from "./state.js";

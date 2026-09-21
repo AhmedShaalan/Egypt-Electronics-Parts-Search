@@ -17,20 +17,13 @@
   border: 0; background: none; padding: 10px 12px; font-weight: 600; color: var(--muted); cursor: pointer;
   border-bottom: 2px solid transparent; margin-bottom: -1px; display: flex; gap: 7px; align-items: center;
 }
+.v-tabs button:hover { color: var(--text); border-color: var(--border); }
 .v-tabs button[aria-selected="true"] { color: var(--text); border-color: var(--accent); }
 .v-n { font-size: 12px; background: var(--surface-2); border-radius: 99px; padding: 0 7px; font-variant-numeric: tabular-nums; }
 
 .v-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; margin-bottom: 10px; }
 .v-toolbar select { margin-left: auto; padding: 6px 8px; font-size: 13px; border-radius: 8px; }
 .v-count { color: var(--muted); font-size: 14px; }
-.v-fchip {
-  border: 1px solid var(--border); background: var(--surface); border-radius: 99px; padding: 4px 12px; cursor: pointer;
-  font-size: 13px; font-weight: 550; display: flex; gap: 6px; align-items: center;
-}
-.v-fchip .v-n { background: none; padding: 0; color: var(--muted); }
-.v-fchip[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); }
-.v-fchip[aria-pressed="true"] .v-n { color: inherit; }
-.v-fchip:disabled { opacity: .5; cursor: default; }
 
 /* ---------- starred items ---------- */
 .v-list { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); }
@@ -94,7 +87,6 @@
 .v-l-refresh { margin-left: auto; width: 30px; height: 30px; margin-right: -4px; }
 .v-l-refresh svg { width: 15px; height: 15px; }
 .v-l-updating { margin-left: auto; display: flex; align-items: center; gap: 6px; }
-.v-lists-update { margin-left: auto; display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--muted); min-height: 32px; }
 .v-spin { display: inline-block; width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--border); border-top-color: var(--accent); animation: s-spin .8s linear infinite; }
 .v-spin.small { width: 13px; height: 13px; }
 .v-lcard.new {

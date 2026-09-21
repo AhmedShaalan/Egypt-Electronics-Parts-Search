@@ -31,7 +31,7 @@ export function toast(msg, action) {
 }
 
 // a product's key, the same in every shop's results
-export const key = p => p.shop + "|" + p.ref;
+export { productKey as key } from "../list-model.js";
 
 // "4 EGP each", or for a pack "2 packs of 10 at 5 EGP"
 export function priceDetail(line, c) {
@@ -44,3 +44,6 @@ export function onBackdrop(e) {
   const r = e.currentTarget.getBoundingClientRect();
   return e.target === e.currentTarget && (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom);
 }
+
+// on a box that isn't a login or an address: password managers and autofill leave it alone
+export const NO_AUTOFILL = { autocomplete: "off", "data-1p-ignore": true, "data-lpignore": "true", "data-bwignore": true, "data-form-type": "other" };

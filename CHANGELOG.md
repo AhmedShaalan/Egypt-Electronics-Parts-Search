@@ -14,7 +14,7 @@ What changed on [parts.ahmedshaalan.com](https://parts.ahmedshaalan.com/), newes
 - Parts lists are cards with their first parts, their total and from how many shops, and a note when parts were added since they were priced. "Update prices" prices one list or all of them again and shows how each total moved. Lists can be duplicated, and a new one started from there.
 - Back up and Restore save everything to a file and bring it back, for a browser whose data gets cleared.
 - Remove and Delete have Undo instead of a confirmation box, and Rename is a small dialog instead of the browser's prompt.
-- Parts list: choose how to buy. Best overall (parts plus delivery), Lowest parts cost or Fewest shops, and Custom once you choose a product yourself. Each row says why it's at that shop when a cheaper one exists ("Saves a delivery", "Look-alike skipped"), and rows the plan moves to another shop light up.
+- Parts list: choose how to buy. Best overall (parts plus delivery), Lowest parts cost or Fewest shops, and Your picks once you choose a product yourself. Each row says why it's at that shop when a cheaper one exists ("Saves a delivery", "Look-alike skipped"), and rows the plan moves to another shop light up.
 - Parts list: delivery fees, one for any shop and your own figure for the shops you know, kept in the browser and counted in every total.
 - Parts list: the order as one basket per shop, with "Fill cart at …" or, for shops whose cart can't be filled from here, "Copy as message" for their WhatsApp or order form.
 - Parts list: the list has a name and says when it has unsaved changes; "My lists" switches between saved lists, starts a new one or copies it as text. The list on the tab is kept when the page is reloaded.

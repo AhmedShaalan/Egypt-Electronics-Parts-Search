@@ -23,8 +23,11 @@ export const goodFor = (line, c) => !line.weak && isClose(line, c);
 // the candidate chosen by hand, or null. fees: { default, byShop }. Returns { best, cheap, fewest,
 // custom } (custom null without picks); each is { assign: Map(row id -> candidate), parts, delivery,
 // total, used: Set(shop keys) }, or null when no part can be bought.
+// what a shop charges to deliver: the fee set for it, or the one for any other shop
+export const deliveryFee = (fees, shop) => fees.byShop?.[shop] ?? fees.default ?? 0;
+
 export function planOrder(rows, fees, customBase = "best") {
-  const feeOf = shop => fees.byShop?.[shop] ?? fees.default ?? 0;
+  const feeOf = shop => deliveryFee(fees, shop);
   const pinned = r => (r.pin != null ? r.line.candidates[r.pin] : null);
   // a pick on a part that has close matches is the person's own choice, kept for Custom; a pick
   // on a part with only weaker matches is the only way to buy it, so every plan uses it
@@ -92,4 +95,17 @@ export function planOrder(rows, fees, customBase = "best") {
     plans.custom = { assign, parts: cost, delivery, total: cost + delivery, used, picks: picked.length };
   }
   return plans;
+}
+
+// planOrder() takes a few milliseconds, so a planner runs it again only when a row's line or pick,
+// the fees or Custom's starting plan changed, not on every redraw while the shops answer.
+// rows are as planOrder takes them; the same object for `fees` means the same fees.
+export function createPlanner() {
+  let last = null;
+  return (rows, fees, customBase) => {
+    const same = last && last.fees === fees && last.base === customBase && last.rows.length === rows.length
+      && last.rows.every((m, i) => m.id === rows[i].id && m.line === rows[i].line && m.pin === rows[i].pin);
+    if (!same) last = { fees, base: customBase, rows, plans: planOrder(rows, fees, customBase) };
+    return last.plans;
+  };
 }

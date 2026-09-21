@@ -1,0 +1,126 @@
+/* SPDX-License-Identifier: AGPL-3.0-or-later · Copyright (C) 2026 Ahmed Shaalan */
+
+/* The About tab (js/ui/about/). Its classes start with ab- so they don't meet the other tabs';
+   the cards beside it are shared (components.css). */
+
+#tab-about { --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+/* the parts the contents link to stop below the header */
+#tab-about [id] { scroll-margin-top: calc(var(--header-h, 0px) + 16px); }
+
+.ab-hero { padding: 24px 0 36px; max-width: 760px; }
+.ab-eyebrow { font-size: 13px; font-weight: 650; color: var(--accent); letter-spacing: .02em; margin: 0 0 10px; }
+.ab-hero h1 { font-size: 36px; line-height: 1.12; letter-spacing: -0.025em; margin: 0 0 14px; text-wrap: balance; }
+.ab-lede { font-size: 17px; color: var(--muted); margin: 0 0 20px; max-width: 60ch; }
+.ab-facts { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.ab-facts li { font-size: 13px; font-weight: 600; padding: 4px 11px; border-radius: 99px; background: var(--surface-2); }
+
+.ab-body { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 32px 56px; align-items: start; border-top: 1px solid var(--border); padding-top: 36px; }
+.ab-doc > section + section { margin-top: 52px; }
+.ab-doc h2 { font-size: 22px; letter-spacing: -0.01em; margin: 0 0 6px; }
+.ab-h-sub { color: var(--muted); margin: 0 0 18px; font-size: 14.5px; max-width: 66ch; }
+.ab-doc p { max-width: 66ch; }
+.ab-doc a { color: var(--accent); }
+.ab-prose > p { margin: 0 0 12px; font-size: 15.5px; line-height: 1.6; }
+
+/* the same part under different names, merged into one result */
+.ab-names { display: grid; grid-template-columns: minmax(0, 1fr) 40px minmax(0, 1.1fr); gap: 12px; align-items: center; margin: 22px 0 6px; }
+.ab-names-in { display: grid; gap: 8px; }
+.ab-nm { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; display: flex; justify-content: space-between; gap: 10px; font-size: 14px; }
+.ab-nm code { font: 600 13.5px var(--mono); }
+.ab-nm span { color: var(--muted); font-size: 13px; white-space: nowrap; }
+.ab-arrow { color: var(--muted); display: grid; place-items: center; }
+.ab-arrow svg { width: 24px; height: 24px; }
+.ab-merged { background: var(--surface); border: 1px solid var(--accent); border-radius: var(--radius); padding: 14px; box-shadow: 0 0 0 3px var(--accent-soft); }
+.ab-merged b { display: block; font-size: 15px; }
+.ab-m-meta { font-size: 13px; color: var(--muted); margin: 2px 0 10px; }
+.ab-m-row { display: flex; justify-content: space-between; font-size: 13.5px; padding: 5px 0; border-top: 1px solid var(--border); }
+.ab-m-meta + .ab-m-row { font-weight: 650; }
+.ab-prose > p.ab-cap { font-size: 13px; color: var(--muted); margin: 8px 0 0; }
+
+/* how a search runs */
+.ab-flow { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; counter-reset: f; }
+.ab-flow li { counter-increment: f; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; }
+.ab-flow li::before {
+  content: counter(f); width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center;
+  background: var(--accent-soft); color: var(--accent); font-weight: 700; font-size: 13px; margin-bottom: 10px;
+}
+.ab-flow h3 { font-size: 14.5px; margin: 0 0 4px; }
+.ab-flow p { font-size: 13.5px; color: var(--muted); margin: 0; }
+.ab-ic { width: 32px; height: 32px; border-radius: 8px; display: grid; place-items: center; }
+.ab-ic svg { width: 16px; height: 16px; }
+.ab-relay {
+  margin-top: 14px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px;
+  display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 14px; font-size: 14px;
+}
+.ab-relay .ab-ic { grid-row: span 2; background: var(--surface-2); color: var(--muted); }
+.ab-relay strong { font-size: 14.5px; }
+.ab-relay span:not(.ab-ic) { color: var(--muted); }
+
+/* privacy */
+.ab-tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.ab-tile {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px;
+  display: grid; grid-template-columns: 32px minmax(0, 1fr); gap: 2px 12px; align-content: start;
+}
+.ab-tile .ab-ic { grid-row: span 2; background: var(--good-soft); color: var(--good); }
+.ab-tile strong { font-size: 14.5px; }
+.ab-tile span:not(.ab-ic) { font-size: 13.5px; color: var(--muted); }
+
+/* limits */
+.ab-limits { list-style: none; margin: 0; padding: 0; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); }
+.ab-limits li { padding: 12px 16px; display: grid; gap: 2px; font-size: 14px; }
+.ab-limits li + li { border-top: 1px solid var(--border); }
+.ab-limits strong { font-size: 14.5px; }
+.ab-limits span { color: var(--muted); }
+
+/* questions */
+.ab-faq { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); }
+.ab-faq details + details { border-top: 1px solid var(--border); }
+.ab-faq summary { padding: 13px 16px; cursor: pointer; font-weight: 600; font-size: 14.5px; list-style: none; display: flex; align-items: center; gap: 12px; }
+.ab-faq summary::-webkit-details-marker { display: none; }
+.ab-faq summary:hover { background: var(--surface-2); }
+.ab-faq details:first-child summary { border-radius: var(--radius) var(--radius) 0 0; }
+.ab-faq details:last-child:not([open]) summary { border-radius: 0 0 var(--radius) var(--radius); }
+.ab-faq summary::after {
+  content: ""; margin-left: auto; width: 7px; height: 7px; flex: none; border: solid var(--muted); border-width: 0 2px 2px 0;
+  transform: translateY(-2px) rotate(45deg); transition: transform .15s;
+}
+.ab-faq details[open] summary::after { transform: translateY(1px) rotate(-135deg); }
+.ab-ans { padding: 0 16px 16px; font-size: 14px; color: var(--muted); }
+.ab-ans p { margin: 0; }
+
+/* credits */
+.ab-credits { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 24px; }
+.ab-credits li { display: flex; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
+.ab-credits span { color: var(--muted); }
+.ab-doc .ab-credits a { color: var(--text); font-weight: 600; text-align: right; }
+
+/* who made it, beside the page */
+.ab-maker { display: flex; gap: 12px; align-items: center; margin-bottom: 12px; }
+/* the GitHub profile picture, kept with the site so the page asks nothing of GitHub */
+.ab-avatar { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; background: var(--surface-2); flex: none; }
+.ab-maker b { display: block; }
+.ab-maker small { color: var(--muted); font-size: 13px; }
+.ab-links { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.ab-links a { display: flex; align-items: center; gap: 10px; padding: 7px 8px; margin: 0 -8px; border-radius: 7px; color: var(--text); text-decoration: none; font-size: 14px; }
+.ab-links a:hover { background: var(--surface-2); }
+.ab-links svg { width: 16px; height: 16px; color: var(--muted); flex: none; }
+.ab-ver { display: flex; justify-content: space-between; align-items: baseline; font-size: 14px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
+.ab-ver a { color: var(--accent); font-weight: 600; font-size: 13px; text-underline-offset: 2px; }
+
+/* on the About tab the footer is only its last line: the page above has the rest */
+body:has(#tab-about.active) .foot-grid { display: none; }
+body:has(#tab-about.active) .foot-line { margin-top: 0; padding-top: 0; border-top: 0; }
+
+@media (max-width: 900px) {
+  .ab-body { grid-template-columns: minmax(0, 1fr); }
+  .ab-flow { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 600px) {
+  .ab-hero { padding-top: 8px; }
+  .ab-hero h1 { font-size: 28px; }
+  .ab-lede { font-size: 16px; }
+  .ab-names { grid-template-columns: minmax(0, 1fr); }
+  .ab-arrow { transform: rotate(90deg); height: 28px; }
+  .ab-flow, .ab-tiles, .ab-credits { grid-template-columns: minmax(0, 1fr); }
+}

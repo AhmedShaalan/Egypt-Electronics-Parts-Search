@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: AGPL-3.0-or-later · Copyright (C) 2026 Ahmed Shaalan */
 
-/* Pieces the Search, Saved and Parts list tabs all use. They keep the s- of the Search tab,
+/* Pieces more than one tab uses. They keep the s- of the Search tab,
    where they started. */
 
 .s-linkbtn {
@@ -23,6 +23,16 @@
 .s-muted { color: var(--muted); }
 .s-acts { display: flex; align-items: center; position: relative; }
 
+/* the filter chips of the Saved and Shops tabs, with a count */
+.s-fchip {
+  border: 1px solid var(--border); background: var(--surface); border-radius: 99px; padding: 4px 12px; cursor: pointer;
+  font-size: 13px; font-weight: 550; display: flex; gap: 6px; align-items: center;
+}
+.s-fchip-n { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.s-fchip[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); }
+.s-fchip[aria-pressed="true"] .s-fchip-n { color: inherit; }
+.s-fchip:disabled { opacity: .5; cursor: default; }
+
 /* the ⋯ menus */
 .s-menu .menu-list { min-width: 230px; padding: 6px; background: var(--raised); border-color: var(--raised-border); box-shadow: 0 12px 32px rgb(0 0 0 / .3); z-index: 30; }
 .s-menu .menu-list button, .s-menu .menu-list a {
@@ -33,6 +43,19 @@
 .s-menu .menu-list svg { width: 16px; height: 16px; color: var(--muted); flex: none; }
 .s-menu hr { border: 0; border-top: 1px solid var(--raised-border); margin: 4px 0; }
 .s-menu .menu-list .danger, .s-menu .menu-list .danger svg { color: var(--bad); }
+
+/* the cards beside a long page (the AI and About tabs), and its contents */
+.s-side { position: sticky; top: calc(var(--header-h, 0px) + 20px); display: grid; gap: 12px; }
+.s-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; }
+.s-card h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; margin: 0 0 12px; font-weight: 650; }
+.s-toc { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; font-size: 14px; }
+.s-toc a { color: var(--muted); text-decoration: none; display: block; padding: 4px 10px; border-left: 2px solid var(--border); }
+.s-toc a:hover { color: var(--text); }
+.s-toc a.on { color: var(--text); border-color: var(--accent); font-weight: 600; }
+@media (max-width: 900px) {
+  .s-side { position: static; }
+  .s-toc-card { display: none; }
+}
 
 /* a bar that runs while something is loading, a spinner, and a row lighting up when it changes */
 .s-bar-anim { width: 90px; height: 4px; border-radius: 4px; background: var(--surface-2); overflow: hidden; position: relative; flex: none; }

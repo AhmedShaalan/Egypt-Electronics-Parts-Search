@@ -76,17 +76,21 @@
 <link rel="stylesheet" href="css/search.css">
 <link rel="stylesheet" href="css/saved.css">
 <link rel="stylesheet" href="css/list.css">
+<link rel="stylesheet" href="css/shops.css">
+<link rel="stylesheet" href="css/ai.css">
+<link rel="stylesheet" href="css/about.css">
 </head>
 <body>
 <header>
   <div class="wrap">
-    <div class="brand"><img src="/icon.png" alt="" width="22" height="22"><span class="title">Egypt Electronics Parts Search</span></div>
+    <a class="brand" href="#search"><img src="/icon.png" alt="" width="22" height="22"><span class="title">Egypt Electronics Parts Search</span></a>
     <nav>
       <a href="#search" data-tab="search">Search</a>
       <a href="#list" data-tab="list">Parts list</a>
       <a href="#saved" data-tab="saved">Saved<span class="count" id="saved-count">0</span></a>
       <a href="#shops" data-tab="shops">Shops</a>
       <a href="#ai" data-tab="ai" title="Use it from Claude or another AI assistant">AI</a>
+      <a href="#about" data-tab="about">About</a>
     </nav>
     <div class="icons">
     <button class="icon-btn theme" id="theme-toggle" type="button" title="Switch theme" aria-label="Switch between light and dark theme">
@@ -104,7 +108,7 @@
   <div id="live" class="sr-only" role="status" aria-live="polite"></div>
   <!-- SEARCH -->
   <section id="tab-search" class="active">
-    <h1>Compare electronics part prices across 16 Egyptian shops</h1>
+    <h1>Search electronics parts across 16 Egyptian shops</h1>
     <!-- sticks to the top once there are results -->
     <div class="s-bar-wrap">
       <form class="s-bar" id="search-form" role="search">
@@ -119,79 +123,43 @@
         <button class="btn primary" type="submit">Search</button>
       </form>
     </div>
-    <!-- the status line, recent searches, the shop filters and the results (js/ui/search-tab.jsx) -->
+    <!-- the status line, recent searches, the shop filters and the results (js/ui/search/) -->
     <div id="search-app"></div>
   </section>
 
   <!-- PARTS LIST -->
   <section id="tab-list">
-    <!-- the list, its rows priced at every shop, and the order beside it (js/ui/list-tab.jsx) -->
+    <!-- the list, its rows priced at every shop, and the order beside it (js/ui/list/) -->
     <div id="list-app"></div>
   </section>
 
   <!-- SAVED -->
   <section id="tab-saved">
-    <!-- starred items and saved parts lists (js/ui/saved-tab.jsx) -->
+    <!-- starred items and saved parts lists (js/ui/saved/) -->
     <div id="saved-app"></div>
   </section>
 
   <!-- SHOPS -->
   <section id="tab-shops">
-    <p class="hint" style="margin-top:0">Every search checks these shops at the same time.</p>
-    <div class="list" id="shops-out" style="margin-top:12px"></div>
-    <p class="hint">Know a shop with an online store that should be here? <a href="https://github.com/AhmedShaalan/Egypt-Electronics-Parts-Search/issues" target="_blank" rel="noopener">Suggest it on GitHub</a>.</p>
+    <!-- every shop searched, and suggesting one (js/ui/shops/) -->
+    <div id="shops-app"></div>
   </section>
 
   <!-- AI -->
-  <section id="tab-ai" class="guide">
-    <h1>Use it from Claude or another AI assistant</h1>
-    <p>This search also comes as an MCP server, a small program that gives an AI assistant such as Claude the same search as this site. Ask it things like <em>“find the cheapest LM7805”</em> or <em>“price this parts list”</em> and paste the list; it searches all 16 shops and answers with prices, links and totals.</p>
-    <p>It runs on your own computer and asks the shops directly, so there is no account, key or fee. It uses the same matching as this site, so it finds the same parts.</p>
+  <section id="tab-ai">
+    <!-- setting up the MCP server in an AI assistant, for the app and computer picked (js/ui/ai/) -->
+    <div id="ai-app"></div>
+  </section>
 
-    <h2>Set it up</h2>
-    <p>You need Node.js 20 or newer and Git. Download the code:</p>
-    <div class="code"><pre><code>git clone https://github.com/AhmedShaalan/Egypt-Electronics-Parts-Search.git
-cd Egypt-Electronics-Parts-Search/mcp
-npm install</code></pre>
-      <button class="icon-btn copy-code" type="button" title="Copy" aria-label="Copy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
-    </div>
-    <p><strong>Claude Code:</strong> in the same folder, run:</p>
-    <div class="code"><pre><code>claude mcp add --scope user egypt-parts -- node "$PWD/server.js"</code></pre>
-      <button class="icon-btn copy-code" type="button" title="Copy" aria-label="Copy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
-    </div>
-    <p><strong>Claude Desktop or another app:</strong> add this to the app's MCP settings (in Claude Desktop: <em>Settings → Developer → Edit Config</em>), with the full path to <code>server.js</code> on your computer, then restart the app:</p>
-    <div class="code"><pre><code>{
-  "mcpServers": {
-    "egypt-parts": {
-      "command": "node",
-      "args": ["/full/path/to/Egypt-Electronics-Parts-Search/mcp/server.js"]
-    }
-  }
-}</code></pre>
-      <button class="icon-btn copy-code" type="button" title="Copy" aria-label="Copy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
-    </div>
-
-    <h2>What the assistant can do</h2>
-    <table class="tools">
-      <tr><td><code>search_parts</code></td><td>Search every shop for one part: in-stock products, best match first, then cheapest.</td></tr>
-      <tr><td><code>price_parts_list</code></td><td>Price a whole list: the pick for each part, the cheapest mix of shops and the cheapest single shop. The <a href="#list">Parts list</a> tab also counts delivery.</td></tr>
-      <tr><td><code>check_price</code></td><td>Re-check one product's price and stock at its shop.</td></tr>
-      <tr><td><code>list_shops</code></td><td>The shops it searches.</td></tr>
-    </table>
-
-    <h2>Good to know</h2>
-    <ul>
-      <li>Searches go from your computer straight to the shops. Nothing passes through this site.</li>
-      <li>Answers are reused for an hour while the assistant is open, so asking again is instant and easy on the shops.</li>
-      <li>If you search a lot in a short time, a shop may briefly refuse your connection. It then shows as failed and comes back later.</li>
-      <li>Check a weak match before buying: the assistant is told which results are close and which may be a different part.</li>
-    </ul>
-    <p class="hint">Setup details are in the <a href="https://github.com/AhmedShaalan/Egypt-Electronics-Parts-Search/tree/main/mcp" target="_blank" rel="noopener">mcp folder on GitHub</a>.</p>
+  <!-- ABOUT -->
+  <section id="tab-about">
+    <!-- why the site exists, how it works, privacy, limits, questions and credits (js/ui/about/) -->
+    <div id="about-app"></div>
   </section>
 
 </main>
-<!-- about this site and common questions, at the bottom of every tab -->
-<footer class="site-foot" id="about">
+<!-- about this site and common questions, at the bottom of every tab but About, which has more -->
+<footer class="site-foot">
   <div class="wrap foot-grid">
     <div class="foot-about">
       <h2>About this site</h2>
@@ -199,6 +167,7 @@ npm install</code></pre>
         The results are merged into one list with in-stock items only, sale prices next to the original price, the per-piece price for packs, and sorting by best match or lowest price.</p>
       <p>Paste a whole parts list, one part per line, to see the cheapest way to buy it with delivery counted, or from the fewest shops, and fill each shop's cart. Star any product to save it and re-check its price later. Nothing to install and no account needed: saved items stay in your browser.</p>
       <p>I built this for myself because I was tired of searching every shop one by one. I'm not affiliated with any of the shops listed; all prices and stock come from their own websites, and every result links straight to the shop.</p>
+      <p><a href="#about">More about the site</a>: how it works, privacy, and what it can't do.</p>
       <details class="ar" lang="ar" dir="rtl">
         <summary>عن الموقع بالعربي</summary>
         <p>موقع مجاني لمقارنة أسعار القطع والمكونات الإلكترونية في مصر. اكتب رقم القطعة أو وصفها، مثل <em>LM7805</em> أو <em>ESP32</em> أو مقاومة 10k، ويبحث الموقع في 16 متجر إلكترونيات مصري في نفس الوقت (تجدها في تبويب Shops). تُجمع النتائج في قائمة واحدة تعرض القطع المتوفرة فقط، مع سعر التخفيض بجانب السعر الأصلي، وسعر القطعة الواحدة في العبوات، مع إمكانية الترتيب حسب الأقرب للبحث أو الأرخص.</p>
@@ -209,14 +178,14 @@ npm install</code></pre>
     <div class="foot-faq">
       <h2>Common questions</h2>
       <div class="faq">
-      <details><summary>Where can I buy electronic components in Egypt?</summary><p>The 16 shops in the <a href="#shops">Shops</a> tab all sell online and deliver across Egypt. Search a part here to see which of them have it in stock right now and at what price.</p></details>
-      <details><summary>Which shop is cheapest for Arduino, ESP32 or Raspberry Pi parts?</summary><p>It changes from part to part, which is why this tool exists: search once and the results are sorted so the lowest price is easy to spot. Paste your whole list in the Parts list tab: it weighs each shop's delivery fee against what buying there saves.</p></details>
+      <details><summary>What happens to my searches and saved items?</summary><p>There is no account and no cookies. Starred items, parts lists and delivery fees are kept in your browser only; use Back up on the Saved tab to keep a copy. Searches go from your browser to the shops, and for most of them through a small relay on Cloudflare that keeps the shops' answers for an hour but not who asked. Visits are counted with Cloudflare Web Analytics, which counts page views without cookies.</p></details>
+      <details><summary>Do I buy through this site?</summary><p>No. Every result links to the shop's own page, and you order and pay there. On the Parts list tab, "Fill cart" opens a shop with your parts already in its cart, for the shops that allow it; checkout, payment and delivery are between you and the shop.</p></details>
       <details><summary>Are the prices live?</summary><p>Yes. Every search asks the shops' own websites, so prices and stock are what each shop lists. To avoid asking the shops again for the same part, answers are reused for up to an hour at two steps, so a price can be up to about two hours old.</p></details>
-      <details><summary>Is it free?</summary><p>Yes, and open source. There is no account, and saved items never leave your browser.</p></details>
+      <details><summary>Is it free?</summary><p>Yes, and open source. There is nothing to sign up for.</p></details>
       </div>
     </div>
   </div>
-  <div class="wrap foot-line">Open source under the AGPL-3.0 license · <a href="https://github.com/AhmedShaalan/Egypt-Electronics-Parts-Search" target="_blank" rel="noopener">Source on GitHub</a> · Built by <a href="https://ahmedshaalan.com" target="_blank" rel="noopener">Ahmed Shaalan</a>.</div>
+  <div class="wrap foot-line">Open source under the AGPL-3.0 license · <a href="https://github.com/AhmedShaalan/Egypt-Electronics-Parts-Search" target="_blank" rel="noopener">Source on GitHub</a></div>
 </footer>
 <div class="toast" id="toast" role="status"></div>
 <dialog class="modal" id="add-dialog" aria-labelledby="add-title">

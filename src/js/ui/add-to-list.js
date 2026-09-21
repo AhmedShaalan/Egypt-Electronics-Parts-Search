@@ -6,7 +6,7 @@
 import { getSaved, addToList } from "../search.js";
 import { $, esc, toast, onBackdrop } from "./common.js";
 import { currentSaved, partCount, reloadSaved } from "./saved.js";
-import { openSavedList } from "./list-tab.jsx";
+import { openSavedList } from "./list/index.js";
 
 let lastListId = null; // the list picked last time is picked again, for adding several parts in a row
 

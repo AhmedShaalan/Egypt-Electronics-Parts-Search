@@ -4,6 +4,7 @@
 
 import { useLayoutEffect, useReducer } from "preact/hooks";
 
+// onSet(state, before) runs after every change, before anything redraws
 export function createStore(initial, { onSet } = {}) {
   let state = initial;
   const listeners = new Set();
@@ -11,8 +12,9 @@ export function createStore(initial, { onSet } = {}) {
     get state() { return state; },
     // patch is an object merged into the state, or a function of the state returning one
     set(patch) {
+      const before = state;
       state = { ...state, ...(typeof patch === "function" ? patch(state) : patch) };
-      onSet?.(state);
+      onSet?.(state, before);
       for (const f of listeners) f();
     },
     use() {

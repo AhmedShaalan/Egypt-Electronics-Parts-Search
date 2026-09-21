@@ -10,10 +10,12 @@
 .l-head { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; padding-block: 8px 6px; }
 #tab-list .l-name {
   font-size: 24px; font-weight: 700; letter-spacing: -0.01em; border: 1px solid transparent; border-radius: 8px;
-  background: transparent; padding: 2px 8px; margin-left: -9px; min-width: 0; width: min(100%, 24ch);
+  background: transparent; padding: 2px 8px; margin-left: -9px;
+  /* as wide as the name, so what follows sits beside it (size="" does it where field-sizing doesn't work) */
+  field-sizing: content; width: auto; min-width: 4ch; max-width: 100%;
 }
 #tab-list .l-name:hover { border-color: var(--border); }
-#tab-list .l-name:focus { border-color: var(--accent); background: var(--surface); box-shadow: none; }
+#tab-list .l-name:focus { border-color: var(--accent); background: var(--surface); box-shadow: none; outline: none; }
 .l-save-state { font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
 .l-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--good); }
 .l-save-state.dirty .l-dot { background: var(--warn); }
@@ -21,7 +23,8 @@
 .l-head-actions .btn { padding: 7px 12px; font-size: 14px; font-weight: 550; border-radius: 8px; }
 .l-lists summary.btn { display: inline-flex; align-items: center; gap: 6px; }
 .l-lists .menu-list { min-width: 260px; max-height: min(420px, 70vh); overflow-y: auto; }
-.l-lists .menu-list button { justify-content: space-between; }
+/* a saved list: its name, and its part count at the far end */
+.l-lists .menu-list button:has(.l-menu-name) { justify-content: space-between; }
 .l-lists .menu-list button small { color: var(--muted); flex: none; }
 .l-lists .menu-list button[aria-current] .l-menu-name { font-weight: 650; }
 .l-lists .menu-list button:disabled { opacity: .5; cursor: default; }
@@ -113,10 +116,8 @@ button.l-product.empty { display: flex; }
 .l-thumb { width: 34px; height: 34px; border-radius: 7px; flex: none; background: var(--surface-2); object-fit: contain; display: block; }
 .l-thumb.big { width: 56px; height: 56px; border-radius: 8px; }
 .l-searching { display: flex; align-items: center; gap: 10px; }
-.l-bar-anim { width: 120px; height: 4px; border-radius: 4px; background: var(--surface-2); overflow: hidden; position: relative; flex: none; }
-.l-bar-anim::after { content: ""; position: absolute; inset: 0; width: 40%; background: var(--accent); border-radius: 4px; animation: l-slide 1s ease-in-out infinite; }
-@keyframes l-slide { from { transform: translateX(-100%); } to { transform: translateX(260%); } }
-@media (prefers-reduced-motion: reduce) { .l-bar-anim::after, .l-row.flash { animation: none; } }
+.l-searching .s-bar-anim { width: 120px; }
+@media (prefers-reduced-motion: reduce) { .l-row.flash { animation: none; } }
 
 /* ---------- a row's offers: float over the rows below it ---------- */
 .l-options {
@@ -129,7 +130,7 @@ button.l-product.empty { display: flex; }
 /* only the offers scroll; the filter stays on top and the reason stays in view under them */
 .l-table-wrap { flex: 1 1 auto; min-height: 0; overflow: auto; border: 1px solid var(--raised-border); border-radius: 8px; }
 table.l-opts { width: 100%; border-collapse: collapse; border: 0; border-radius: 0; background: none; overflow: visible; font-size: 14px; }
-.l-opts th { position: sticky; top: 0; z-index: 1; text-align: left; font-size: 12px; font-weight: 500; color: var(--muted); padding: 7px 10px; background: var(--raised-2); border: 0; border-bottom: 1px solid var(--raised-border); white-space: nowrap; }
+.l-opts th { position: sticky; top: 0; z-index: 1; text-align: left; vertical-align: top; font-size: 12px; font-weight: 500; color: var(--muted); padding: 7px 10px; background: var(--raised-2); border: 0; border-bottom: 1px solid var(--raised-border); white-space: nowrap; }
 .l-opts td { padding: 8px 10px; border: 0; border-bottom: 1px solid var(--raised-border); vertical-align: middle; }
 .l-opts tr:last-child td { border-bottom: 0; }
 .l-opts tbody tr { cursor: pointer; }
@@ -170,7 +171,7 @@ input.l-radio:focus-visible { outline: 2px solid var(--accent); outline-offset: 
   display: grid; grid-template-columns: 18px 1fr auto; gap: 2px 10px; align-items: center; text-align: left; width: 100%;
   border: 1px solid var(--border); background: var(--surface); border-radius: 8px; padding: 9px 11px; cursor: pointer; color: var(--text);
 }
-.l-strat:hover:not(:disabled) { border-color: var(--muted); }
+.l-strat:hover:not(:disabled) { border-color: color-mix(in srgb, var(--accent) 45%, var(--border)); }
 .l-strat[aria-checked="true"] { border-color: var(--accent); background: var(--accent-soft); }
 .l-strat[aria-checked="true"] .l-radio { border: 5px solid var(--accent); }
 .l-strat .l-radio { grid-row: span 2; }
@@ -190,7 +191,8 @@ input.l-radio:focus-visible { outline: 2px solid var(--accent); outline-offset: 
 }
 #tab-list .l-fee-list select { width: 100%; text-overflow: ellipsis; }
 #tab-list .l-fee-list select:disabled { color: var(--muted); }
-#tab-list .l-fee-list input { width: 64px; font: 600 13px ui-monospace, SFMono-Regular, Menlo, monospace; text-align: right; }
+#tab-list .l-fee-list input { width: 64px; font: 600 13px ui-monospace, SFMono-Regular, Menlo, monospace; text-align: right; -moz-appearance: textfield; appearance: textfield; }
+.l-fee-list input::-webkit-inner-spin-button, .l-fee-list input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
 .l-fee-list .s-icon { width: 28px; height: 28px; }
 .l-fee-list .s-icon svg { width: 15px; height: 15px; }
 .l-fee-list li.l-fee-add { display: block; margin-top: 6px; }
@@ -205,6 +207,7 @@ input.l-radio:focus-visible { outline: 2px solid var(--accent); outline-offset: 
 .l-basket li span:first-child { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); }
 .l-basket li code { font: 12px ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--text); }
 .l-basket li .num { margin-left: auto; white-space: nowrap; flex: none; color: var(--muted); }
+.l-basket li.l-deliv { border-top: 1px dashed var(--border); padding-top: 3px; }
 .l-item-link { color: inherit; text-decoration: underline; text-decoration-color: var(--border); text-underline-offset: 2px; }
 .l-item-link:hover { color: var(--text); text-decoration-color: currentColor; }
 .l-basket .btn { width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 7px 12px; font-size: 14px; font-weight: 550; border-radius: 8px; }
@@ -221,9 +224,10 @@ input.l-radio:focus-visible { outline: 2px solid var(--accent); outline-offset: 
 .l-dialog input[type=number] { width: 110px; font-size: 16px; }
 .l-dialog input:disabled { opacity: .6; }
 .l-dlg-hint { font-size: 12px; color: var(--muted); margin: 8px 0 0; }
+.l-leave-text { font-size: 14px; color: var(--muted); margin: 6px 0 0; }
+.l-leave .modal-actions { flex-wrap: wrap; }
 .l-dlg-error { font-size: 13px; color: var(--bad); margin: 8px 0 0; }
 .l-dlg-status { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--muted); margin-top: 8px; }
-.l-dlg-status .l-bar-anim { width: 90px; }
 
 /* ---------- phones: the total sits in a bar at the bottom ---------- */
 .l-mobile-bar {

@@ -39,7 +39,7 @@ Egypt Electronics Parts Search asks every shop at once, recognizes those names a
 
 **📋 Price a whole parts list**
 - Type or paste parts, one per line; each joins the list and is priced at every shop as it's added. Change a quantity, a part or its product right in the row
-- Choose how to buy: **Best overall** (parts plus delivery), **Lowest parts cost** or **Fewest shops**, or **Custom** once you pick a product yourself. Every row says why it's at that shop when a cheaper one exists
+- Choose how to buy: **Best overall** (parts plus delivery), **Lowest parts cost** or **Fewest shops**, or **Your picks** once you pick a product yourself. Every row says why it's at that shop when a cheaper one exists
 - Delivery counts: set a fee per shop, or one for any shop, so an extra shop is only used when it saves more than its delivery
 - Counts packs: 20 resistors sold in 2-packs = 10 packs
 - Every offer for a part is a click away, with its picture, shop, pack and cost for your quantity; look-alikes are kept apart and never picked for you
@@ -113,7 +113,7 @@ Bullets and numbering are ignored, `#` lines are treated as comments, and names 
 | **Look-alike skipped** | A cheaper product was left out because it's probably a different part |
 | **Check match** / **Not found** | Only weaker matches were found, so nothing is bought for it until you choose one; or no shop has it in stock |
 | ⋯ | **Change part** searches for another name or changes the quantity, for that row only; if no shop has the new name, the box stays open to try another. Also opens the product at its shop, or removes the row (with **Undo**) |
-| **How to buy** | **Best overall** is the lowest parts cost plus delivery; **Lowest parts cost** takes the cheapest product for each part wherever it is; **Fewest shops** means the fewest deliveries. Choosing a product yourself makes it **Custom**: the plan you were on, with your picks. The rows follow the choice, and when a change moves other parts to another shop, they light up and a message says so |
+| **How to buy** | **Best overall** is the lowest parts cost plus delivery; **Lowest parts cost** takes the cheapest product for each part wherever it is; **Fewest shops** means the fewest deliveries. Choosing a product yourself makes it **Your picks**: the plan you were on, with your picks. The rows follow the choice, and when a change moves other parts to another shop, they light up and a message says so |
 | **Delivery fees** | One estimate for any shop, and your own figure for the shops you know. They're kept in this browser and apply to every list |
 | **Your order** | One basket per shop with what goes in it. **Fill cart at …** opens the shop with them in its cart, quantities set (counting packs); a Shopify shop takes them all at once, a WooCommerce shop one per link, so the tab adds them one after another and ends on the cart. Products with options to choose (a size, a colour) are added on the shop's page. For a shop whose cart can't be filled from here, open each part from the basket, or **Copy as message** for their WhatsApp or order form |
 | **Prices from 15 of 16 shops** | A shop didn't answer; **Try again** asks it again for every part |
@@ -251,6 +251,7 @@ Egypt-Electronics-Parts-Search/
 │   ├── css/list.css        The Parts list tab's styles
 │   ├── public/             Copied as they are
 │   │   ├── icon.png        App icon (Icons8)
+│   │   ├── avatar.jpg      My GitHub profile picture, for the About tab
 │   │   ├── og-image.png    Link preview image
 │   │   ├── robots.txt, sitemap.xml
 │   │   ├── CNAME           The custom domain for GitHub Pages
