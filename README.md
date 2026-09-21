@@ -30,6 +30,7 @@ Egypt Electronics Parts Search asks every shop at once, recognizes those names a
 - Hides out-of-stock items automatically
 - Shows sale prices next to the original price, and the per-piece price for packs ("(10pcs)")
 - Sort by best match, cheapest, or cheapest per piece, or filter to one shop
+- Hover a result to copy it (name, price, shop, link) or add it to a new or saved parts list
 - Shows a label for any shop that failed or timed out, so a quiet shop is never mistaken for "not available"
 - Shows progress as shops answer; if one is slow, **Show results so far** stops waiting, and any skipped shop can be fetched later with one click
 
@@ -41,7 +42,7 @@ Egypt Electronics Parts Search asks every shop at once, recognizes those names a
 
 **⭐ Save and track**
 - Star any product to save it. **Refresh prices** re-checks every saved item at its shop and shows what went ▲ up, ▼ down, or out of stock
-- Save a parts list and reopen it later with fresh prices
+- Save a parts list and reopen it later with fresh prices, or build one up from search results
 - Saved items stay private in your own browser. There are no accounts
 
 **📱 Works anywhere**

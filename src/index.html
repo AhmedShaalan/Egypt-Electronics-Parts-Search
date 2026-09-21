@@ -176,7 +176,7 @@
   .about .ar p { margin: 8px 0 0; line-height: 1.7; }
 
   .searchbar { display: flex; gap: 8px; }
-  input[type=search], textarea, select {
+  input[type=search], input[type=text], textarea, select {
     background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
     padding: 11px 12px; outline: none; min-width: 0;
   }
@@ -245,6 +245,31 @@
   .star { border: 0; background: none; font-size: 20px; cursor: pointer; color: var(--muted); padding: 4px; line-height: 1; border-radius: 8px; }
   .star:hover { color: var(--text); background: var(--surface-2); }
   .star.on { color: #e3a008; }
+  /* copy and add-to-list on a search result show on hover, and always on touch screens */
+  .row .reveal { display: flex; align-items: center; gap: 2px; opacity: 0; transition: opacity .15s; }
+  .row:hover .reveal, .row:focus-within .reveal, .row .reveal:has(details[open]) { opacity: 1; }
+  @media (hover: none) { .row .reveal { opacity: 1; } }
+  .row .reveal > .icon-btn { padding: 4px; }
+  .row .reveal > .icon-btn svg { width: 18px; height: 18px; }
+
+  dialog.modal {
+    width: min(440px, calc(100vw - 32px)); padding: 20px; border: 1px solid var(--border); border-radius: var(--radius);
+    background: var(--surface); color: var(--text); box-shadow: 0 12px 40px rgb(0 0 0 / .25);
+  }
+  dialog.modal::backdrop { background: rgb(0 0 0 / .45); }
+  .modal h2 { margin: 0 0 4px; font-size: 17px; }
+  .modal .meta { margin: 0 0 14px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .picks { display: grid; gap: 6px; max-height: 260px; overflow-y: auto; }
+  .pick { display: flex; align-items: center; gap: 10px; padding: 9px 11px; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; }
+  .pick:hover { background: var(--surface-2); }
+  .pick:has(input:checked) { border-color: var(--accent); background: var(--accent-soft); }
+  .pick input[type=radio] { margin: 0; accent-color: var(--accent); }
+  .pick .grow { flex: 1; min-width: 0; }
+  .pick .pick-name { display: block; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pick .pick-meta { display: block; color: var(--muted); font-size: 13px; }
+  .pick input[type=text] { width: 100%; padding: 7px 9px; margin-top: 6px; font-size: 16px; }
+  .modal-label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 6px; }
+  .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
 
   .badge { display: inline-block; font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 99px; vertical-align: 1px; }
   .badge.good { background: var(--good-soft); color: var(--good); }
@@ -458,13 +483,24 @@
 
 </main>
 <div class="toast" id="toast"></div>
+<dialog class="modal" id="add-dialog" aria-labelledby="add-title">
+  <form method="dialog" id="add-form">
+    <h2 id="add-title">Add to a parts list</h2>
+    <p class="meta" id="add-item"></p>
+    <div id="add-picks"></div>
+    <div class="modal-actions">
+      <button type="button" class="btn" id="add-cancel">Cancel</button>
+      <button type="submit" class="btn primary">Add</button>
+    </div>
+  </form>
+</dialog>
 <button class="to-top" id="to-top" type="button" title="Back to top" aria-label="Back to top">
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
 </button>
 
 <script type="module">
 import { SHOPS } from "./js/shops.js";
-import { searchAll, fetchShop, priceList, warmUp, getSaved, saveItem as storeItem, unsaveItem as storeUnsave, deleteItem, refreshItems, saveList as storeList, renameList, deleteList } from "./js/search.js";
+import { searchAll, fetchShop, priceList, warmUp, getSaved, saveItem as storeItem, unsaveItem as storeUnsave, deleteItem, refreshItems, saveList as storeList, addToList, renameList, deleteList } from "./js/search.js";
 
 const $ = (s, el = document) => el.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -543,12 +579,16 @@ async function toggleSave(p, btn) {
       btn.textContent = on ? "★" : "☆";
       btn.title = btn.ariaLabel = on ? "Remove from saved" : "Save";
     }
-    updateSavedCount(savedKeys.size);
+    updateSavedCount();
     toast(on ? "Saved" : "Removed");
   } catch (e) { toast(e.message); }
 }
 
-function updateSavedCount(n) { $("#saved-count").textContent = n; }
+// the tab counts saved items and saved parts lists
+function updateSavedCount() {
+  const { items, lists } = getSaved();
+  $("#saved-count").textContent = items.length + lists.length;
+}
 
 /* ---------- search ---------- */
 $("#search-form").addEventListener("submit", e => {
@@ -700,7 +740,70 @@ function renderSearch() {
   out.querySelectorAll("[data-save]").forEach(btn => {
     btn.onclick = () => toggleSave(search.results.find(r => key(r) === btn.dataset.save), btn);
   });
+  out.querySelectorAll("[data-copy]").forEach(b => b.onclick = () => {
+    b.closest("details").open = false;
+    copy(copyText(search.results.filter(r => key(r) === b.dataset.item), COPY_FORMATS[+b.dataset.copy]));
+  });
+  out.querySelectorAll("[data-add-list]").forEach(b => {
+    b.onclick = () => openAddToList(search.results.find(r => key(r) === b.dataset.addList));
+  });
 }
+
+/* ---------- add to a parts list ---------- */
+let lastListId = null; // the list picked last time is picked again, for adding several parts in a row
+
+function openAddToList(p) {
+  const dialog = $("#add-dialog");
+  const lists = getSaved().lists;
+  const picked = lists.some(l => l.id === lastListId) ? lastListId : lists[0]?.id;
+  const newName = "Parts list " + new Date().toLocaleDateString();
+  const nameInput = `<input type="text" id="add-name" value="${esc(newName)}" maxlength="80" aria-label="Name of the new list">`;
+  $("#add-item").textContent = `${p.name} · ${p.shop_name}`;
+  $("#add-picks").innerHTML = lists.length ? `
+    <span class="modal-label">Choose a list</span>
+    <div class="picks">
+      ${lists.map(l => `
+        <label class="pick">
+          <input type="radio" name="add-to" value="${l.id}" ${l.id === picked ? "checked" : ""}>
+          <span class="grow"><span class="pick-name">${esc(l.name)}</span>
+            <span class="pick-meta">${partCount(l)} part${partCount(l) === 1 ? "" : "s"}</span></span>
+        </label>`).join("")}
+      <label class="pick">
+        <input type="radio" name="add-to" value="new">
+        <span class="grow"><span class="pick-name">New list</span>${nameInput}</span>
+      </label>
+    </div>`
+    : `<label class="modal-label" for="add-name">You have no parts lists yet. Name a new one:</label>${nameInput}`;
+  const name = $("#add-name");
+  if (!lists.length) name.style.width = "100%";
+  // typing a name means a new list
+  name.addEventListener("focus", () => { const r = dialog.querySelector('input[value="new"]'); if (r) r.checked = true; });
+
+  dialog.onsubmit = e => {
+    e.preventDefault();
+    const choice = dialog.querySelector('input[name="add-to"]:checked')?.value ?? "new";
+    const id = choice === "new" ? null : +choice;
+    if (id === null && !name.value.trim()) { name.focus(); return; }
+    try {
+      const list = addToList(id, p.name, name.value);
+      saved = getSaved();
+      updateSavedCount();
+      lastListId = list.id;
+      dialog.close();
+      toast(`Added to “${list.name}”`);
+    } catch (err) { toast(err.message); }
+  };
+  dialog.showModal();
+  if (lists.length) dialog.querySelector('input[name="add-to"]:checked').focus();
+  else name.select();
+}
+
+$("#add-cancel").addEventListener("click", () => $("#add-dialog").close());
+// a click on the dimmed backdrop closes it too
+$("#add-dialog").addEventListener("click", e => {
+  const r = e.currentTarget.getBoundingClientRect();
+  if (e.target === e.currentTarget && (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom)) e.currentTarget.close();
+});
 
 function resultRow(p) {
   const saved = savedKeys.has(key(p));
@@ -713,6 +816,12 @@ function resultRow(p) {
       </div>
       <div class="actions">
         <div class="price"><b>${money(p.price)}</b>${p.old_price ? `<s>${money(p.old_price)}</s>` : ""}${packNote(p)}</div>
+        <span class="reveal">
+          ${copyMenu("Copy this item", key(p))}
+          <button type="button" class="icon-btn" data-add-list="${esc(key(p))}" title="Add to a parts list" aria-label="Add to a parts list">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h11M3 12h11M3 18h7M18 14v8M14 18h8"/></svg>
+          </button>
+        </span>
         <button class="star ${saved ? "on" : ""}" data-save="${esc(key(p))}" title="${saved ? "Remove from saved" : "Save"}" aria-label="${saved ? "Remove from saved" : "Save"}">${saved ? "★" : "☆"}</button>
       </div>
     </div>`;
@@ -865,6 +974,7 @@ async function saveList() {
   const total = listData.lines.reduce((sum, l, i) => sum + (l.candidates[picks[i]] ? lineCost(l, l.candidates[picks[i]]) : 0), 0);
   try {
     storeList(name, listText, total);
+    updateSavedCount();
     toast("List saved");
   } catch (e) { toast(e.message); }
 }
@@ -883,6 +993,15 @@ const COPY_FORMATS = [
     line: it => `${oneLine(it)}\n${money(it.price)} · ${it.shop_name}\n${it.url}` },
 ];
 
+async function copy(text) {
+  try {
+    await navigator.clipboard.writeText(text);
+    toast("Copied");
+  } catch {
+    toast("Couldn't copy");
+  }
+}
+
 function copyText(items, format) {
   let text = items.map(format.line).join(format.block ? "\n\n" : "\n");
   if (format.priced && items.length > 1) {
@@ -893,6 +1012,7 @@ function copyText(items, format) {
 
 // what the menu on a saved parts list can copy
 const listParts = l => l.text.split("\n").map(x => x.trim()).filter(Boolean).join("\n");
+const partCount = l => l.text.split("\n").filter(x => x.trim()).length;
 const LIST_COPY_FORMATS = [
   { label: "Parts", text: l => `${l.name}\n\n${listParts(l)}` },
   { label: "Parts and total", text: l => `${l.name}\n\n${listParts(l)}${l.saved_total ? `\n\nTotal when saved: ${money(l.saved_total)}` : ""}` },
@@ -900,7 +1020,7 @@ const LIST_COPY_FORMATS = [
 
 // a copy icon that opens the format choices; with an id it copies that one item, otherwise the whole list
 function copyMenu(title, id) {
-  const item = id == null ? "" : ` data-item="${id}"`;
+  const item = id == null ? "" : ` data-item="${esc(id)}"`;
   return `<details class="menu${id == null ? "" : " right"}">
     <summary class="icon-btn" title="${title}" aria-label="${title}">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
@@ -929,7 +1049,7 @@ async function loadSaved(refresh = false) {
       saved = getSaved();
     }
     savedKeys = new Set(saved.items.map(key));
-    updateSavedCount(saved.items.length);
+    updateSavedCount();
     renderSaved();
   } catch (e) {
     out.innerHTML = `<div class="empty">${esc(e.message)}</div>`;
@@ -962,7 +1082,7 @@ function renderSaved() {
       <div class="row" style="grid-template-columns:1fr auto">
         <div>
           <button class="name link" data-open-list="${l.id}">${esc(l.name)}</button>
-          <div class="meta">${l.text.split("\n").filter(x => x.trim()).length} parts · saved ${esc(when(l.saved_at))}${l.saved_total ? ` at ${money(l.saved_total)}` : ""}</div>
+          <div class="meta">${partCount(l)} part${partCount(l) === 1 ? "" : "s"} · saved ${esc(when(l.saved_at))}${l.saved_total ? ` at ${money(l.saved_total)}` : ""}</div>
         </div>
         <div class="actions">
           <details class="menu right">
@@ -982,16 +1102,10 @@ function renderSaved() {
       : `<div class="empty boxed">No saved lists. Price a parts list, then tap “Save this list”.</div>`}
   `;
 
-  out.querySelectorAll("[data-copy]").forEach(b => b.onclick = async () => {
+  out.querySelectorAll("[data-copy]").forEach(b => b.onclick = () => {
     b.closest("details").open = false;
     const which = b.dataset.item ? items.filter(it => it.id === +b.dataset.item) : items;
-    const text = copyText(which, COPY_FORMATS[+b.dataset.copy]);
-    try {
-      await navigator.clipboard.writeText(text);
-      toast("Copied");
-    } catch {
-      toast("Couldn't copy");
-    }
+    copy(copyText(which, COPY_FORMATS[+b.dataset.copy]));
   });
   $("#refresh")?.addEventListener("click", async e => {
     e.target.disabled = true;
@@ -1012,15 +1126,10 @@ function renderSaved() {
     toast("Renamed");
     loadSaved();
   });
-  out.querySelectorAll("[data-copy-list]").forEach(b => b.onclick = async () => {
+  out.querySelectorAll("[data-copy-list]").forEach(b => b.onclick = () => {
     b.closest("details").open = false;
     const l = lists.find(x => x.id === +b.dataset.copyList);
-    try {
-      await navigator.clipboard.writeText(LIST_COPY_FORMATS[+b.dataset.format].text(l));
-      toast("Copied");
-    } catch {
-      toast("Couldn't copy");
-    }
+    copy(LIST_COPY_FORMATS[+b.dataset.format].text(l));
   });
   out.querySelectorAll("[data-del-list]").forEach(b => b.onclick = async () => {
     b.closest("details").open = false;
@@ -1106,7 +1215,7 @@ renderShops();
 showTab();
 saved = getSaved();
 savedKeys = new Set(saved.items.map(key));
-updateSavedCount(saved.items.length);
+updateSavedCount();
 warmUp();
 </script>
 <!-- Cloudflare Web Analytics: page views only, no cookies -->

@@ -306,6 +306,28 @@ export function saveList(name, text, total) {
   if (!store(data)) throw new Error("Couldn't save: this browser blocks storage");
 }
 
+// Adds a product to a saved list, or to a new one when id is null. The list is text, so the
+// product goes in as a line with its name; adding the same part again raises its quantity.
+export function addToList(id, name, newName) {
+  const data = load();
+  let list = id == null ? null : data.lists.find((l) => l.id === id);
+  if (!list) {
+    list = { id: data.nextId++, name: (newName || "").trim().slice(0, 80) || "Parts list", text: "", saved_total: null, saved_at: now() };
+    data.lists.push(list);
+  }
+  const line = name.replace(/\s+/g, " ").trim();
+  const [query] = parseLine(line);
+  const lines = list.text.split("\n").filter((l) => l.trim());
+  const same = lines.findIndex((l) => parseLine(l)?.[0].toLowerCase() === query.toLowerCase());
+  if (same >= 0) lines[same] = `${line} x${parseLine(lines[same])[1] + 1}`;
+  else if (lines.length >= MAX_LIST_LINES) throw new Error(`That list is full: a list can have ${MAX_LIST_LINES} parts`);
+  else lines.push(line);
+  list.text = lines.join("\n");
+  list.saved_total = null; // the total it was saved at no longer covers the list
+  if (!store(data)) throw new Error("Couldn't save: this browser blocks storage");
+  return { id: list.id, name: list.name };
+}
+
 export function renameList(id, name) {
   const data = load();
   const list = data.lists.find((l) => l.id === id);
