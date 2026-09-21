@@ -265,11 +265,6 @@
   .loading .progress-label { margin-top: 8px; font-size: 13px; font-variant-numeric: tabular-nums; }
   .loading .skip { display: inline-block; margin-top: 12px; }
   .loading .skip[hidden] { display: none; }
-  .loading::before {
-    content: ""; display: inline-block; width: 14px; height: 14px; margin-right: 8px; vertical-align: -2px;
-    border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .8s linear infinite;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
   .more { width: 100%; margin-top: 10px; }
 
   .summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; margin: 18px 0; }
@@ -575,7 +570,7 @@ function setSearchUrl(q) {
   document.title = q ? `${q} · ${SITE_TITLE}` : PAGE_TITLE;
 }
 
-// spinner line with a progress bar underneath; `text` is already escaped
+// loading line with a progress bar underneath; `text` is already escaped
 function loadingHtml(text, total, unit, skippable = false) {
   return `<div class="loading">${text}
     <div class="progress"><div class="bar"><i></i></div><div class="progress-label">0 of ${total} ${unit}</div></div>
