@@ -55,19 +55,24 @@ async function searchShop(shop, query, skip) {
   return { items, status };
 }
 
-// onProgress(done, total) is called as each shop finishes
+// onProgress(done, total, partial) is called as each shop finishes; `partial` is the result so
+// far, with the shops still running marked `pending`
 async function runSearch(query, { onProgress, skip } = {}) {
   let done = 0;
-  const outcomes = await Promise.all(
-    SHOPS.map((s) => searchShop(s, query, skip).then((o) => (onProgress?.(++done, SHOPS.length), o))),
+  // kept in shop order, so the result doesn't depend on which shop answered first
+  const found = SHOPS.map(() => []);
+  const statuses = SHOPS.map((s) => ({ key: s.key, name: s.name, pending: true }));
+  const snapshot = () => ({ query, results: sortResults(found.flat()), shops: [...statuses], searched_at: now() });
+  await Promise.all(
+    SHOPS.map((s, i) =>
+      searchShop(s, query, skip).then(({ items, status }) => {
+        found[i] = scoreItems(query, items, status);
+        statuses[i] = status;
+        onProgress?.(++done, SHOPS.length, snapshot());
+      }),
+    ),
   );
-  const results = [];
-  const statuses = [];
-  for (const { items, status } of outcomes) {
-    results.push(...scoreItems(query, items, status));
-    statuses.push(status);
-  }
-  return { query, results: sortResults(results), shops: statuses, searched_at: now() };
+  return snapshot();
 }
 
 // keeps the in-stock items that match the query; also fills in status.count
@@ -120,7 +125,7 @@ export function mergeShop(result, fetched) {
 
 const searchKey = (query) => tokens(query).join(" ") || query.trim().toLowerCase();
 
-// options: onProgress(done, total) per finished shop; skip, an AbortSignal that stops waiting
+// options: onProgress(done, total, partial) per finished shop; skip, an AbortSignal that stops waiting
 // for the shops still running and returns what is already in; cancel, an AbortSignal for a
 // caller that no longer wants the answer. Identical searches running at once share one run,
 // which stops early (like a skip) once every caller has cancelled.
@@ -131,10 +136,11 @@ export async function searchAll(query, { onProgress, skip, cancel } = {}) {
   let run = inflight.get(key);
   if (!run) {
     const stop = new AbortController();
-    run = { stop, listeners: new Set(), callers: 0, done: 0 };
-    const progress = (done, total) => {
+    run = { stop, listeners: new Set(), callers: 0, done: 0, partial: null };
+    const progress = (done, total, partial) => {
       run.done = done;
-      for (const f of run.listeners) f(done, total);
+      run.partial = partial;
+      for (const f of run.listeners) f(done, total, partial);
     };
     run.promise = runSearch(query, { onProgress: progress, skip: stop.signal }).finally(() => {
       if (inflight.get(key) === run) inflight.delete(key);
@@ -144,7 +150,7 @@ export async function searchAll(query, { onProgress, skip, cancel } = {}) {
   run.callers++;
   if (onProgress) {
     run.listeners.add(onProgress);
-    if (run.done) onProgress(run.done, SHOPS.length);
+    if (run.done) onProgress(run.done, SHOPS.length, run.partial);
   }
   const onSkip = () => run.stop.abort();
   const onCancel = () => {

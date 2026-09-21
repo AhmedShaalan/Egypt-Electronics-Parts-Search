@@ -714,6 +714,27 @@ function setProgress(el, done, total, unit) {
 }
 
 let cancelSearch = null; // stops the shops a replaced search is still waiting for
+let stopWaiting = null;  // skips the shops the shown search is still waiting for
+const SHOW_AFTER = 3;    // shops answered before the first results show
+let updateWaiting = false; // an update held back while a copy menu is open
+
+// shows `search` as it now is, unless the reader has a copy menu open: redrawing would close
+// it, so the update waits until the menu closes
+function updateSearch() {
+  updateWaiting = !!$("#search-out").querySelector("details[open]");
+  if (!updateWaiting) renderSearch();
+}
+$("#search-out").addEventListener("toggle", (e) => {
+  if (updateWaiting && !e.target.open && search) updateSearch();
+}, true);
+
+// the control that has focus, found again after a redraw
+function focusedSelector(root) {
+  const el = document.activeElement;
+  if (!el || !root.contains(el)) return null;
+  for (const a of ["data-shop", "data-save", "data-add-list"]) if (el.hasAttribute(a)) return `[${a}="${CSS.escape(el.getAttribute(a))}"]`;
+  return el.id ? `#${CSS.escape(el.id)}` : null;
+}
 
 async function runSearch(q) {
   q = q.trim();
@@ -734,11 +755,22 @@ async function runSearch(q) {
   showWeak = false;
   shopFilter = "";
   const run = ++searchRun;
+  stopWaiting = () => skip.abort();
+  // the results show once a few shops have answered with a match, then each shop joins them as
+  // it answers; until then the progress bar stays, rather than an early "no matches"
+  let shown = false;
+  const onProgress = (done, total, partial) => {
+    if (run !== searchRun) return;
+    shown ||= done >= total || (done >= SHOW_AFTER && partial.results.some(r => r.score >= STRONG));
+    if (!shown) return setProgress(progress, done, total, "shops");
+    search = partial;
+    updateSearch();
+  };
   try {
-    const result = await searchAll(q, { onProgress: (done, total) => setProgress(progress, done, total, "shops"), skip: skip.signal, cancel: cancel.signal });
+    const result = await searchAll(q, { onProgress, skip: skip.signal, cancel: cancel.signal });
     if (run !== searchRun) return;
     search = result;
-    renderSearch();
+    updateSearch();
     const n = result.results.filter(r => r.score >= STRONG).length;
     announce(`${n} match${n === 1 ? "" : "es"} for ${q}`);
   } catch (e) {
@@ -780,6 +812,7 @@ async function fetchSkipped(key) {
 
 function renderSearch() {
   const out = $("#search-out");
+  const focused = focusedSelector(out);
   const sort = $("#sort")?.value || "match";
   const shop = shopFilter;
   let rows = search.results.filter(r => !shop || r.shop === shop);
@@ -803,29 +836,33 @@ function renderSearch() {
   const byName = [...search.shops].sort((a, b) => a.name.localeCompare(b.name));
   const chips = chip("", "All shops", { count: matchCount("") }) + byName.map(s => s.ok
     ? chip(s.key, s.name, { count: matchCount(s.key), disabled: !s.count })
+    : s.pending
+      ? chip(s.key, s.name + " · …", { disabled: true, title: "Still searching this shop" })
     : s.skipped
       ? chip(s.key, s.name, { skipped: true, fetching: fetching.has(s.key), title: "Not searched: you chose to show results early. Click to search it now." })
       : chip(s.key, s.name + " · failed", { fail: true, title: s.error })).join("");
   const shopName = shop && search.shops.find(s => s.key === shop)?.name;
   const skipped = search.shops.filter(s => s.skipped).length;
+  const waiting = search.shops.filter(s => s.pending).length;
 
   out.innerHTML = `
     <div class="chips" role="group" aria-label="Filter by shop">${chips}</div>
     <div class="toolbar">
-      <span class="grow">${strong.length} match${strong.length === 1 ? "" : "es"}${shopName ? ` at ${esc(shopName)}` : ""}${search.cached ? " · from the last hour" : ""}${skipped ? ` · ${skipped} shop${skipped === 1 ? "" : "s"} skipped, <a href="#" id="search-all">search them too</a>` : ""}</span>
+      <span class="grow">${strong.length} match${strong.length === 1 ? "" : "es"}${shopName ? ` at ${esc(shopName)}` : ""}${search.cached ? " · from the last hour" : ""}${waiting ? ` · searching ${waiting} more shop${waiting === 1 ? "" : "s"}… <a href="#" id="stop-waiting">stop</a>` : ""}${skipped ? ` · ${skipped} shop${skipped === 1 ? "" : "s"} skipped, <a href="#" id="search-all">search them too</a>` : ""}</span>
       <select id="sort" aria-label="Sort">
         <option value="match" ${sort === "match" ? "selected" : ""}>Best match, then cheapest</option>
         <option value="price" ${sort === "price" ? "selected" : ""}>Cheapest</option>
         <option value="unit" ${sort === "unit" ? "selected" : ""}>Cheapest per piece</option>
       </select>
     </div>
-    ${strong.length ? `<div class="list">${strong.map(resultRow).join("")}</div>` : `<div class="empty">No in-stock matches.${weak.length ? " There are some weaker matches below." : ""}</div>`}
+    ${strong.length ? `<div class="list">${strong.map(resultRow).join("")}</div>` : `<div class="empty">${waiting ? "No in-stock matches yet." : "No in-stock matches."}${weak.length ? " There are some weaker matches below." : ""}</div>`}
     ${weak.length ? (showWeak
       ? `<h2>Weaker matches</h2><div class="list">${weak.map(resultRow).join("")}</div>`
       : `<button class="btn more" id="show-weak">Show ${weak.length} weaker match${weak.length === 1 ? "" : "es"}</button>`) : ""}
   `;
   $("#sort").onchange = renderSearch;
   $("#search-all")?.addEventListener("click", (e) => { e.preventDefault(); runSearch(search.query); });
+  $("#stop-waiting")?.addEventListener("click", (e) => { e.preventDefault(); stopWaiting?.(); });
   out.querySelectorAll(".chip[data-fetch]").forEach(btn => { btn.onclick = () => fetchSkipped(btn.dataset.fetch); });
   // a failed shop can't be filtered to, but a click says why it failed
   out.querySelectorAll(".chip[data-fail]").forEach(btn => { btn.onclick = () => toast(`${btn.textContent.trim()}: ${btn.title}`); });
@@ -838,6 +875,7 @@ function renderSearch() {
     };
   });
   $("#show-weak")?.addEventListener("click", () => { showWeak = true; renderSearch(); });
+  if (focused) out.querySelector(focused)?.focus({ preventScroll: true });
   out.querySelectorAll("[data-save]").forEach(btn => {
     btn.onclick = () => toggleSave(search.results.find(r => key(r) === btn.dataset.save), btn);
   });

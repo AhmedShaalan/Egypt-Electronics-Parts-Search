@@ -1,6 +1,11 @@
 # Changelog
 
-What changed on [parts.ahmedshaalan.com](https://parts.ahmedshaalan.com/), newest first. The site is updated as changes land. Each entry is also a git tag (`v1.3.1`), which is the version to use if you run the [MCP server](mcp/) or your own copy.
+What changed on [parts.ahmedshaalan.com](https://parts.ahmedshaalan.com/), newest first. The site is updated as changes land. Each entry is also a git tag (`v1.4.0`), which is the version to use if you run the [MCP server](mcp/) or your own copy.
+
+## 1.4.0 · 2026-09-21
+
+### Changed
+- Search results show as the shops answer, instead of after the slowest one. They appear once three shops have answered with a match, then each shop is added as it answers; its chip shows `· …` until then. **stop** skips the shops still running.
 
 ## 1.3.1 · 2026-09-21
 

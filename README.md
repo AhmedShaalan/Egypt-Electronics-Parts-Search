@@ -32,7 +32,7 @@ Egypt Electronics Parts Search asks every shop at once, recognizes those names a
 - Sort by best match, cheapest, or cheapest per piece, or filter to one shop
 - Hover a result to copy it (name, price, shop, link) or add it to a new or saved parts list
 - Shows a label for any shop that failed or timed out, so a quiet shop is never mistaken for "not available"
-- Shows progress as shops answer; if one is slow, **Show results so far** stops waiting, and any skipped shop can be fetched later with one click
+- Shows results as shops answer, without waiting for the slow ones; **stop** skips the shops still running, and any skipped shop can be fetched later with one click
 
 **🤖 Ask your AI assistant**
 - An [MCP server](#use-it-from-claude-or-another-ai-assistant) lets Claude or another AI assistant search the shops, price a parts list and re-check a price for you
@@ -75,9 +75,11 @@ Type a part number or a description: `LM7805`, `ESP32`, `10k resistor`, `HC-SR04
 | You'll see | What it means |
 |---|---|
 | `UGE · 27` | UGE returned 27 matching in-stock products |
+| `UGE · …` (grey) | Still searching that shop; its results join the list when it answers |
 | `UGE · failed` (red) | That shop didn't answer. Hover or click it for the reason. It's retried after 2 minutes, not an hour |
-| `UGE · skipped` (amber) | You pressed **Show results so far** before this shop answered. Hover and click **Fetch now** to search just this shop and merge its results in |
-| **Show results so far** | Appears under the progress bar once the first shop answers. Stops waiting for the rest and shows what's in |
+| `UGE · skipped` (amber) | You pressed **stop** (or **Show results so far**) before this shop answered. Hover and click **Fetch now** to search just this shop and merge its results in |
+| **searching 5 more shops… stop** | Results show once a few shops have answered with a match, and the rest are added as they answer. **stop** skips the shops still running |
+| **Show results so far** | Appears under the progress bar before any results show. Stops waiting for the rest and shows what's in |
 | **Sale** | The shop is discounting it; the original price is struck through |
 | `0.50 EGP/pc` | The listing is a pack; this is the price per piece |
 | **Show N weaker matches** | Loosely related items (e.g. "PCB for ESP32"), kept out of the main list |
@@ -170,7 +172,7 @@ The catch: browsers only let a website read another site's data if that site all
                                      1-hour cache)                 Free, HD, Circuit, Electra's stock
 ```
 
-1. **Fan out.** A search runs against all shops in parallel, with a progress bar counting them in. Each shop gets 25 seconds; a slow or broken shop is marked failed instead of holding up the rest. You can also stop waiting early: the shops still running are marked skipped, and each can be fetched on its own afterwards.
+1. **Fan out.** A search runs against all shops in parallel, and the results show as they come in: once three shops have answered with a match, then each shop as it answers. Each shop gets 25 seconds; a slow or broken shop is marked failed instead of holding up the rest. You can also stop waiting early: the shops still running are marked skipped, and each can be fetched on its own afterwards.
 2. **Widen the net.** Shop search engines match text literally, and WooCommerce matches several words as one phrase, so the app also sends variants: `12 V 2 A` → `12v 2a`, `Mini-360 buck converter` → `mini360`, `XKC-Y25-NPN level sensor` → `xkc-y25`, `power supply with barrel jack` → `power supply`, `LM7805` → `7805`, `16x2 LCD` → `1602 LCD`. Variants only widen what the shops return; scoring still decides what matches.
 3. **Score.** Every product name is scored 0–100 against your query (see below). Scores of 70+ are shown as matches, 45–69 as weaker matches, and anything lower is dropped.
 4. **Filter and sort.** Out-of-stock and zero-price items are removed, and results are sorted by score, then price.
@@ -363,7 +365,7 @@ No framework, no build step, no dependencies.
 
 ## Changelog
 
-What changed and when is in [CHANGELOG.md](CHANGELOG.md). Each version there is a git tag, so a copy of the MCP server can be kept on a known version (`git checkout v1.3.1`) or updated with `git pull`.
+What changed and when is in [CHANGELOG.md](CHANGELOG.md). Each version there is a git tag, so a copy of the MCP server can be kept on a known version (`git checkout v1.4.0`) or updated with `git pull`.
 
 ## Feedback
 
