@@ -1,6 +1,14 @@
 # Changelog
 
-What changed on [parts.ahmedshaalan.com](https://parts.ahmedshaalan.com/), newest first. The site is updated as changes land. Each entry is also a git tag (`v1.3.0`), which is the version to use if you run the [MCP server](mcp/) or your own copy.
+What changed on [parts.ahmedshaalan.com](https://parts.ahmedshaalan.com/), newest first. The site is updated as changes land. Each entry is also a git tag (`v1.3.1`), which is the version to use if you run the [MCP server](mcp/) or your own copy.
+
+## 1.3.1 · 2026-09-21
+
+### Changed
+- The About text points to the Shops tab instead of listing all 16 shops.
+
+### Fixed
+- After an update the page could come up blank until a hard refresh, because the browser mixed the new page with its cached old scripts. Every update now loads a fresh set of scripts, and the search tab shows even if they fail.
 
 ## 1.3.0 · 2026-09-21
 

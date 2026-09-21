@@ -25,6 +25,8 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: actions/configure-pages@v6
+      # a new address for the scripts on every deploy, so browsers fetch them fresh
+      - run: sed -i "s/__BUILD__/${GITHUB_SHA::7}/g" src/index.html
       - uses: actions/upload-pages-artifact@v5
         with:
           path: src
