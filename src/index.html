@@ -328,6 +328,8 @@
   .cart-bar .btn, .cart-cell .btn { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
   td.cart-cell { width: 1%; padding: 5px 8px; }
   .cart-note:empty { display: none; }
+  .mix-cart { margin-bottom: 12px; }
+  .mix-cart .cart-bar { margin-bottom: 0; }
   h2.with-copy { display: flex; align-items: center; gap: 4px; margin: 0; color: var(--text); font-size: 15px; }
   h2.with-copy .icon-btn { padding: 4px; }
   h2.with-copy .icon-btn svg { width: 18px; height: 18px; }
@@ -364,7 +366,49 @@
   .line-head { display: flex; gap: 8px; align-items: baseline; justify-content: space-between; }
   .line-head .q { font-weight: 600; }
   .line-head .cost { font-variant-numeric: tabular-nums; font-weight: 600; white-space: nowrap; }
-  .line select { width: 100%; margin-top: 8px; padding: 8px; font-size: 14px; }
+  .icon-btn.cart-off { position: relative; cursor: default; }
+  .icon-btn.cart-off svg { opacity: .35; }
+  .icon-btn.cart-off:hover { background: none; color: var(--muted); }
+  /* a tooltip above the button, kept inside the card by lining up on the right */
+  [data-tip]:hover::after, [data-tip]:focus-visible::after {
+    content: attr(data-tip); position: absolute; bottom: calc(100% + 6px); right: 0; z-index: 7;
+    width: max-content; max-width: 240px; padding: 6px 9px; border-radius: 6px;
+    background: var(--text); color: var(--bg); font-size: 12px; line-height: 1.4; text-align: left; white-space: normal;
+    pointer-events: none;
+  }
+  .list:has([data-tip]:hover), .list:has([data-tip]:focus-visible) { overflow: visible; }
+  .choice-row { position: relative; display: flex; align-items: center; gap: 4px; margin-top: 8px; }
+  .choice {
+    flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; padding: 6px 10px 6px 6px;
+    border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); text-align: left; font-size: 14px;
+  }
+  button.choice { cursor: pointer; }
+  button.choice:hover, button.choice[aria-expanded="true"] { border-color: var(--accent); }
+  .choice .thumb { width: 44px; height: 44px; flex: none; border-radius: 6px; }
+  .choice-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+  .choice-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .choice-meta { color: var(--muted); font-size: 12px; }
+  .choice-more { flex: none; display: flex; align-items: center; gap: 2px; color: var(--muted); font-size: 12px; white-space: nowrap; }
+  .choice-more svg { width: 18px; height: 18px; transition: transform .15s; }
+  .choice[aria-expanded="true"] .choice-more svg { transform: rotate(180deg); }
+  .picker {
+    position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 4; padding: 8px;
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, .16);
+  }
+  .picker-search { width: 100%; padding: 8px 10px; font-size: 14px; }
+  .picker-list { max-height: min(380px, 55vh); overflow-y: auto; margin-top: 6px; overscroll-behavior: contain; }
+  .opt-group { padding: 8px 8px 4px; color: var(--muted); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+  .opt { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 6px 8px; border-radius: 8px; cursor: pointer; }
+  .opt.active { background: var(--surface-2); }
+  .opt .thumb { width: 40px; height: 40px; border-radius: 6px; }
+  .opt-name { font-size: 14px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .opt-meta { color: var(--muted); font-size: 12px; }
+  .opt-cost { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; font-size: 14px; }
+  .opt-check { display: block; color: var(--accent); font-size: 12px; font-weight: 600; }
+  .opt[aria-selected="true"] .opt-cost b { color: var(--accent); }
+  .picker-empty { padding: 18px 8px; text-align: center; color: var(--muted); font-size: 14px; }
+  .list:has(.picker) { overflow: visible; }
   .line .meta a { color: var(--accent); }
 
   .shop-mark {
@@ -420,6 +464,7 @@
     header nav { order: 2; width: 100%; justify-content: space-between; overflow-x: auto; }
     nav a { padding-left: 6px; padding-right: 6px; }
     .row { grid-template-columns: 64px 1fr auto; gap: 10px; }
+    .choice-word { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
     .thumb { width: 64px; height: 64px; }
   }
   @media (max-width: 360px) {
@@ -594,7 +639,7 @@ npm install</code></pre>
 </script>
 <script type="module">
 import { SHOPS, SHOPS_BY_KEY } from "./js/shops.js";
-import { searchAll, fetchShop, mergeShop, priceList, cheapestPicks, shopTotals, lineCost, packsNeeded, warmUp, getSaved, saveItem as storeItem, unsaveItem as storeUnsave, deleteItem, refreshItems, saveList as storeList, addToList, renameList, deleteList } from "./js/search.js";
+import { searchAll, fetchShop, mergeShop, priceList, cheapestPicks, isClose, shopTotals, lineCost, packsNeeded, warmUp, getSaved, saveItem as storeItem, unsaveItem as storeUnsave, deleteItem, refreshItems, saveList as storeList, addToList, renameList, deleteList } from "./js/search.js";
 
 const $ = (s, el = document) => el.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -1083,6 +1128,7 @@ const findable = () => listData.lines.filter(l => l.candidates.length).length;
 
 function renderList() {
   const out = $("#list-out");
+  picker = null; // redrawing removes an open picker
   const lines = listData.lines;
   let mixTotal = 0;
   const mixShops = new Set();
@@ -1126,7 +1172,7 @@ function renderList() {
     </div>
 
     <h2 class="with-total">${mixLabel} <span class="total">${money(mixTotal)}</span></h2>
-    ${byShop.size ? `<div data-cart-area>
+    ${byShop.size ? `<div class="mix-cart" data-cart-area>
       <div class="cart-bar">
         ${cartable.length ? `<span class="label">Add to cart:</span>` : ""}
         ${cartable.map(([k, e]) => `<button type="button" class="btn small" data-cart-mix="${esc(k)}" title="Add ${e.length === 1 ? "this part" : `these ${e.length} parts`} to the cart at ${esc(SHOPS_BY_KEY[k].name)}, in a new tab">${CART_ICON}<span>${esc(SHOPS_BY_KEY[k].name)} · ${e.length}</span></button>`).join("")}
@@ -1155,8 +1201,10 @@ function renderList() {
     <p class="hint">Shop totals use the same close matches as the picks above${found < lines.length ? " and skip parts no shop has" : ""}. Shipping isn't included.${listData.left_out ? ` Only the first ${lines.length} lines were priced; ${listData.left_out} more ${listData.left_out === 1 ? "was" : "were"} left out.` : ""}</p>
   `;
 
-  out.querySelectorAll("select[data-line]").forEach(sel => {
-    sel.onchange = () => { picks[+sel.dataset.line] = +sel.value; renderList(); };
+  // without hover (phones) there is no tooltip, so a tap says it instead
+  if (matchMedia("(hover: none)").matches) out.querySelectorAll(".cart-off").forEach(b => { b.onclick = () => toast(b.dataset.tip); });
+  out.querySelectorAll("[data-pick]").forEach(b => {
+    b.onclick = () => (picker?.trigger === b ? closePicker() : openPicker(+b.dataset.pick, b));
   });
   $("#list-save").onclick = saveList;
   out.querySelectorAll("[data-cart-mix]").forEach(b => { b.onclick = () => startCart(b, b.dataset.cartMix, byShop.get(b.dataset.cartMix)); });
@@ -1169,23 +1217,145 @@ function lineRow(line, i) {
     return `<div class="line"><div class="line-head"><span class="q">${line.qty} × ${esc(line.query)}</span><span class="badge bad">Not found</span></div>
       <div class="meta">No shop has this in stock. Try a different name or part number.</div></div>`;
   }
+  const n = line.candidates.length;
   const packs = packsNeeded(line, c);
+  // this line's product and quantity (in packs) into its shop's cart
+  const cart = c.cart ? SHOPS_BY_KEY[c.shop]?.cartSteps?.([{ ...c, qty: packs }])[0] : null;
+  const chosen = `${thumb(c)}
+    <span class="choice-text">
+      <span class="choice-name">${esc(c.name)}</span>
+      <span class="choice-meta">${esc(c.shop_name)} · ${priceDetail(line, c)}</span>
+    </span>`;
   return `
     <div class="line">
       <div class="line-head">
         <span class="q">${line.qty} × ${esc(line.query)} ${line.weak ? '<span class="badge warn">Check match</span>' : ""}</span>
         <span class="cost">${money(lineCost(line, c))}</span>
       </div>
-      <div class="meta">
-        <a href="${esc(safeUrl(c.url))}" target="_blank" rel="noopener">${esc(c.name)}</a> · ${esc(c.shop_name)} ·
-        ${c.pack > 1 ? `${packs} pack${packs === 1 ? "" : "s"} of ${c.pack} at ${money(c.price)}` : `${money(c.price)} each`}
+      <div class="choice-row">
+        ${n > 1
+          ? `<button type="button" class="choice" data-pick="${i}" aria-haspopup="listbox" aria-expanded="false">${chosen}
+              <span class="choice-more">${n}<span class="choice-word"> options</span><span class="sr-only"> for ${esc(line.query)}</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></span>
+            </button>`
+          : `<div class="choice">${chosen}</div>`}
+        <a class="icon-btn" href="${esc(safeUrl(c.url))}" target="_blank" rel="noopener" title="Open at ${esc(c.shop_name)}" aria-label="Open ${esc(c.name)} at ${esc(c.shop_name)}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>
+        </a>
+        ${cart
+          ? `<a class="icon-btn" href="${esc(cart)}" target="_blank" rel="noopener" title="Add ${packs === 1 ? "it" : packs} to the cart at ${esc(c.shop_name)}" aria-label="Add ${esc(c.name)} to the cart at ${esc(c.shop_name)}">${CART_ICON}</a>`
+          // shown faded, with a tooltip saying why; on a phone, a tap shows it
+          : `<button type="button" class="icon-btn cart-off" aria-disabled="true" data-tip="${esc(noCart(c))}" aria-label="${esc(noCart(c))}">${CART_ICON}</button>`}
       </div>
-      ${line.candidates.length > 1 ? `
-        <select data-line="${i}" aria-label="Choose product for ${esc(line.query)}">
-          ${line.candidates.map((o, j) => `<option value="${j}" ${j === picks[i] ? "selected" : ""}>${esc(money(lineCost(line, o)))} · ${esc(o.shop_name)} · ${esc(o.name.slice(0, 70))}</option>`).join("")}
-        </select>` : ""}
     </div>`;
 }
+
+// why a product can't go into its shop's cart from here
+const noCart = c => cartShop(c.shop) ? "We can't add this one: it has options to choose" : "We can't add to cart for this store";
+
+// "4 EGP each", or for a pack "2 packs of 10 at 5 EGP"
+function priceDetail(line, c) {
+  const packs = packsNeeded(line, c);
+  return c.pack > 1 ? `${packs} pack${packs === 1 ? "" : "s"} of ${c.pack} at ${money(c.price)}` : `${money(c.price)} each`;
+}
+
+/* ---------- parts-list product picker ---------- */
+// A line's products in a dropdown with a filter: close matches first, then the others, each
+// cheapest first for the quantity. The filter box is a combobox: the arrow keys move through
+// the products, Enter picks one, Escape closes.
+let picker = null; // the open one: { i, el, trigger, order, active }
+
+function closePicker(refocus) {
+  if (!picker) return;
+  const { el, trigger } = picker;
+  picker = null;
+  el.remove();
+  trigger.setAttribute("aria-expanded", "false");
+  if (refocus) trigger.focus();
+}
+
+function openPicker(i, trigger) {
+  closePicker();
+  const line = listData.lines[i];
+  const el = document.createElement("div");
+  el.className = "picker";
+  el.innerHTML = `
+    <input type="search" class="picker-search" placeholder="Filter by name or shop" autocomplete="off"
+      role="combobox" aria-expanded="true" aria-controls="picker-list" aria-autocomplete="list" aria-label="Filter the products for ${esc(line.query)}">
+    <div class="picker-list" id="picker-list" role="listbox" aria-label="Products for ${esc(line.query)}"></div>`;
+  trigger.after(el);
+  trigger.setAttribute("aria-expanded", "true");
+  const input = el.querySelector("input");
+  const list = el.querySelector(".picker-list");
+  picker = { i, el, trigger, order: [], active: 0 };
+
+  const option = (c, j) => `
+    <div class="opt" role="option" id="opt-${j}" data-j="${j}" aria-selected="${j === picks[i]}">
+      ${thumb(c)}
+      <div class="opt-main">
+        <div class="opt-name">${esc(c.name)}</div>
+        <div class="opt-meta">${esc(c.shop_name)} · ${priceDetail(line, c)}${c.old_price ? ' · <span class="badge sale">Sale</span>' : ""}${j === defaultPicks[i] ? ' · <span class="badge good">Cheapest</span>' : ""}</div>
+      </div>
+      <div class="opt-cost"><b>${money(lineCost(line, c))}</b>${j === picks[i] ? '<span class="opt-check">✓ Picked</span>' : ""}</div>
+    </div>`;
+  const setActive = (n) => {
+    if (!picker.order.length) return;
+    picker.active = Math.max(0, Math.min(n, picker.order.length - 1));
+    list.querySelectorAll(".opt.active").forEach(o => o.classList.remove("active"));
+    const o = list.querySelector(`#opt-${picker.order[picker.active]}`);
+    o.classList.add("active");
+    o.scrollIntoView({ block: "nearest" });
+    input.setAttribute("aria-activedescendant", o.id);
+  };
+  const draw = () => {
+    const words = input.value.toLowerCase().split(/\s+/).filter(Boolean);
+    const byCost = (a, b) => lineCost(line, a.c) - lineCost(line, b.c);
+    const shown = line.candidates.map((c, j) => ({ c, j }))
+      .filter(({ c }) => words.every(w => `${c.name} ${c.shop_name}`.toLowerCase().includes(w)));
+    const close = shown.filter(o => isClose(line, o.c)).sort(byCost);
+    const other = shown.filter(o => !isClose(line, o.c)).sort(byCost);
+    picker.order = [...close, ...other].map(o => o.j);
+    const group = (title, opts) => opts.length ? `<div class="opt-group" role="presentation">${title} · ${opts.length}</div>${opts.map(o => option(o.c, o.j)).join("")}` : "";
+    list.innerHTML = shown.length
+      ? group("Close matches", close) + group(close.length ? "Other results" : "Results", other)
+      : `<div class="picker-empty">No products match “${esc(input.value)}”.</div>`;
+    input.removeAttribute("aria-activedescendant");
+    const current = picker.order.indexOf(picks[i]);
+    setActive(current >= 0 ? current : 0);
+  };
+  const choose = (j) => {
+    picks[i] = j;
+    closePicker();
+    renderList();
+    $(`#list-out [data-pick="${i}"]`)?.focus();
+  };
+
+  input.addEventListener("input", draw);
+  input.addEventListener("keydown", (e) => {
+    const page = 6;
+    const moves = { ArrowDown: 1, ArrowUp: -1, PageDown: page, PageUp: -page };
+    if (e.key in moves) { e.preventDefault(); setActive(picker.active + moves[e.key]); }
+    else if (e.key === "Enter") { e.preventDefault(); if (picker.order.length) choose(picker.order[picker.active]); }
+    else if (e.key === "Escape") { e.preventDefault(); closePicker(true); }
+    else if (e.key === "Tab") closePicker();
+  });
+  list.addEventListener("pointermove", (e) => {
+    const o = e.target.closest(".opt");
+    if (o) setActive(picker.order.indexOf(+o.dataset.j));
+  });
+  list.addEventListener("click", (e) => {
+    const o = e.target.closest(".opt");
+    if (o) choose(+o.dataset.j);
+  });
+  draw();
+  input.focus({ preventScroll: true });
+  el.scrollIntoView({ block: "nearest" });
+}
+
+// a click anywhere else closes the picker
+document.addEventListener("pointerdown", (e) => {
+  if (picker && !picker.el.contains(e.target) && !picker.trigger.contains(e.target)) closePicker();
+});
 
 async function saveList() {
   const name = prompt("Name this list", "Parts list " + new Date().toLocaleDateString());

@@ -42,11 +42,11 @@ Egypt Electronics Parts Search asks every shop at once, recognizes those names a
 - Paste a parts list, one part per line, and get the **cheapest mix** across shops and the **best single shop** to buy everything from
 - A table of each shop's total and exactly which parts it's missing
 - Counts packs: 20 resistors sold in 2-packs = 10 packs
-- If the tool picked the wrong product for a line, choose another from its dropdown and the totals recalculate
+- If the tool picked the wrong product for a line, open its picker and choose another: every option shows its picture, shop, pack size and cost for your quantity, close matches first, with a box to filter by name or shop. The totals recalculate
 
 **🛒 Add to the shop's cart**
 - Put a search result straight into its shop's cart, in a new tab that opens on the cart
-- From a parts list, fill each shop's cart with your picks (the cheapest mix or the ones you chose), or with everything one shop has, quantities included
+- From a parts list, add one line's pick, fill each shop's cart with your picks (the cheapest mix or the ones you chose), or with everything one shop has, quantities included
 - Works at the 10 Shopify and WooCommerce shops (Future, DevBoards, Makers, Micro Ohm, Most, UGE, Ampere, Free, HD and Circuit); checkout stays on the shop's own site
 
 **⭐ Save and track**
@@ -111,7 +111,8 @@ Bullets and numbering are ignored, `#` lines are treated as comments, and names 
 - **Cheapest mix:** for each part, the cheapest close match from any shop.
 - **Everything from one shop:** the cheapest shop that has every part, and how much more it costs than the mix. Buying from one shop usually saves on shipping, which isn't included in either total.
 - **Total by shop:** every shop's total, with the parts it's missing.
-- **Add to cart:** under the mix, one button per shop puts your picks from that shop into its cart; each row of **Total by shop** has an **Add** button that puts everything that shop has from the list into its cart. The cart opens in a new tab, with each part's quantity (counting packs). A Shopify shop takes the whole list at once; a WooCommerce shop takes one product per link, so the tab adds them one after another and ends on the cart. Products with options to choose (a size, a colour) have to be added on the shop's page, and the page says which.
+- **Change a pick:** each line shows its product (picture, name, shop and price). Click it to see the other options, close matches first and each sorted by the cost for your quantity, with a box to filter by name or shop; the cheapest is tagged. Arrow keys and Enter work too. ↗ opens the product at its shop.
+- **Add to cart:** the cart button on a line puts that line's product into its shop's cart (a faded cart means that shop can't be filled from here; hover it to see why). Under the mix, one button per shop puts your picks from that shop into its cart; each row of **Total by shop** has an **Add** button that puts everything that shop has from the list into its cart. The cart opens in a new tab, with each part's quantity (counting packs). A Shopify shop takes the whole list at once; a WooCommerce shop takes one product per link, so the tab adds them one after another and ends on the cart. Products with options to choose (a size, a colour) have to be added on the shop's page, and the page says which.
 
 ### Saved
 
@@ -346,7 +347,7 @@ class MyShop extends Shop {
 
 ## Limitations
 
-- **Matching is heuristic.** It handles part numbers well. Vague names like "LCD" or "sensor" need a glance at the pick, and some accessories still slip through as a strong match (for example, an I2C adapter board for `16x2 LCD`). The dropdown on each parts-list line is there for exactly this.
+- **Matching is heuristic.** It handles part numbers well. Vague names like "LCD" or "sensor" need a glance at the pick, and some accessories still slip through as a strong match (for example, an I2C adapter board for `16x2 LCD`). The picker on each parts-list line is there for exactly this.
 - **Shipping isn't included** in any total.
 - **Add to cart works at 10 of the 16 shops**, and not for products with options to choose. Some products are only sold in multiples ("order in tens"); the cart then gets the next amount the shop accepts. Prices in the cart are the shop's current ones, which may have changed since the search.
 - **Shops change.** A site redesign or platform switch can break its connector. The shop then shows as `failed` rather than returning wrong data.
@@ -375,7 +376,7 @@ No framework, no build step, no dependencies.
 
 ## Changelog
 
-What changed and when is in [CHANGELOG.md](CHANGELOG.md). Each version there is a git tag, so a copy of the MCP server can be kept on a known version (`git checkout v1.5.0`) or updated with `git pull`.
+What changed and when is in [CHANGELOG.md](CHANGELOG.md). Each version there is a git tag, so a copy of the MCP server can be kept on a known version (`git checkout v1.6.0`) or updated with `git pull`.
 
 ## Feedback
 

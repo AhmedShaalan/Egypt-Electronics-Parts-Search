@@ -1,6 +1,16 @@
 # Changelog
 
-What changed on [parts.ahmedshaalan.com](https://parts.ahmedshaalan.com/), newest first. The site is updated as changes land. Each entry is also a git tag (`v1.5.0`), which is the version to use if you run the [MCP server](mcp/) or your own copy.
+What changed on [parts.ahmedshaalan.com](https://parts.ahmedshaalan.com/), newest first. The site is updated as changes land. Each entry is also a git tag (`v1.6.0`), which is the version to use if you run the [MCP server](mcp/) or your own copy.
+
+## 1.6.0 · 2026-09-21
+
+### Added
+- Each parts-list line has its own cart button, next to a ↗ link to the product. For a shop whose cart can't be filled from here, the cart is faded and a tooltip says so.
+
+### Changed
+- A parts-list line shows its product as a card (picture, name, shop, price), and changing it opens a proper picker instead of a plain dropdown: a box to filter by name or shop, close matches first, each option with its picture, shop, pack size and cost for your quantity, and the cheapest tagged. It works with the arrow keys and Enter.
+- A little more room under the note about shops whose cart can't be filled from here.
+- New screenshots in the README.
 
 ## 1.5.0 · 2026-09-21
 
