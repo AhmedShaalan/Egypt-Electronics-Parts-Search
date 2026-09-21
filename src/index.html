@@ -517,7 +517,7 @@
     <h1>Compare electronics part prices across 16 Egyptian shops</h1>
     <form class="searchbar" id="search-form">
       <div class="search-field">
-        <input type="search" id="q" aria-label="Search for a part" placeholder="Search a part, e.g. LM7805, ESP32, 10k resistor" autocomplete="off" autofocus>
+        <input type="search" id="q" aria-label="Search for a part" placeholder="Search a part, e.g. LM7805, ESP32, 10k resistor" autocomplete="off" data-1p-ignore data-lpignore="true" data-bwignore data-form-type="other" autofocus>
         <button class="search-clear" id="q-clear" type="button" title="Clear search" aria-label="Clear search" hidden>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
         </button>
@@ -636,7 +636,7 @@ npm install</code></pre>
     <h2 id="change-title">Change part</h2>
     <p class="meta">Search every shop for another name; the cheapest close match is picked.</p>
     <label class="modal-label" for="change-name">Part name or number</label>
-    <input type="text" id="change-name" maxlength="200" autocomplete="off" required>
+    <input type="text" id="change-name" maxlength="200" autocomplete="off" data-1p-ignore data-lpignore="true" data-bwignore data-form-type="other" required>
     <label class="modal-label" for="change-qty" style="margin-top:12px">Quantity</label>
     <input type="number" id="change-qty" min="1" max="9999" step="1" inputmode="numeric" required>
     <p class="hint" id="change-status" role="status"></p>
@@ -1042,7 +1042,7 @@ function openAddToList(p) {
   const lists = getSaved().lists;
   const picked = lists.some(l => l.id === lastListId) ? lastListId : lists[0]?.id;
   const newName = "Parts list " + new Date().toLocaleDateString();
-  const nameInput = `<input type="text" id="add-name" value="${esc(newName)}" maxlength="80" aria-label="Name of the new list">`;
+  const nameInput = `<input type="text" id="add-name" value="${esc(newName)}" maxlength="80" autocomplete="off" data-1p-ignore data-lpignore="true" data-bwignore data-form-type="other" aria-label="Name of the new list">`;
   $("#add-item").textContent = `${p.name} · ${p.shop_name}`;
   $("#add-picks").innerHTML = lists.length ? `
     <span class="modal-label">Choose a list</span>
@@ -1414,7 +1414,7 @@ function openPicker(i, trigger) {
   const el = document.createElement("div");
   el.className = "picker";
   el.innerHTML = `
-    <input type="search" class="picker-search" placeholder="Filter by name or shop" autocomplete="off"
+    <input type="search" class="picker-search" placeholder="Filter by name or shop" autocomplete="off" data-1p-ignore data-lpignore="true" data-bwignore data-form-type="other"
       role="combobox" aria-expanded="true" aria-controls="picker-list" aria-autocomplete="list" aria-label="Filter the products for ${esc(line.query)}">
     <div class="picker-list" id="picker-list" role="listbox" aria-label="Products for ${esc(line.query)}"></div>`;
   trigger.after(el);
