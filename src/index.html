@@ -256,7 +256,16 @@
   .row .reveal { display: flex; align-items: center; gap: 2px; }
   .row .reveal > * { opacity: 0; transition: opacity .15s; }
   .row:hover .reveal > *, .row:has(:focus-visible) .reveal > *, .row .reveal:has(details[open]) > *, .row .reveal > .on { opacity: 1; }
-  @media (hover: none) { .row .reveal > * { opacity: 1; } }
+  /* with a mouse the icons take no room: the price sits at the right, and they show above it on hover */
+  @media (hover: hover) {
+    .row .actions:has(.reveal) { position: relative; min-width: 112px; justify-content: flex-end; }
+    .row .reveal { position: absolute; right: -4px; bottom: 100%; margin-bottom: 2px; }
+  }
+  /* on touch screens they are always shown, under the price */
+  @media (hover: none) {
+    .row .reveal > * { opacity: 1; }
+    .row .actions:has(.reveal) { flex-direction: column; align-items: flex-end; gap: 4px; }
+  }
   .row .reveal > .icon-btn { padding: 4px; }
   .row .reveal > .icon-btn svg { width: 18px; height: 18px; }
   .save svg { fill: none; }
@@ -313,6 +322,12 @@
   #list-out:not(:empty) { border-top: 1px dashed var(--border); margin-top: 18px; padding-top: 4px; }
   h2.with-total { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
   h2.with-total .total { font-variant-numeric: tabular-nums; }
+  .cart-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: -4px 0 10px; }
+  .cart-bar .label { color: var(--muted); font-size: 13px; margin-right: 2px; }
+  .btn.small svg { width: 15px; height: 15px; flex: none; }
+  .cart-bar .btn, .cart-cell .btn { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+  td.cart-cell { width: 1%; padding: 5px 8px; }
+  .cart-note:empty { display: none; }
   h2.with-copy { display: flex; align-items: center; gap: 4px; margin: 0; color: var(--text); font-size: 15px; }
   h2.with-copy .icon-btn { padding: 4px; }
   h2.with-copy .icon-btn svg { width: 18px; height: 18px; }
@@ -404,13 +419,15 @@
     header .icons { order: 1; }
     header nav { order: 2; width: 100%; justify-content: space-between; overflow-x: auto; }
     nav a { padding-left: 6px; padding-right: 6px; }
+    .row { grid-template-columns: 64px 1fr auto; gap: 10px; }
+    .thumb { width: 64px; height: 64px; }
   }
   @media (max-width: 360px) {
     header nav { gap: 0; }
     nav a { padding-left: 4px; padding-right: 4px; }
-    .row { grid-template-columns: 76px 1fr; }
-    .thumb { width: 76px; height: 76px; }
-    .row .actions { grid-column: 2; justify-content: space-between; }
+    .row { grid-template-columns: 56px 1fr; }
+    .thumb { width: 56px; height: 56px; }
+    .row .actions, .row .actions:has(.reveal) { grid-column: 2; flex-direction: row; align-items: center; justify-content: space-between; }
     .price { text-align: left; }
     .price s, .price .per { display: inline; margin-left: 6px; }
     .hide-sm { display: none; }
@@ -576,7 +593,7 @@ npm install</code></pre>
 } }
 </script>
 <script type="module">
-import { SHOPS } from "./js/shops.js";
+import { SHOPS, SHOPS_BY_KEY } from "./js/shops.js";
 import { searchAll, fetchShop, mergeShop, priceList, cheapestPicks, shopTotals, lineCost, packsNeeded, warmUp, getSaved, saveItem as storeItem, unsaveItem as storeUnsave, deleteItem, refreshItems, saveList as storeList, addToList, renameList, deleteList } from "./js/search.js";
 
 const $ = (s, el = document) => el.querySelector(s);
@@ -653,6 +670,66 @@ function thumb(p) {
 
 function packNote(p) {
   return p.pack > 1 ? `<span class="per">${money(p.unit_price)}/pc</span>` : "";
+}
+
+/* ---------- shop carts ---------- */
+// a cart button in the parts list: shows its progress, and afterwards what it couldn't add
+async function startCart(btn, key, entries) {
+  const label = btn.querySelector("span");
+  const idle = label.textContent;
+  const note = btn.closest("[data-cart-area]").querySelector(".cart-note");
+  const shop = SHOPS_BY_KEY[key].name;
+  const left = entries.filter(e => !e.product.cart).map(e => `“${e.line.query}”`);
+  btn.disabled = true;
+  note.textContent = "";
+  try {
+    await fillCart(key, entries, (done, total) => { label.textContent = done < total ? `${done + 1} of ${total}…` : idle; });
+    if (left.length) note.textContent = `Add ${left.join(", ")} on ${shop}'s page: ${left.length === 1 ? "it has" : "they have"} options to choose.`;
+  } catch (e) {
+    note.textContent = e.message;
+  } finally {
+    label.textContent = idle;
+    btn.disabled = false;
+  }
+}
+
+const CART_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M2 3h3l2.7 12.4a1.5 1.5 0 0 0 1.5 1.1h8.9a1.5 1.5 0 0 0 1.5-1.1L21 7H6"/></svg>`;
+
+// the link that puts one product into its shop's cart, or null when it can't be done from here
+const cartLink = p => p.cart ? SHOPS_BY_KEY[p.shop]?.cartSteps?.([{ ...p, qty: 1 }])[0] ?? null : null;
+const cartShop = key => typeof SHOPS_BY_KEY[key]?.cartSteps === "function";
+
+const sameOrigin = w => { try { return w.document.URL === "about:blank"; } catch { return false; } };
+async function until(test, ms) {
+  const end = Date.now() + ms;
+  while (!test() && Date.now() < end) await new Promise(r => setTimeout(r, 150));
+}
+
+// Puts parts-list products ([{ line, product }]) into a shop's cart, in a new tab that ends on
+// the cart. A Shopify link takes them all at once; a WooCommerce link takes one, so the tab
+// visits one link after another. Products with options to choose can't be added from a link, so
+// they are left out. Each link has to reach the shop before the next, or the shop could
+// start a second cart: the tab goes back to a blank page of this site in between, and the shop's
+// page taking its place shows the shop has answered. `onStep(done, total)` reports progress.
+async function fillCart(key, entries, onStep) {
+  const shop = SHOPS_BY_KEY[key];
+  const items = entries.filter(e => e.product.cart).map(e => ({ ...e.product, qty: packsNeeded(e.line, e.product) }));
+  if (!items.length) return;
+  const steps = shop.cartSteps(items);
+  if (steps.length === 1) { window.open(steps[0], "_blank", "noopener"); return; }
+  // opened without noopener: a tab cut off from this page couldn't be sent on to the next link
+  const tab = window.open("about:blank", "_blank");
+  if (!tab) throw new Error("Your browser blocked the new tab. Allow pop-ups for this site and try again.");
+  for (let i = 0; i < steps.length && !tab.closed; i++) {
+    onStep?.(i, steps.length);
+    if (i) {
+      tab.location.href = "about:blank";
+      await until(() => tab.closed || sameOrigin(tab), 15000);
+    }
+    tab.location.href = steps[i];
+    await until(() => tab.closed || !sameOrigin(tab), 30000);
+  }
+  onStep?.(steps.length, steps.length);
 }
 
 // the star toggles: starred items are saved, tapping a filled star removes them again
@@ -957,6 +1034,7 @@ function resultRow(p) {
         <div class="price"><b>${money(p.price)}</b>${p.old_price ? `<s>${money(p.old_price)}</s>` : ""}${packNote(p)}</div>
         <span class="reveal">
           ${copyMenu("Copy this item", key(p))}
+          ${cartLink(p) ? `<a class="icon-btn" href="${esc(cartLink(p))}" target="_blank" rel="noopener" title="Add to cart at ${esc(p.shop_name)}" aria-label="Add to cart at ${esc(p.shop_name)}">${CART_ICON}</a>` : ""}
           <button type="button" class="icon-btn" data-add-list="${esc(key(p))}" title="Add to a parts list" aria-label="Add to a parts list">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h11M3 12h11M3 18h7M18 14v8M14 18h8"/></svg>
           </button>
@@ -1014,6 +1092,14 @@ function renderList() {
     if (c) { mixTotal += lineCost(l, c); mixShops.add(c.shop_name); found++; }
   });
   const mixLabel = picks.some((p, i) => p !== defaultPicks[i]) ? "Your picks" : "Cheapest mix";
+  // the picks by shop, for the cart buttons
+  const byShop = new Map();
+  lines.forEach((l, i) => {
+    const c = l.candidates[picks[i]];
+    if (c) byShop.set(c.shop, [...(byShop.get(c.shop) || []), { line: l, product: c }]);
+  });
+  const cartable = [...byShop].filter(([k]) => cartShop(k));
+  const manual = [...byShop.keys()].filter(k => !cartShop(k)).map(k => SHOPS_BY_KEY[k].name);
   const totals = shopTotals(listData, picks);
   const complete = totals.filter(s => !s.missing.length);
   const bestShop = complete[0];
@@ -1040,20 +1126,32 @@ function renderList() {
     </div>
 
     <h2 class="with-total">${mixLabel} <span class="total">${money(mixTotal)}</span></h2>
+    ${byShop.size ? `<div data-cart-area>
+      <div class="cart-bar">
+        ${cartable.length ? `<span class="label">Add to cart:</span>` : ""}
+        ${cartable.map(([k, e]) => `<button type="button" class="btn small" data-cart-mix="${esc(k)}" title="Add ${e.length === 1 ? "this part" : `these ${e.length} parts`} to the cart at ${esc(SHOPS_BY_KEY[k].name)}, in a new tab">${CART_ICON}<span>${esc(SHOPS_BY_KEY[k].name)} · ${e.length}</span></button>`).join("")}
+      </div>
+      ${manual.length ? `<p class="hint">The cart at ${esc(manual.join(", "))} can't be filled from here; add ${manual.length === 1 ? "its parts on its" : "their parts on their"} site.</p>` : ""}
+      <p class="hint cart-note" role="status"></p>
+    </div>` : ""}
     <div class="list">${lines.map(lineRow).join("")}</div>
 
     <h2>Total by shop</h2>
+    <div data-cart-area>
     <table>
-      <thead><tr><th>Shop</th><th class="num">Parts</th><th class="num">Total</th></tr></thead>
+      <thead><tr><th>Shop</th><th class="num">Parts</th><th class="num">Total</th><th><span class="sr-only">Cart</span></th></tr></thead>
       <tbody>
         ${totals.map((s, i) => `
           <tr class="${!s.missing.length && i === 0 ? "best" : ""}">
             <td>${esc(s.name)}${s.missing.length ? `<div class="missing">Missing: ${s.missing.map(esc).join(", ")}</div>` : ""}</td>
             <td class="num">${s.found}/${findable()}</td>
             <td class="num">${money(s.total)}</td>
+            <td class="cart-cell">${cartShop(s.key) ? `<button type="button" class="btn small" data-cart-shop="${esc(s.key)}" title="Add these ${s.found} parts to the cart at ${esc(s.name)}, in a new tab">${CART_ICON}<span>Add</span></button>` : ""}</td>
           </tr>`).join("")}
       </tbody>
     </table>
+    <p class="hint cart-note" role="status"></p>
+    </div>
     <p class="hint">Shop totals use the same close matches as the picks above${found < lines.length ? " and skip parts no shop has" : ""}. Shipping isn't included.${listData.left_out ? ` Only the first ${lines.length} lines were priced; ${listData.left_out} more ${listData.left_out === 1 ? "was" : "were"} left out.` : ""}</p>
   `;
 
@@ -1061,6 +1159,8 @@ function renderList() {
     sel.onchange = () => { picks[+sel.dataset.line] = +sel.value; renderList(); };
   });
   $("#list-save").onclick = saveList;
+  out.querySelectorAll("[data-cart-mix]").forEach(b => { b.onclick = () => startCart(b, b.dataset.cartMix, byShop.get(b.dataset.cartMix)); });
+  out.querySelectorAll("[data-cart-shop]").forEach(b => { b.onclick = () => startCart(b, b.dataset.cartShop, totals.find(s => s.key === b.dataset.cartShop).used); });
 }
 
 function lineRow(line, i) {

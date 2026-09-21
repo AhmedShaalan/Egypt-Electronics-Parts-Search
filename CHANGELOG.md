@@ -1,6 +1,16 @@
 # Changelog
 
-What changed on [parts.ahmedshaalan.com](https://parts.ahmedshaalan.com/), newest first. The site is updated as changes land. Each entry is also a git tag (`v1.4.0`), which is the version to use if you run the [MCP server](mcp/) or your own copy.
+What changed on [parts.ahmedshaalan.com](https://parts.ahmedshaalan.com/), newest first. The site is updated as changes land. Each entry is also a git tag (`v1.5.0`), which is the version to use if you run the [MCP server](mcp/) or your own copy.
+
+## 1.5.0 · 2026-09-21
+
+### Added
+- **Add to cart** at the 10 Shopify and WooCommerce shops. A search result's cart button puts it into the shop's cart, in a new tab that opens on the cart.
+- From a parts list: a button per shop puts your picks (the cheapest mix, or the ones you chose) into that shop's cart, and each row of **Total by shop** has an **Add** button for everything that shop has from the list. Quantities come along, counting packs and any "sold in tens" rule; a WooCommerce shop's products are added one after another in the same tab.
+
+### Changed
+- On a computer, a result's price sits at the right, and its buttons show above it on hover. On a phone they sit under the price.
+- Smaller product pictures on phones.
 
 ## 1.4.0 · 2026-09-21
 

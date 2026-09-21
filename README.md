@@ -30,7 +30,7 @@ Egypt Electronics Parts Search asks every shop at once, recognizes those names a
 - Hides out-of-stock items automatically
 - Shows sale prices next to the original price, and the per-piece price for packs ("(10pcs)")
 - Sort by best match, cheapest, or cheapest per piece, or filter to one shop
-- Hover a result to copy it (name, price, shop, link) or add it to a new or saved parts list
+- Hover a result to copy it (name, price, shop, link), add it to the shop's cart, or add it to a new or saved parts list
 - Shows a label for any shop that failed or timed out, so a quiet shop is never mistaken for "not available"
 - Shows results as shops answer, without waiting for the slow ones; **stop** skips the shops still running, and any skipped shop can be fetched later with one click
 
@@ -43,6 +43,11 @@ Egypt Electronics Parts Search asks every shop at once, recognizes those names a
 - A table of each shop's total and exactly which parts it's missing
 - Counts packs: 20 resistors sold in 2-packs = 10 packs
 - If the tool picked the wrong product for a line, choose another from its dropdown and the totals recalculate
+
+**🛒 Add to the shop's cart**
+- Put a search result straight into its shop's cart, in a new tab that opens on the cart
+- From a parts list, fill each shop's cart with your picks (the cheapest mix or the ones you chose), or with everything one shop has, quantities included
+- Works at the 10 Shopify and WooCommerce shops (Future, DevBoards, Makers, Micro Ohm, Most, UGE, Ampere, Free, HD and Circuit); checkout stays on the shop's own site
 
 **⭐ Save and track**
 - Star any product to save it. **Refresh prices** re-checks every saved item at its shop and shows what went ▲ up, ▼ down, or out of stock
@@ -83,7 +88,7 @@ Type a part number or a description: `LM7805`, `ESP32`, `10k resistor`, `HC-SR04
 | **Sale** | The shop is discounting it; the original price is struck through |
 | `0.50 EGP/pc` | The listing is a pack; this is the price per piece |
 | **Show N weaker matches** | Loosely related items (e.g. "PCB for ESP32"), kept out of the main list |
-| Copy, add to list, ☆ | Appear when you hover a result (always shown on phones). Copy puts its name, price, shop or link on the clipboard; add to list puts it in a saved parts list or a new one; ☆ saves it |
+| Copy, cart, add to list, ☆ | Appear when you hover a result (always shown on phones). Copy puts its name, price, shop or link on the clipboard; the cart puts it into the shop's cart in a new tab; add to list puts it in a saved parts list or a new one; ☆ saves it. The cart only shows for [shops that allow it](#supported-shops) |
 
 ### Parts list
 
@@ -106,6 +111,7 @@ Bullets and numbering are ignored, `#` lines are treated as comments, and names 
 - **Cheapest mix:** for each part, the cheapest close match from any shop.
 - **Everything from one shop:** the cheapest shop that has every part, and how much more it costs than the mix. Buying from one shop usually saves on shipping, which isn't included in either total.
 - **Total by shop:** every shop's total, with the parts it's missing.
+- **Add to cart:** under the mix, one button per shop puts your picks from that shop into its cart; each row of **Total by shop** has an **Add** button that puts everything that shop has from the list into its cart. The cart opens in a new tab, with each part's quantity (counting packs). A Shopify shop takes the whole list at once; a WooCommerce shop takes one product per link, so the tab adds them one after another and ends on the cart. Products with options to choose (a size, a colour) have to be added on the shop's page, and the page says which.
 
 ### Saved
 
@@ -139,24 +145,26 @@ It runs the site's own code from `src/js`, so it matches and totals exactly like
 
 ## Supported shops
 
-| Shop | Platform | How it's searched |
-|---|---|---|
-| [RAM Electronics](https://www.ram-e-shop.com) | Odoo | Search results page, plus a stock lookup per product |
-| [Makers Electronics](https://makerselectronics.com) | WooCommerce | Store API |
-| [Future Electronics](https://store.fut-electronics.com) | Shopify | Full catalog, searched in the browser |
-| [Micro Ohm](https://microohm-eg.com) | WooCommerce | Store API |
-| [Most Electronic](https://mostelectronic.com) | WooCommerce | Store API |
-| [DevBoards Market](https://devboardsmarket.com) | Shopify | Full catalog, searched in the browser |
-| [Lampatronics](https://lampatronics.com) | Custom (Laravel + Vue) | The site's own product API |
-| [UGE](https://uge-one.com) | WooCommerce | Store API |
-| [Ampere Electronics](https://ampere-electronics.com) | WooCommerce | Store API |
-| [El Gammal Electronics](https://el-gammal.com) | Supabase (Lovable) | The shop's public database API, plus a stock lookup per product |
-| [Free Electronics](https://free-electronic.com) | WooCommerce | Store API |
-| [HD Electronics](https://hdelectronicseg.com) | WooCommerce | Store API |
-| [Circuit Electronics](https://circuit-electronics.com) | WooCommerce | Store API |
-| [Electra Store](https://electra.store) | Custom (Laravel) | Full catalog from the shop's API, searched in the browser, plus a stock lookup per product |
-| [MTM Electronics](https://mtm-electronic.com) | Custom (Next.js + Laravel) | Full catalog from the shop's API, searched in the browser |
-| [VoltX Electronics](https://voltx-store.com) | Custom (Next.js) | The shop's own public search API |
+| Shop | Platform | How it's searched | Add to cart |
+|---|---|---|---|
+| [RAM Electronics](https://www.ram-e-shop.com) | Odoo | Search results page, plus a stock lookup per product | — |
+| [Makers Electronics](https://makerselectronics.com) | WooCommerce | Store API | ✓ |
+| [Future Electronics](https://store.fut-electronics.com) | Shopify | Full catalog, searched in the browser | ✓ |
+| [Micro Ohm](https://microohm-eg.com) | WooCommerce | Store API | ✓ |
+| [Most Electronic](https://mostelectronic.com) | WooCommerce | Store API | ✓ |
+| [DevBoards Market](https://devboardsmarket.com) | Shopify | Full catalog, searched in the browser | ✓ |
+| [Lampatronics](https://lampatronics.com) | Custom (Laravel + Vue) | The site's own product API | — |
+| [UGE](https://uge-one.com) | WooCommerce | Store API | ✓ |
+| [Ampere Electronics](https://ampere-electronics.com) | WooCommerce | Store API | ✓ |
+| [El Gammal Electronics](https://el-gammal.com) | Supabase (Lovable) | The shop's public database API, plus a stock lookup per product | — |
+| [Free Electronics](https://free-electronic.com) | WooCommerce | Store API | ✓ |
+| [HD Electronics](https://hdelectronicseg.com) | WooCommerce | Store API | ✓ |
+| [Circuit Electronics](https://circuit-electronics.com) | WooCommerce | Store API | ✓ |
+| [Electra Store](https://electra.store) | Custom (Laravel) | Full catalog from the shop's API, searched in the browser, plus a stock lookup per product | — |
+| [MTM Electronics](https://mtm-electronic.com) | Custom (Next.js + Laravel) | Full catalog from the shop's API, searched in the browser | — |
+| [VoltX Electronics](https://voltx-store.com) | Custom (Next.js) | The shop's own public search API | — |
+
+**Add to cart** needs a shop whose cart a link can fill. The others only add to their cart from their own page (behind a security token, or with the cart kept in the browser), so for them the product link opens the page and the shop's own button is one click away.
 
 ## How it works
 
@@ -333,12 +341,14 @@ class MyShop extends Shop {
 
 - **No accounts, no cookies.** Saved items and lists stay in your own browser.
 - **Anonymous visit counts.** The site uses [Cloudflare Web Analytics](https://www.cloudflare.com/web-analytics/), which counts page views without cookies or tracking individual visitors. What you search for isn't sent to it.
+- **Carts are the shops' own.** Add to cart opens the shop's site, which keeps the cart (and its own cookies) the way it does when you shop there directly.
 - **Searches go to the shops.** To get prices, your browser asks each shop directly, or through the relay for shops that need it. The relay's code doesn't store or log requests.
 
 ## Limitations
 
 - **Matching is heuristic.** It handles part numbers well. Vague names like "LCD" or "sensor" need a glance at the pick, and some accessories still slip through as a strong match (for example, an I2C adapter board for `16x2 LCD`). The dropdown on each parts-list line is there for exactly this.
 - **Shipping isn't included** in any total.
+- **Add to cart works at 10 of the 16 shops**, and not for products with options to choose. Some products are only sold in multiples ("order in tens"); the cart then gets the next amount the shop accepts. Prices in the cart are the shop's current ones, which may have changed since the search.
 - **Shops change.** A site redesign or platform switch can break its connector. The shop then shows as `failed` rather than returning wrong data.
 - **A shop may block the relay.** Shops can refuse requests coming from Cloudflare's servers; that shop then shows as `failed`.
 - **Only shops with a real online store are covered.** Shops that sell only through Facebook or WhatsApp can't be searched.
@@ -365,7 +375,7 @@ No framework, no build step, no dependencies.
 
 ## Changelog
 
-What changed and when is in [CHANGELOG.md](CHANGELOG.md). Each version there is a git tag, so a copy of the MCP server can be kept on a known version (`git checkout v1.4.0`) or updated with `git pull`.
+What changed and when is in [CHANGELOG.md](CHANGELOG.md). Each version there is a git tag, so a copy of the MCP server can be kept on a known version (`git checkout v1.5.0`) or updated with `git pull`.
 
 ## Feedback
 

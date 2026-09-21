@@ -280,21 +280,25 @@ export function cheapestPicks(lines) {
 }
 
 // what the list costs from each shop alone, using the picked product where that shop has it;
-// shops with the fewest missing parts first, then the cheapest
+// shops with the fewest missing parts first, then the cheapest. `used` is [{ line, product }].
 export function shopTotals(list, picks) {
   const findable = list.lines.filter((l) => l.candidates.length).length;
   return list.shops.map((shop) => {
     let total = 0;
     const missing = [];
+    const used = [];
     list.lines.forEach((line, i) => {
       if (!line.candidates.length) return; // no shop has it, so it can't count against any shop
       const chosen = line.candidates[picks[i]];
       const options = line.weak ? [] : line.candidates.filter((c) => c.shop === shop.key && isClose(line, c));
       const use = chosen && chosen.shop === shop.key ? chosen
         : options.reduce((best, c) => !best || lineCost(line, c) < lineCost(line, best) ? c : best, null);
-      if (use) total += lineCost(line, use); else missing.push(line.query);
+      if (use) {
+        total += lineCost(line, use);
+        used.push({ line, product: use });
+      } else missing.push(line.query);
     });
-    return { ...shop, total, missing, found: findable - missing.length };
+    return { ...shop, total, missing, used, found: findable - missing.length };
   }).filter((s) => s.found > 0)
     .sort((a, b) => a.missing.length - b.missing.length || a.total - b.total);
 }

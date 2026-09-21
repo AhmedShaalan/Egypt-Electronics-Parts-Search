@@ -1,6 +1,6 @@
 {
   "name": "egypt-parts-mcp",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "private": true,
   "description": "MCP server that searches Egyptian electronics shops and prices parts lists",
   "license": "AGPL-3.0-or-later",

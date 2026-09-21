@@ -64,6 +64,10 @@ class Shop {
   constructor(key, name, base) {
     Object.assign(this, { key, name, base });
   }
+
+  // A shop whose cart can be filled from a link also has cartSteps(items): the links that put
+  // products into its cart, visited in order in one tab, the last one showing the cart.
+  // `items` are products marked `cart`, each with the `qty` wanted.
 }
 
 class WooShop extends Shop {
@@ -89,6 +93,8 @@ class WooShop extends Shop {
     const regular = Number(prices.regular_price || 0) / unit;
     let image = d.images?.length ? d.images[0].thumbnail || d.images[0].src : null;
     if (image && this.imageCdn) image = this.imageCdn(image);
+    // some products are only sold in multiples ("order in tens"); the cart refuses other amounts
+    const { minimum = 1, multiple_of = 1 } = d.add_to_cart || {};
     return {
       shop: this.key,
       ref: String(d.id),
@@ -98,7 +104,19 @@ class WooShop extends Shop {
       image,
       in_stock: Boolean(d.is_in_stock),
       old_price: regular > price ? regular : null,
+      // a product with options (a variable product) needs one picked on the shop's page first
+      cart: d.type === "simple" && d.is_purchasable !== false,
+      ...(minimum > 1 || multiple_of > 1 ? { cart_rules: { minimum, multiple_of } } : {}),
     };
+  }
+
+  // a link adds one product, landing on the cart page
+  cartSteps(items) {
+    return items.map((i) => {
+      const { minimum = 1, multiple_of = 1 } = i.cart_rules || {};
+      const qty = Math.max(minimum, Math.ceil(i.qty / multiple_of) * multiple_of);
+      return `${this.base}/cart/?add-to-cart=${encodeURIComponent(i.ref)}&quantity=${qty}`;
+    });
   }
 
   async check(ref, signal) {
@@ -156,8 +174,20 @@ class ShopifyShop extends CatalogShop {
         image,
         in_stock: Boolean(v.available),
         old_price: compare > price ? compare : null,
+        cart: true,
       };
     });
+  }
+
+  // one link takes every product, adding to what the cart already has, and lands on the cart
+  // (a cart permalink, /cart/ID:QTY, would replace the cart instead)
+  cartSteps(items) {
+    const params = new URLSearchParams();
+    items.forEach((it, n) => {
+      params.set(`items[${n}][id]`, it.ref.slice(it.ref.lastIndexOf(":") + 1));
+      params.set(`items[${n}][quantity]`, it.qty);
+    });
+    return [`${this.base}/cart/add?${params}`];
   }
 
   async search(query) {
