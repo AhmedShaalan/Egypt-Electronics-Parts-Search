@@ -149,7 +149,7 @@
   nav { display: flex; gap: 4px; }
   nav a {
     text-decoration: none; padding: 14px 10px 12px; color: var(--muted);
-    border-bottom: 2px solid transparent; font-weight: 500;
+    border-bottom: 2px solid transparent; font-weight: 500; white-space: nowrap;
   }
   nav a.active { color: var(--text); border-color: var(--accent); }
   .icons { display: flex; align-items: center; gap: 2px; margin-right: -6px; }
@@ -360,6 +360,24 @@
   .shop-row .name, .shop-row .meta { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .hint a { color: var(--accent); }
 
+  .guide { color: var(--muted); font-size: 14px; }
+  .guide h1, .guide h2, .guide strong { color: var(--text); }
+  .guide p, .guide ol, .guide ul { margin: 0 0 12px; }
+  .guide li { margin: 4px 0; }
+  .guide a { color: var(--accent); }
+  .guide code { font-size: 13px; }
+  .guide .tools td:first-child { white-space: nowrap; }
+  .guide .tools td { color: var(--text); }
+  .guide .tools td + td { color: var(--muted); }
+  .code { position: relative; margin: 0 0 12px; }
+  .code pre {
+    margin: 0; padding: 12px 44px 12px 14px; overflow-x: auto; font-size: 13px; line-height: 1.55;
+    background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: var(--radius);
+  }
+  .code .icon-btn { position: absolute; top: 6px; right: 6px; padding: 5px; background: var(--surface); }
+  .code .icon-btn:hover { background: var(--surface-2); }
+  .code .icon-btn svg { width: 18px; height: 18px; }
+
   .delta { font-size: 12px; font-weight: 600; white-space: nowrap; }
   .delta.down { color: var(--good); }
   .delta.up { color: var(--bad); }
@@ -384,7 +402,12 @@
 
   @media (max-width: 560px) {
     header .icons { order: 1; }
-    header nav { order: 2; width: 100%; }
+    header nav { order: 2; width: 100%; justify-content: space-between; overflow-x: auto; }
+    nav a { padding-left: 6px; padding-right: 6px; }
+  }
+  @media (max-width: 360px) {
+    header nav { gap: 0; }
+    nav a { padding-left: 4px; padding-right: 4px; }
     .row { grid-template-columns: 76px 1fr; }
     .thumb { width: 76px; height: 76px; }
     .row .actions { grid-column: 2; justify-content: space-between; }
@@ -403,6 +426,7 @@
       <a href="#list" data-tab="list">Parts list</a>
       <a href="#saved" data-tab="saved">Saved<span class="count" id="saved-count">0</span></a>
       <a href="#shops" data-tab="shops">Shops</a>
+      <a href="#ai" data-tab="ai" title="Use it from Claude or another AI assistant">AI</a>
     </nav>
     <div class="icons">
     <button class="icon-btn theme" id="theme-toggle" type="button" title="Switch theme" aria-label="Switch between light and dark theme">
@@ -493,6 +517,53 @@
     <p class="hint">Know a shop with an online store that should be here? <a href="https://github.com/AhmedShaalan/Egypt-Electronics-Parts-Search/issues" target="_blank" rel="noopener">Suggest it on GitHub</a>.</p>
   </section>
 
+  <!-- AI -->
+  <section id="tab-ai" class="guide">
+    <h1>Use it from Claude or another AI assistant</h1>
+    <p>This search also comes as an MCP server, a small program that gives an AI assistant such as Claude the same search as this site. Ask it things like <em>“find the cheapest LM7805”</em> or <em>“price this parts list”</em> and paste the list; it searches all 16 shops and answers with prices, links and totals.</p>
+    <p>It runs on your own computer and asks the shops directly, so there is no account, key or fee. It uses the same matching as this site, so it finds the same parts.</p>
+
+    <h2>Set it up</h2>
+    <p>You need Node.js 20 or newer and Git. Download the code:</p>
+    <div class="code"><pre><code>git clone https://github.com/AhmedShaalan/Egypt-Electronics-Parts-Search.git
+cd Egypt-Electronics-Parts-Search/mcp
+npm install</code></pre>
+      <button class="icon-btn copy-code" type="button" title="Copy" aria-label="Copy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+    </div>
+    <p><strong>Claude Code:</strong> in the same folder, run:</p>
+    <div class="code"><pre><code>claude mcp add --scope user egypt-parts -- node "$PWD/server.js"</code></pre>
+      <button class="icon-btn copy-code" type="button" title="Copy" aria-label="Copy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+    </div>
+    <p><strong>Claude Desktop or another app:</strong> add this to the app's MCP settings (in Claude Desktop: <em>Settings → Developer → Edit Config</em>), with the full path to <code>server.js</code> on your computer, then restart the app:</p>
+    <div class="code"><pre><code>{
+  "mcpServers": {
+    "egypt-parts": {
+      "command": "node",
+      "args": ["/full/path/to/Egypt-Electronics-Parts-Search/mcp/server.js"]
+    }
+  }
+}</code></pre>
+      <button class="icon-btn copy-code" type="button" title="Copy" aria-label="Copy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+    </div>
+
+    <h2>What the assistant can do</h2>
+    <table class="tools">
+      <tr><td><code>search_parts</code></td><td>Search every shop for one part: in-stock products, best match first, then cheapest.</td></tr>
+      <tr><td><code>price_parts_list</code></td><td>Price a whole list like the <a href="#list">Parts list</a> tab: the pick for each part, the cheapest mix of shops and the cheapest single shop.</td></tr>
+      <tr><td><code>check_price</code></td><td>Re-check one product's price and stock at its shop.</td></tr>
+      <tr><td><code>list_shops</code></td><td>The shops it searches.</td></tr>
+    </table>
+
+    <h2>Good to know</h2>
+    <ul>
+      <li>Searches go from your computer straight to the shops. Nothing passes through this site.</li>
+      <li>Answers are reused for an hour while the assistant is open, so asking again is instant and easy on the shops.</li>
+      <li>If you search a lot in a short time, a shop may briefly refuse your connection. It then shows as failed and comes back later.</li>
+      <li>Check a weak match before buying: the assistant is told which results are close and which may be a different part.</li>
+    </ul>
+    <p class="hint">Setup details are in the <a href="https://github.com/AhmedShaalan/Egypt-Electronics-Parts-Search/tree/main/mcp" target="_blank" rel="noopener">mcp folder on GitHub</a>.</p>
+  </section>
+
 </main>
 <div class="toast" id="toast"></div>
 <dialog class="modal" id="add-dialog" aria-labelledby="add-title">
@@ -512,7 +583,7 @@
 
 <script type="module">
 import { SHOPS } from "./js/shops.js";
-import { searchAll, fetchShop, mergeShop, priceList, warmUp, getSaved, saveItem as storeItem, unsaveItem as storeUnsave, deleteItem, refreshItems, saveList as storeList, addToList, renameList, deleteList } from "./js/search.js";
+import { searchAll, fetchShop, mergeShop, priceList, cheapestPicks, shopTotals, lineCost, packsNeeded, warmUp, getSaved, saveItem as storeItem, unsaveItem as storeUnsave, deleteItem, refreshItems, saveList as storeList, addToList, renameList, deleteList } from "./js/search.js";
 
 const $ = (s, el = document) => el.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -555,7 +626,7 @@ toTop.addEventListener("click", () => {
 });
 
 /* ---------- tabs ---------- */
-const TABS = ["search", "list", "saved", "shops"];
+const TABS = ["search", "list", "saved", "shops", "ai"];
 
 function showTab() {
   const hash = location.hash.slice(1);
@@ -868,6 +939,9 @@ function resultRow(p) {
 /* ---------- parts list ---------- */
 $("#list-run").addEventListener("click", () => runList($("#list-text").value));
 
+// the AI tab's setup commands
+document.querySelectorAll(".copy-code").forEach(b => b.addEventListener("click", () => copy(b.parentElement.querySelector("pre").innerText)));
+
 let listRun = 0; // bumped by each pricing, so an older one finishing late doesn't replace it
 
 async function runList(text) {
@@ -884,15 +958,7 @@ async function runList(text) {
     if (run !== listRun) return;
     listData = data;
     listText = text;
-    // default pick: cheapest total cost for the quantity (candidates are strong matches when any exist)
-    // default pick: among the closest matches, the cheapest for the quantity needed
-    picks = listData.lines.map(l => {
-      let best = -1;
-      l.candidates.forEach((c, i) => {
-        if (isClose(l, c) && (best < 0 || lineCost(l, c) < lineCost(l, l.candidates[best]))) best = i;
-      });
-      return best;
-    });
+    picks = cheapestPicks(listData.lines);
     defaultPicks = picks.slice();
     renderList();
     announce(`Priced ${listData.lines.length} part${listData.lines.length === 1 ? "" : "s"}`);
@@ -901,29 +967,6 @@ async function runList(text) {
   } finally {
     if (run === listRun) btn.disabled = false;
   }
-}
-
-// "close" = within 25 points of the best match for that line: L7805CV still counts for LM7805,
-// but accessories (ranked 30+ points lower) don't win on price
-const isClose = (line, c) => c.score >= Math.max(...line.candidates.map(x => x.score)) - 25;
-const packsNeeded = (line, c) => Math.ceil(line.qty / (c.pack || 1));
-const lineCost = (line, c) => packsNeeded(line, c) * c.price;
-
-function shopTotals() {
-  return listData.shops.map(shop => {
-    let total = 0;
-    const missing = [];
-    listData.lines.forEach((line, i) => {
-      if (!line.candidates.length) return;  // no shop has it, so it can't count against any shop
-      const chosen = line.candidates[picks[i]];
-      const options = line.weak ? [] : line.candidates.filter(c => c.shop === shop.key && isClose(line, c));
-      const use = chosen && chosen.shop === shop.key ? chosen
-        : options.reduce((best, c) => !best || lineCost(line, c) < lineCost(line, best) ? c : best, null);
-      if (use) total += lineCost(line, use); else missing.push(line.query);
-    });
-    return { ...shop, total, missing, found: findable() - missing.length };
-  }).filter(s => s.found > 0)
-    .sort((a, b) => a.missing.length - b.missing.length || a.total - b.total);
 }
 
 const findable = () => listData.lines.filter(l => l.candidates.length).length;
@@ -939,7 +982,7 @@ function renderList() {
     if (c) { mixTotal += lineCost(l, c); mixShops.add(c.shop_name); found++; }
   });
   const mixLabel = picks.some((p, i) => p !== defaultPicks[i]) ? "Your picks" : "Cheapest mix";
-  const totals = shopTotals();
+  const totals = shopTotals(listData, picks);
   const complete = totals.filter(s => !s.missing.length);
   const bestShop = complete[0];
   const failed = listData.failed_shops;

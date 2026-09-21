@@ -5,7 +5,7 @@
 //
 // Shopify, El Gammal, MTM, VoltX and Electra's catalog allow browsers to read their data
 // directly. The others don't (no CORS), so their requests go through the Cloudflare Worker
-// relay in worker/.
+// relay in worker/. Outside a browser, as in the MCP server, every shop is asked directly.
 
 import { RELAY_URL } from "./config.js";
 import { score, WEAK } from "./matching.js";
@@ -13,6 +13,7 @@ import { score, WEAK } from "./matching.js";
 const HOUR = 60 * 60 * 1000;
 
 function relay(url, { method = "GET", headers = {}, body, signal, bytes } = {}) {
+  if (!RELAY_URL) return fetch(url, { method, headers, body, signal });
   const params = new URLSearchParams({ url });
   // only the start of a long page is needed sometimes; the relay drops the rest
   if (bytes) params.set("bytes", String(bytes));
@@ -24,8 +25,14 @@ async function ok(response) {
   return response;
 }
 
-const decoder = document.createElement("textarea");
+const decoder = globalThis.document?.createElement("textarea");
+// without a browser to decode with, the entities shop names actually use
+const ENTITIES = { amp: "&", lt: "<", gt: ">", quot: '"', apos: "'", nbsp: " ", ndash: "–", mdash: "—", times: "×", deg: "°", micro: "µ", Omega: "Ω", plusmn: "±", lsquo: "‘", rsquo: "’", ldquo: "“", rdquo: "”", hellip: "…" };
 function unescapeHtml(s) {
+  if (!decoder) {
+    return String(s || "").replace(/&(#x[\da-f]+|#\d+|\w+);/gi, (m, e) =>
+      e[0] !== "#" ? ENTITIES[e] ?? m : String.fromCodePoint(e[1] === "x" || e[1] === "X" ? parseInt(e.slice(2), 16) : Number(e.slice(1))));
+  }
   decoder.innerHTML = s || "";
   return decoder.value;
 }

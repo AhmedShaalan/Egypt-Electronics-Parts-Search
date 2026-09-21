@@ -1,0 +1,19 @@
+{
+  "name": "egypt-parts-mcp",
+  "version": "1.0.0",
+  "private": true,
+  "description": "MCP server that searches Egyptian electronics shops and prices parts lists",
+  "license": "AGPL-3.0-or-later",
+  "type": "module",
+  "main": "server.js",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "zod": "^4.6.5"
+  }
+}

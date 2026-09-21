@@ -255,6 +255,44 @@ export async function priceList(text, onProgress) {
   };
 }
 
+// "close" = within 25 points of the best match for that line: L7805CV still counts for LM7805,
+// but accessories (ranked 30+ points lower) don't win on price
+export const isClose = (line, c) => c.score >= Math.max(...line.candidates.map((x) => x.score)) - 25;
+export const packsNeeded = (line, c) => Math.ceil(line.qty / (c.pack || 1));
+export const lineCost = (line, c) => packsNeeded(line, c) * c.price;
+
+// the default pick per line (an index into its candidates, -1 for none): among the closest
+// matches, the cheapest for the quantity needed
+export function cheapestPicks(lines) {
+  return lines.map((l) => {
+    let best = -1;
+    l.candidates.forEach((c, i) => {
+      if (isClose(l, c) && (best < 0 || lineCost(l, c) < lineCost(l, l.candidates[best]))) best = i;
+    });
+    return best;
+  });
+}
+
+// what the list costs from each shop alone, using the picked product where that shop has it;
+// shops with the fewest missing parts first, then the cheapest
+export function shopTotals(list, picks) {
+  const findable = list.lines.filter((l) => l.candidates.length).length;
+  return list.shops.map((shop) => {
+    let total = 0;
+    const missing = [];
+    list.lines.forEach((line, i) => {
+      if (!line.candidates.length) return; // no shop has it, so it can't count against any shop
+      const chosen = line.candidates[picks[i]];
+      const options = line.weak ? [] : line.candidates.filter((c) => c.shop === shop.key && isClose(line, c));
+      const use = chosen && chosen.shop === shop.key ? chosen
+        : options.reduce((best, c) => !best || lineCost(line, c) < lineCost(line, best) ? c : best, null);
+      if (use) total += lineCost(line, use); else missing.push(line.query);
+    });
+    return { ...shop, total, missing, found: findable - missing.length };
+  }).filter((s) => s.found > 0)
+    .sort((a, b) => a.missing.length - b.missing.length || a.total - b.total);
+}
+
 // ---------- saved items and lists (this browser only) ----------
 
 const STORAGE_KEY = "egypt-parts-search:saved";

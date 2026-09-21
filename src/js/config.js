@@ -5,8 +5,10 @@
 const PRODUCTION_RELAY = "https://egypt-parts-relay.ahmed-shaalan.workers.dev";
 const LOCAL_RELAY = "http://localhost:8787";
 
-const isLocal = ["localhost", "127.0.0.1"].includes(location.hostname);
-export const RELAY_URL = isLocal ? LOCAL_RELAY : PRODUCTION_RELAY;
+// outside a browser (the MCP server in mcp/) there is no CORS, so shops are asked directly
+const inBrowser = typeof location !== "undefined";
+const isLocal = inBrowser && ["localhost", "127.0.0.1"].includes(location.hostname);
+export const RELAY_URL = !inBrowser ? null : isLocal ? LOCAL_RELAY : PRODUCTION_RELAY;
 
 export const SHOP_TIMEOUT_MS = 25_000; // slow shops get marked failed after this
 export const CACHE_MS = 60 * 60 * 1000; // search results are reused for an hour

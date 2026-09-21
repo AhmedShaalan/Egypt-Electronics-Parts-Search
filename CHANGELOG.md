@@ -5,6 +5,7 @@ What changed on [parts.ahmedshaalan.com](https://parts.ahmedshaalan.com/), newes
 ## 2026-09-21
 
 ### Added
+- An MCP server in `mcp/`: Claude and other AI assistants can search the shops, price a parts list and re-check a price, from your own computer. The new **AI** tab explains how to set it up.
 - Hover a search result to copy it (name, price, shop, link), add it to a parts list, or save it. The buttons are always shown on phones, and a saved result keeps its filled star.
 - Add to list: pick one of your saved parts lists or name a new one. Adding the same part again raises its quantity.
 - The Saved tab count includes saved parts lists, not only starred items.
@@ -23,6 +24,7 @@ What changed on [parts.ahmedshaalan.com](https://parts.ahmedshaalan.com/), newes
 - The shop chips under the search box are in A–Z order.
 - The large shop catalogs (a few MB) download once you start typing, not on every visit, and matching them is about 8× faster.
 - The Saved total counts only items that are in stock.
+- On phones the tabs stay on one line, down to the smallest screens.
 
 ### Fixed
 - Decimal values no longer match ten times the value: `4.7k` doesn't match 47K, `1.5A fuse` doesn't match 15 A, `22pF` doesn't match 2.2 pF.

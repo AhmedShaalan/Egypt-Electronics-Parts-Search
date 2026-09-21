@@ -2,14 +2,14 @@
 
 <img src="src/icon.png" alt="" width="64" height="64">
 
-# Egypt Electronics Parts Search
+# Egypt Electronics Parts Search + MCP
 
 **One search box for Egypt's electronic-parts shops.**<br>
 Find a part, see every in-stock price side by side, and price a whole parts list in seconds.
 
 ### [**→ Open the site**](https://parts.ahmedshaalan.com/)
 
-`16 shops` · `live prices` · `out-of-stock hidden` · `works on your phone` · `free, no sign-up` · [`AGPL-3.0 license`](LICENSE)
+`16 shops` · `live prices` · `out-of-stock hidden` · `works on your phone` · `free, no sign-up` · [`MCP for AI assistants`](#use-it-from-claude-or-another-ai-assistant) · [`AGPL-3.0 license`](LICENSE)
 
 <img src=".github/screenshots/search.png" alt="Search results for LM7805 across 16 Egyptian shops, sorted by match and price" width="760">
 
@@ -33,6 +33,10 @@ Egypt Electronics Parts Search asks every shop at once, recognizes those names a
 - Hover a result to copy it (name, price, shop, link) or add it to a new or saved parts list
 - Shows a label for any shop that failed or timed out, so a quiet shop is never mistaken for "not available"
 - Shows progress as shops answer; if one is slow, **Show results so far** stops waiting, and any skipped shop can be fetched later with one click
+
+**🤖 Ask your AI assistant**
+- An [MCP server](#use-it-from-claude-or-another-ai-assistant) lets Claude or another AI assistant search the shops, price a parts list and re-check a price for you
+- Runs on your own computer with the same matching as the site: no account, key or fee
 
 **📋 Price a whole parts list**
 - Paste a parts list, one part per line, and get the **cheapest mix** across shops and the **best single shop** to buy everything from
@@ -106,6 +110,30 @@ Bullets and numbering are ignored, `#` lines are treated as comments, and names 
 Items and lists you've starred. **Refresh prices** re-checks each saved item directly at its shop. Items that disappeared are marked **No longer listed**. The total counts only what's in stock.
 
 Saved items live in your browser's storage, so they're private to that browser and device. Clearing site data or using a private window removes them.
+
+## Use it from Claude or another AI assistant
+
+The [`mcp/`](mcp/) folder is an [MCP](https://modelcontextprotocol.io) server that gives an AI assistant the same search. It runs on your own computer and asks the shops directly, so it needs no account, no key and no relay. Ask things like *"find the cheapest LM7805"* or *"price this parts list"* and paste the list. The site's [**AI** tab](https://parts.ahmedshaalan.com/#ai) walks through the same setup step by step.
+
+```sh
+cd mcp && npm install
+claude mcp add --scope user egypt-parts -- node "$PWD/server.js"   # Claude Code
+```
+
+For Claude Desktop or another client, add it to the client's MCP config:
+
+```json
+{ "mcpServers": { "egypt-parts": { "command": "node", "args": ["/full/path/to/mcp/server.js"] } } }
+```
+
+| Tool | What it does |
+|---|---|
+| `search_parts` | Searches every shop for one part: in-stock products, best match first, then cheapest. Can narrow to some shops and include weak matches. |
+| `price_parts_list` | Prices a parts list the same way the **Parts list** tab does: the pick per line, the cheapest mix, the cheapest single shop, and what each shop is missing. |
+| `check_price` | Re-checks one product's price and stock at its shop. |
+| `list_shops` | The shops and the keys the other tools take. |
+
+It runs the site's own code from `src/js`, so it matches and totals exactly like the site. Needs Node 20 or newer. Searches are cached for an hour while the server runs. Without the relay's shared cache, a shop may briefly rate-limit your connection if you search a lot, and it then shows as failed.
 
 ## Supported shops
 
@@ -204,6 +232,8 @@ Egypt-Electronics-Parts-Search/
 │       ├── shops.js        One connector per platform + the SHOPS list
 │       ├── matching.js     Query ↔ product-name scoring, aliases, pack sizes
 │       └── search.js       Fan-out search, parts lists, saved items
+├── mcp/                    MCP server for AI assistants (Node, reuses src/js)
+│   └── server.js
 ├── worker/                 Cloudflare Worker relay
 │   ├── src/index.js
 │   └── wrangler.toml       Worker name and allowed origins
@@ -321,6 +351,7 @@ This app reads the same public product data your browser does when you shop, and
 - Starting a new search stops the requests of the one it replaces
 - A parts list searches at most 4 parts at a time, and RAM, the slowest shop, gets at most 5 requests at once
 - Saved-item refreshes check at most 6 items at a time
+- The MCP server keeps the same limits and caches, per computer it runs on
 
 If you run your own copy, please don't lower the cache times or raise the parallelism.
 
