@@ -228,8 +228,28 @@ async function mapLimited(items, max, fn) {
 }
 
 // onProgress(done, total) is called as each distinct part is priced
+// A parts-list line from a search: its strong matches, or the best weaker ones when there
+// are none, cheapest first. `row` is the line of the pasted text it came from.
+function listLine(query, qty, result, row) {
+  const strong = result.results.filter((r) => r.score >= STRONG);
+  const candidates = (strong.length ? strong : result.results.slice(0, 15))
+    .slice()
+    .sort((a, b) => a.price - b.price)
+    .slice(0, 40);
+  return { query, qty, row, weak: !strong.length, candidates };
+}
+
+// Prices one part again, for a line whose name was changed. Options as for searchAll().
+export async function priceLine(query, qty, options) {
+  const result = await searchAll(query, options);
+  return { line: listLine(query, qty, result), failed_shops: result.shops.filter((s) => !s.ok) };
+}
+
 export async function priceList(text, onProgress) {
-  const all = text.split(/\r?\n/).map(parseLine).filter(Boolean);
+  const all = text.split(/\r?\n/).map((l, row) => {
+    const parsed = parseLine(l);
+    return parsed && [...parsed, row];
+  }).filter(Boolean);
   const parsed = all.slice(0, MAX_LIST_LINES);
   const queries = [...new Set(parsed.map(([q]) => q))];
   // be gentle: at most 4 parts searched at once
@@ -243,15 +263,10 @@ export async function priceList(text, onProgress) {
   const found = new Map(queries.map((q, i) => [q, results[i]]));
 
   const failed = new Map();
-  const lines = parsed.map(([query, qty]) => {
+  const lines = parsed.map(([query, qty, row]) => {
     const result = found.get(query);
     for (const s of result.shops) if (!s.ok) failed.set(s.key, s);
-    const strong = result.results.filter((r) => r.score >= STRONG);
-    const candidates = (strong.length ? strong : result.results.slice(0, 15))
-      .slice()
-      .sort((a, b) => a.price - b.price)
-      .slice(0, 40);
-    return { query, qty, weak: !strong.length, candidates };
+    return listLine(query, qty, result, row);
   });
   return {
     lines,
@@ -395,17 +410,32 @@ export async function refreshItems() {
   return { items: getSaved().items, failed };
 }
 
-export function saveList(name, text, total) {
+// `picks` keeps the products chosen instead of the cheapest: { part name: "shop|ref" }
+export function saveList(name, text, total, picks = {}) {
   if (!text.trim()) throw new Error("The list is empty");
   const data = load();
-  data.lists.push({
+  const list = {
     id: data.nextId++,
     name: name.trim().slice(0, 80) || "Parts list",
     text,
+    picks,
     saved_total: total ?? null,
     saved_at: now(),
-  });
+  };
+  data.lists.push(list);
   if (!store(data)) throw new Error("Couldn't save: this browser blocks storage");
+  return { id: list.id, name: list.name };
+}
+
+// saves a changed list over the saved one it was opened from; null if that one was deleted
+export function updateList(id, text, total, picks = {}) {
+  if (!text.trim()) throw new Error("The list is empty");
+  const data = load();
+  const list = data.lists.find((l) => l.id === id);
+  if (!list) return null;
+  Object.assign(list, { text, picks, saved_total: total ?? null, saved_at: now() });
+  if (!store(data)) throw new Error("Couldn't save: this browser blocks storage");
+  return { id: list.id, name: list.name };
 }
 
 // Adds a product to a saved list, or to a new one when id is null. The list is text, so the

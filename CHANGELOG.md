@@ -1,6 +1,16 @@
 # Changelog
 
-What changed on [parts.ahmedshaalan.com](https://parts.ahmedshaalan.com/), newest first. The site is updated as changes land. Each entry is also a git tag (`v1.6.0`), which is the version to use if you run the [MCP server](mcp/) or your own copy.
+What changed on [parts.ahmedshaalan.com](https://parts.ahmedshaalan.com/), newest first. The site is updated as changes land. Each entry is also a git tag (`v1.7.0`), which is the version to use if you run the [MCP server](mcp/) or your own copy.
+
+## 1.7.0 · 2026-09-21
+
+### Added
+- Change a part in a priced list: the ✎ next to a line opens a box to search for another name or change the quantity. Only that line is priced again, with the cheapest close match picked, and the pasted list gets the same edit.
+- Saved lists can be updated: a list opened from Saved shows its name, and after a change **Save changes** saves over it, or **Save as new list** keeps the original.
+- Saved lists remember the products you picked instead of the cheapest, and pick them again when opened. A pick that's sold out or gone falls back to the cheapest, with a note on the line.
+
+### Changed
+- The quantity box has the same style as the other fields.
 
 ## 1.6.0 · 2026-09-21
 
