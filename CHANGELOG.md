@@ -1,6 +1,14 @@
 # Changelog
 
-What changed on [parts.ahmedshaalan.com](https://parts.ahmedshaalan.com/), newest first. The site is updated as changes land. Each entry is also a git tag (`v1.7.0`), which is the version to use if you run the [MCP server](mcp/) or your own copy.
+What changed on [parts.ahmedshaalan.com](https://parts.ahmedshaalan.com/), newest first. The site is updated as changes land. Each entry is also a git tag (`v1.8.0`), which is the version to use if you run the [MCP server](mcp/) or your own copy.
+
+## 1.8.0 · 2026-09-21
+
+### Fixed
+- Password managers no longer offer saved logins in the search box, the picker's filter or the list-name fields.
+
+### Changed
+- The page's code is split into files: the styles in `src/css/site.css`, and each tab and part of the page in its own module under `src/js/ui/`. The site looks and works the same.
 
 ## 1.7.0 · 2026-09-21
 

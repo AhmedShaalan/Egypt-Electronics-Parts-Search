@@ -234,8 +234,9 @@ In a parts list, the default pick for each line is the **cheapest product within
 
 ```
 Egypt-Electronics-Parts-Search/
-├── src/                    The website, published to GitHub Pages
-│   ├── index.html          UI: vanilla HTML/CSS/JS, no build step
+├── src/                    The website, published to GitHub Pages (vanilla HTML/CSS/JS, no build step)
+│   ├── index.html          The page's markup
+│   ├── css/site.css        Styles, light and dark
 │   ├── icon.png            App icon (Icons8)
 │   ├── og-image.png        Link preview image
 │   ├── robots.txt, sitemap.xml
@@ -245,7 +246,12 @@ Egypt-Electronics-Parts-Search/
 │       ├── config.js       Relay URL, timeouts, cache times
 │       ├── shops.js        One connector per platform + the SHOPS list
 │       ├── matching.js     Query ↔ product-name scoring, aliases, pack sizes
-│       └── search.js       Fan-out search, parts lists, saved items
+│       ├── search.js       Fan-out search, parts lists, saved items
+│       ├── main.js         The page: tabs, start-up
+│       └── ui/             The page's parts, one file each
+│           ├── search-tab.js, list-tab.js, saved.js
+│           ├── picker.js, cart.js, add-to-list.js, copy.js
+│           └── common.js   Helpers they share
 ├── mcp/                    MCP server for AI assistants (Node, reuses src/js)
 │   └── server.js
 ├── worker/                 Cloudflare Worker relay
@@ -379,7 +385,7 @@ No framework, no build step, no dependencies.
 
 ## Changelog
 
-What changed and when is in [CHANGELOG.md](CHANGELOG.md). Each version there is a git tag, so a copy of the MCP server can be kept on a known version (`git checkout v1.7.0`) or updated with `git pull`.
+What changed and when is in [CHANGELOG.md](CHANGELOG.md). Each version there is a git tag, so a copy of the MCP server can be kept on a known version (`git checkout v1.8.0`) or updated with `git pull`.
 
 ## Feedback
 
