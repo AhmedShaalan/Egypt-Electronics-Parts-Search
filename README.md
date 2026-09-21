@@ -87,11 +87,13 @@ LM7805 x2
 10k resistor 20pcs
 100nf capacitor, 5
 - 1N4007 diode x10
+- 2 Mini-360 buck converter
+- 1 relay DPDT, 12 V coil (HK19F class)
 HC-SR04
 16x2 LCD
 ```
 
-Bullets and numbering are ignored, `#` lines are treated as comments, and names like `16x2 LCD` aren't mistaken for a quantity. Up to 40 lines per list.
+Bullets and numbering are ignored, `#` lines are treated as comments, and names like `16x2 LCD`, `12 V relay`, `4 channel relay` or `555 timer` aren't mistaken for a quantity. Lists written as a spec sheet work too: notes after the first comma or in brackets are left out of the search, so the line above is searched as `relay DPDT`. Up to 40 lines per list.
 
 - **Cheapest mix:** for each part, the cheapest close match from any shop.
 - **Everything from one shop:** the cheapest shop that has every part, and how much more it costs than the mix. Buying from one shop usually saves on shipping, which isn't included in either total.
@@ -139,7 +141,7 @@ The catch: browsers only let a website read another site's data if that site all
 ```
 
 1. **Fan out.** A search runs against all shops in parallel, with a progress bar counting them in. Each shop gets 25 seconds; a slow or broken shop is marked failed instead of holding up the rest. You can also stop waiting early: the shops still running are marked skipped, and each can be fetched on its own afterwards.
-2. **Widen the net.** Shop search engines match text literally, so the app also sends variants: `LM7805` → `7805`, `16x2 LCD` → `1602 LCD` and `16×2 LCD`.
+2. **Widen the net.** Shop search engines match text literally, and WooCommerce matches several words as one phrase, so the app also sends variants: `12 V 2 A` → `12v 2a`, `Mini-360 buck converter` → `mini360`, `XKC-Y25-NPN level sensor` → `xkc-y25`, `power supply with barrel jack` → `power supply`, `LM7805` → `7805`, `16x2 LCD` → `1602 LCD`. Variants only widen what the shops return; scoring still decides what matches.
 3. **Score.** Every product name is scored 0–100 against your query (see below). Scores of 70+ are shown as matches, 45–69 as weaker matches, and anything lower is dropped.
 4. **Filter and sort.** Out-of-stock and zero-price items are removed, and results are sorted by score, then price.
 5. **Cache.** Results are kept for an hour (2 minutes if any shop failed). A search with skipped shops isn't cached until every skipped shop has been fetched, so searching again asks all of them. The relay also caches shop responses for an hour, shared across everyone who uses the site.
@@ -152,6 +154,7 @@ The catch: browsers only let a website read another site's data if that site all
 - only answers requests from the site's own origin (plus `localhost` for development)
 - forwards just three headers (`x-api-key`, `content-type`, `accept`) and caps request bodies
 - caches successful shop responses for an hour at Cloudflare's edge
+- can return just the first bytes of a response (`bytes=`), so a stock check on a 350 KB product page sends the browser 24 KB
 
 ### Matching
 
@@ -163,6 +166,7 @@ Matching is what makes the results trustworthy, so it gets its own module ([`src
 | Values and part numbers must match | `10k resistor` does **not** match `910K` or `110 KOHM` |
 | Plurals and suffixes match | `resistor` matches `Resistors`; `esp32` matches `ESP32-S3` |
 | Units and symbols are normalized | `Ω` → `ohm`, `µ` → `u`, `×` → `x` |
+| Values keep their units | `12 V` is `12v` and `250 mA` is `250ma`, so `3.3V regulator` doesn't match a 3.3 ohm resistor |
 | Common aliases | `16x2` ↔ `1602`, `20x4` ↔ `2004`, `12864` → `128x64` |
 | Accessories rank lower | "Acrylic case **for** Arduino UNO" and "ESP32 **breakout**" score well below the board itself |
 | Pack sizes are detected | "(10pcs)", "Pack of 5", "20 Pieces" |
