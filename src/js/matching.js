@@ -30,10 +30,15 @@ const hasLetter = (s) => /[a-z]/.test(s);
 const stripDots = (s) => s.replace(/^\.+|\.+$/g, "");
 const longestDigitRun = (s) => (s.match(/\p{Nd}+/gu) || []).reduce((a, b) => (b.length > a.length ? b : a), "");
 
+// "12 V", "250 mA", "10 k" -> "12v", "250ma", "10k", the way shops write values
+const UNIT_GAP = /(\d)\s+(v|mv|a|ma|mah|ah|w|kw|ohm|kohm|k|uf|nf|pf|mm|hz|khz|mhz)(?![0-9a-z])/g;
+// "Mini-360", "LM 7805" -> "mini360", "lm7805": a name and its model number written apart
+const NAME_NUMBER_GAP = /(^|[^0-9a-z])([a-z]{2,})[-\s](\d{3,})(?![0-9a-z])/g;
+
 function clean(s) {
   s = s.toLowerCase();
   for (const [a, b] of UNIT_FIXES) s = s.replaceAll(a, b);
-  return s;
+  return s.replace(UNIT_GAP, "$1$2");
 }
 
 export function tokens(s) {
@@ -107,9 +112,25 @@ export function score(query, name) {
 }
 
 // Extra queries for shop search engines that only match literally: LM7805 -> 7805.
+// They only widen what the shops return; score() still decides what matches.
 export function searchVariants(query) {
   const q = query.toLowerCase();
-  const variants = [];
+  // written the way shops write it: "12 V 2 A" -> "12v 2a", "Mini-360" -> "mini360"
+  const tidy = clean(q).replace(NAME_NUMBER_GAP, "$1$2$3");
+  const variants = [tidy];
+  // WooCommerce matches several words as one phrase, so "Mini360 buck converter" misses
+  // "Mini360 DC-DC Buck Converter". The model number alone finds it; one with a segment
+  // the shop doesn't write gets trimmed too (XKC-Y25-NPN -> XKC-Y25).
+  const model = tidy
+    .split(/\s+/)
+    .filter((w) => hasLetter(w) && hasDigit(w) && w.length >= 4)
+    .sort((a, b) => b.length - a.length)[0];
+  if (model) {
+    if ((model.match(/-/g) || []).length >= 2) variants.push(model.slice(0, model.lastIndexOf("-")));
+    variants.push(model);
+  }
+  // and the description without its extras: "12v 2a power supply with barrel jack"
+  variants.push(tidy.split(/\s+(?:with|for)\s+/)[0]);
   for (const t of tokens(query)) {
     if (ALIASES[t]) {
       variants.push(q.replaceAll(t, ALIASES[t]));
@@ -120,7 +141,7 @@ export function searchVariants(query) {
       if (core.length >= 3) variants.push(q.replaceAll(t, core));
     }
   }
-  return [...new Set(variants)].filter((v) => v !== q).slice(0, 3);
+  return [...new Set(variants)].filter((v) => v && v !== q).slice(0, 3);
 }
 
 // How many pieces one listing sells: "(10pcs)", "Pack of 5", "20 Pieces".

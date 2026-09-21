@@ -139,16 +139,24 @@ const QTY_PATTERNS = [
   /^(?<q>.+?)\s*[\t,;]\s*(?<n>\d+)\s*(?:pcs?|pieces)?$/i, // LM7805, 2
   /^(?<q>.+?)\s+(?<n>\d+)\s*(?:pcs?|pieces)$/i, // LM7805 2pcs
   /^(?<n>\d+)\s*(?:pcs?|pieces)\s+(?<q>.+)$/i, // 2pcs LM7805
+  // 2 Mini-360 buck converter, unless the number belongs to the name: 12 V relay, 4 channel relay, 555 timer
+  /^(?<n>\d{1,2})\s+(?!(?:v|mv|a|ma|mah|w|k|kohm|ohm|uf|nf|pf|mm|cm|m|hz|khz|mhz|x|inch|awg|pin|pins|channel|channels|ch|way|digit|digits|segment|bit|core|port|gang|cell|cells)\b)(?<q>.+)$/i,
 ];
+
+// A list written as a spec sheet keeps its notes after a comma or in brackets:
+// "relay DPDT, 12 V coil (HK19F class)" is searched as "relay DPDT".
+function partName(q) {
+  return q.replace(/\([^)]*\)/g, " ").split(",")[0].replace(/\s+/g, " ").trim() || q;
+}
 
 export function parseLine(line) {
   line = line.replace(BULLET, "").trim();
   if (!line || line.startsWith("#")) return null;
   for (const pattern of QTY_PATTERNS) {
     const m = line.match(pattern);
-    if (m && m.groups.q.trim()) return [m.groups.q.trim(), Math.max(1, parseInt(m.groups.n, 10))];
+    if (m && m.groups.q.trim()) return [partName(m.groups.q.trim()), Math.max(1, parseInt(m.groups.n, 10))];
   }
-  return [line, 1];
+  return [partName(line), 1];
 }
 
 async function mapLimited(items, max, fn) {
