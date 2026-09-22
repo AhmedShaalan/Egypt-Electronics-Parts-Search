@@ -257,7 +257,22 @@ table.l-opts { width: 100%; border-collapse: collapse; border: 0; border-radius:
 .l-dlg-error { font-size: 13px; color: var(--bad); margin: 8px 0 0; }
 .l-dlg-status { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--muted); margin-top: 8px; }
 
+/* ---------- the bar that floats over the list while it has changes to save ---------- */
+.l-savebar {
+  position: fixed; left: 50%; transform: translateX(-50%); bottom: 20px; z-index: 9;
+  display: flex; align-items: center; gap: 16px; padding: 10px 16px 10px 22px; font-size: 13px;
+  background: var(--raised); border: 1px solid var(--raised-border); border-radius: 99px;
+  box-shadow: 0 10px 30px rgb(0 0 0 / .2); animation: s-rise .2s ease-out;
+}
+/* the same amber dot as "Unsaved changes" at the top of the list */
+.l-savebar-state { display: flex; align-items: center; gap: 7px; white-space: nowrap; }
+.l-savebar .l-dot { background: var(--warn); }
+.l-savebar .btn { padding: 6px 14px; white-space: nowrap; }
+@media (max-width: 960px) { .l-savebar { bottom: calc(84px + env(safe-area-inset-bottom, 0px)); } }
+@media (prefers-reduced-motion: reduce) { .l-savebar { animation: none; } }
+
 /* ---------- phones: the total sits in a bar at the bottom ---------- */
+
 .l-mobile-bar {
   display: none; position: fixed; left: 0; right: 0; bottom: 0; z-index: 8; background: var(--surface); border-top: 1px solid var(--border);
   padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px)); align-items: center; gap: 12px;
@@ -271,6 +286,8 @@ table.l-opts { width: 100%; border-collapse: collapse; border: 0; border-radius:
   .l-order { position: static; }
   #tab-list.active { padding-bottom: 72px; }
   body:has(#tab-list.active .l-mobile-bar) .to-top { bottom: calc(84px + env(safe-area-inset-bottom)); }
+  /* the back-to-top button steps over the bar for saving */
+  body:has(#tab-list.active .l-savebar) .to-top { bottom: calc(144px + env(safe-area-inset-bottom)); }
 }
 @media (max-width: 640px) {
   .l-cols { display: none; }

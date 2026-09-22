@@ -5,16 +5,38 @@
 // added, and edited in place. Beside them, the order: how to buy, delivery fees, and one basket
 // per shop with its cart. A list is named and saved in this browser.
 
+import { useEffect, useState } from "preact/hooks";
 import { priced } from "../../list-model.js";
 import { $ } from "../common.js";
 import { Money } from "../components.jsx";
 import { plural } from "../format.js";
-import { store, plansNow, rowById } from "./state.js";
+import { store, plansNow, rowById, hasUnsaved, isSavedList } from "./state.js";
 import { Head, ShopsStatus, Intake } from "./head.jsx";
 import { Row } from "./row.jsx";
 import { Order } from "./order.jsx";
 import { progress } from "./pricing.js";
 import { ChangeDialog } from "./change-dialog.jsx";
+import { save } from "./actions.js";
+
+// Floats over the list while it has changes to save, once the Save button at the top has
+// scrolled away
+function SaveBar() {
+  const [away, setAway] = useState(false);
+  useEffect(() => {
+    const head = document.querySelector("#tab-list .l-head");
+    if (!head) return;
+    const watch = new IntersectionObserver(([e]) => setAway(!e.isIntersecting), { threshold: 0 });
+    watch.observe(head);
+    return () => watch.disconnect();
+  }, []);
+  if (!away || !hasUnsaved()) return null;
+  return (
+    <div class="l-savebar">
+      <span class="l-savebar-state" role="status"><span class="l-dot" />Unsaved changes</span>
+      <button class="btn primary small" type="button" onClick={save}>{isSavedList() ? "Save changes" : "Save"}</button>
+    </div>
+  );
+}
 
 export function ListApp() {
   const s = store.use();
@@ -50,6 +72,7 @@ export function ListApp() {
           <button class="btn primary" type="button" onClick={() => $("#order").scrollIntoView({ behavior: "smooth" })}>View order</button>
         </div>
       : null}
+    <SaveBar />
     <ChangeDialog r={s.editing != null ? rowById(s.editing) : null} />
   </>;
 }
