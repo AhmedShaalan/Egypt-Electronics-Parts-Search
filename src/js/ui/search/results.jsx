@@ -8,7 +8,7 @@ import { weakReason } from "../../matching.js";
 import { key } from "../common.js";
 import { plural } from "../format.js";
 import { Chevron } from "../icons.jsx";
-import { set } from "./state.js";
+import { set, searchEverywhere } from "./state.js";
 import { sortedGroups, sortedFlat } from "./view.js";
 import { Offer, ProductCard } from "./offer.jsx";
 
@@ -20,6 +20,10 @@ export function Results({ s, v }) {
   const clearFilters = () => set({ hidden: new Set(), saleOnly: false, cartOnly: false });
   const shopsN = new Set(v.strong.map(p => p.shop)).size;
   const waiting = v.shops.filter(x => x.pending).length;
+  // searched at some shops only: the ones asked, by name when it's one
+  const unasked = v.shops.some(x => x.unasked);
+  const askedShops = v.shops.filter(x => !x.unasked);
+  const asked = askedShops.length === 1 ? askedShops[0].name : plural(askedShops.length, "shop");
   const early = !s.shown;
   // grouping compares every offer's name with the others, so it's done again only when the
   // offers or their order changed, not when a card opens or a star is tapped
@@ -40,7 +44,13 @@ export function Results({ s, v }) {
           <p>{plural(v.strongAll.length, "match", "matches")} {v.strongAll.length === 1 ? "is" : "are"} hidden by the shops or options you picked.</p>
           <button class="btn" type="button" onClick={clearFilters}>Clear filters</button>
         </div>
-      : <div class="s-empty">
+      : unasked
+        ? <div class="s-empty">
+            <h2>No in-stock matches for “{s.query}” at {asked}</h2>
+            <p>{v.weak.length ? "There are weaker matches below. " : ""}The other shops weren't searched.</p>
+            <button class="btn" type="button" onClick={searchEverywhere}>Search every shop</button>
+          </div>
+        : <div class="s-empty">
           <h2>No in-stock matches for “{s.query}”</h2>
           <p>Check the spelling, or try the part number alone: <b>LM7805</b> rather than <b>LM7805 regulator 5v</b>.{v.weak.length ? " There are weaker matches below." : ""}</p>
         </div>;
@@ -67,7 +77,7 @@ export function Results({ s, v }) {
       {body}
       {v.busy && (
         <div class="s-cards s-waiting">
-          <div class="s-waiting-note">Waiting for {plural(waiting, "more shop")}…</div>
+          <div class="s-waiting-note">Waiting for {askedShops.length === 1 ? asked : plural(waiting, "more shop")}…</div>
           {early ? <><Skeleton /><Skeleton /><Skeleton /></> : <Skeleton />}
         </div>
       )}

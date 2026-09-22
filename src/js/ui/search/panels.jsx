@@ -6,33 +6,40 @@
 import { plural } from "../format.js";
 import { copy } from "../copy.js";
 import { CopyIcon } from "../icons.jsx";
-import { set, askAgain, skipWaiting } from "./state.js";
+import { set, askAgain, skipWaiting, searchEverywhere } from "./state.js";
 import { canCart } from "./view.js";
 
 export function Status({ s, v }) {
-  const total = v.shops.length;
+  // a search at one shop leaves the others unasked, until they're ticked
+  const asked = v.shops.filter(x => !x.unasked);
+  const unasked = v.shops.filter(x => x.unasked && !s.fetching.has(x.key));
+  const total = asked.length;
   if (v.busy) {
     return (
       <div class="s-status">
         <span class="s-bar-anim" />
-        <span>Searching {total} shops… <b>{v.answered}</b> answered</span>
+        <span>{total === 1 ? `Searching ${asked[0].name}…` : <>Searching {total} shops… <b>{v.answered}</b> answered</>}</span>
         <button class="s-linkbtn" type="button" onClick={skipWaiting}>Stop waiting</button>
       </div>
     );
   }
-  const ok = v.shops.filter(x => x.ok).length;
+  const ok = v.shops.filter(x => x.ok);
   const failed = v.shops.filter(x => !x.ok && !x.skipped && !s.fetching.has(x.key));
-  const skipped = v.shops.filter(x => x.skipped && !s.fetching.has(x.key));
+  const skipped = v.shops.filter(x => x.skipped && !x.unasked && !s.fetching.has(x.key));
   const asking = v.shops.filter(x => s.fetching.has(x.key));
   const minutes = s.result?.cached ? Math.round((Date.now() - Date.parse(s.result.searched_at)) / 60000) : 0;
   return (
     <div class="s-status">
-      <span>Prices from <b>{ok} of {total} shops</b>, checked {minutes >= 1 ? `${plural(minutes, "minute")} ago` : "just now"}</span>
+      <span>Prices from <b>{total === 1 && ok.length === 1 ? ok[0].name : `${ok.length} of ${plural(total, "shop")}`}</b>, checked {minutes >= 1 ? `${plural(minutes, "minute")} ago` : "just now"}</span>
       {failed.map(x => <span key={x.key} class="s-status-item">
         <span class="s-fail" title={x.error}>{x.name} didn't answer</span>
         <button class="s-linkbtn" type="button" onClick={() => askAgain(x.key)}>Try again</button>
       </span>)}
       {asking.map(x => <span key={x.key}>Asking {x.name} again…</span>)}
+      {unasked.length > 0 && <span class="s-status-item">
+        <span>{plural(unasked.length, "shop")} not searched</span>
+        <button class="s-linkbtn" type="button" onClick={searchEverywhere}>Search {unasked.length === 1 ? "it" : "them"} too</button>
+      </span>}
       {skipped.length > 0 && <span class="s-status-item">
         <span>{skipped.length} skipped</span>
         <button class="s-linkbtn" type="button" onClick={() => skipped.forEach(x => askAgain(x.key))}>Search {skipped.length === 1 ? "it" : "them"} too</button>
@@ -46,7 +53,8 @@ export function Filters({ s, v }) {
   const byName = (a, b) => a.name.localeCompare(b.name);
   const withMatches = v.shops.filter(x => x.ok && v.matchCount(x.key)).sort(byName);
   const waiting = v.shops.filter(x => x.pending || s.fetching.has(x.key)).sort(byName);
-  const problems = v.shops.filter(x => !x.ok && !x.pending && !s.fetching.has(x.key)).sort(byName);
+  const unasked = v.shops.filter(x => x.unasked && !s.fetching.has(x.key)).sort(byName);
+  const problems = v.shops.filter(x => !x.ok && !x.pending && !x.unasked && !s.fetching.has(x.key)).sort(byName);
   const none = v.shops.filter(x => x.ok && !v.matchCount(x.key) && !s.fetching.has(x.key)).sort(byName);
   const saleN = v.strongAll.filter(p => p.old_price).length;
   const cartN = v.strongAll.filter(canCart).length;
@@ -68,6 +76,12 @@ export function Filters({ s, v }) {
           </div>
         ))}
         {waiting.map(x => <div class="s-f-row wait" key={x.key}><span class="s-dot" /><span class="s-f-name">{x.name}</span><span class="s-f-count">…</span></div>)}
+        {unasked.length > 0 && <div class="s-f-sub">Not searched</div>}
+        {unasked.map(x => (
+          <div class="s-f-row unasked" key={x.key} title={`Tick to search ${x.name} too`}>
+            <label><input type="checkbox" checked={false} onChange={() => askAgain(x.key)} /><span class="s-f-name">{x.name}</span></label>
+          </div>
+        ))}
         {problems.map(x => (
           <div class="s-f-row problem" key={x.key}>
             <span class="s-f-name">{x.name}<br /><span class={`s-why${x.skipped ? "" : " fail"}`} title={x.error}>{x.skipped ? "Skipped" : "Didn't answer"}</span></span>

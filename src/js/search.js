@@ -56,21 +56,26 @@ async function searchShop(shop, query, skip) {
 }
 
 // onProgress(done, total, partial) is called as each shop finishes; `partial` is the result so
-// far, with the shops still running marked `pending`
-async function runSearch(query, { onProgress, skip } = {}) {
+// far, with the shops still running marked `pending`. With `only`, a set of shop keys, the other
+// shops aren't asked: they're marked `unasked`, and skipped, so fetchShop() can ask them later.
+async function runSearch(query, { onProgress, skip, only } = {}) {
   let done = 0;
+  const asked = SHOPS.filter((s) => !only || only.has(s.key));
   // kept in shop order, so the result doesn't depend on which shop answered first
   const found = SHOPS.map(() => []);
-  const statuses = SHOPS.map((s) => ({ key: s.key, name: s.name, pending: true }));
+  const statuses = SHOPS.map((s) => (asked.includes(s)
+    ? { key: s.key, name: s.name, pending: true }
+    : { key: s.key, name: s.name, ok: false, skipped: true, unasked: true, error: "not searched" }));
   const snapshot = () => ({ query, results: sortResults(found.flat()), shops: [...statuses], searched_at: now() });
   await Promise.all(
-    SHOPS.map((s, i) =>
-      searchShop(s, query, skip).then(({ items, status }) => {
+    asked.map((s) => {
+      const i = SHOPS.indexOf(s);
+      return searchShop(s, query, skip).then(({ items, status }) => {
         found[i] = scoreItems(query, items, status);
         statuses[i] = status;
-        onProgress?.(++done, SHOPS.length, snapshot());
-      }),
-    ),
+        onProgress?.(++done, asked.length, snapshot());
+      });
+    }),
   );
   return snapshot();
 }
@@ -129,10 +134,12 @@ export const searchKey = (query) => tokens(query).join(" ") || query.trim().toLo
 // options: onProgress(done, total, partial) per finished shop; skip, an AbortSignal that stops waiting
 // for the shops still running and returns what is already in; cancel, an AbortSignal for a
 // caller that no longer wants the answer; fresh, to ask the shops even when the answer is
-// remembered. Identical searches running at once share one run, which stops early (like a
-// skip) once every caller has cancelled.
-export async function searchAll(query, { onProgress, skip, cancel, fresh = false } = {}) {
-  const key = searchKey(query);
+// remembered; shops, the keys of the only shops to ask (all when left out). Identical searches
+// running at once share one run, which stops early (like a skip) once every caller has cancelled.
+export async function searchAll(query, { onProgress, skip, cancel, fresh = false, shops } = {}) {
+  const only = shops?.length ? new Set(shops) : null;
+  // a search at some shops is never remembered (the others are skipped), so it has its own run
+  const key = searchKey(query) + (only ? `|${[...only].sort()}` : "");
   const hit = cache.get(key);
   if (hit && !fresh && Date.now() < hit.expires) return { ...hit.result, cached: true };
   let run = inflight.get(key);
@@ -144,7 +151,7 @@ export async function searchAll(query, { onProgress, skip, cancel, fresh = false
       run.partial = partial;
       for (const f of run.listeners) f(done, total, partial);
     };
-    run.promise = runSearch(query, { onProgress: progress, skip: stop.signal }).finally(() => {
+    run.promise = runSearch(query, { onProgress: progress, skip: stop.signal, only }).finally(() => {
       if (inflight.get(key) === run) inflight.delete(key);
     });
     inflight.set(key, run);
@@ -152,7 +159,7 @@ export async function searchAll(query, { onProgress, skip, cancel, fresh = false
   run.callers++;
   if (onProgress) {
     run.listeners.add(onProgress);
-    if (run.done) onProgress(run.done, SHOPS.length, run.partial);
+    if (run.done) onProgress(run.done, only ? only.size : SHOPS.length, run.partial);
   }
   const onSkip = () => run.stop.abort();
   const onCancel = () => {

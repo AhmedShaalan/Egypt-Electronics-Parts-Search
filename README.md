@@ -27,6 +27,7 @@ Egypt Electronics Parts Search asks every shop at once, recognizes those names a
 
 **🔍 Search every shop at once**
 - Queries all 17 shops at the same time; results fill in as the shops answer
+- Or search one shop: pick it in the search box, then tick other shops to search them too
 - The same product at different shops is one card, cheapest first, with every shop's offer inside (or see every offer in one list)
 - Hides out-of-stock items automatically, and shows sale prices and the per-piece price for packs ("(10pcs)")
 - Sort by best match, cheapest, or cheapest per piece; tick shops on or off, or show only sale items or ones you can add to cart from here
@@ -82,6 +83,7 @@ Type a part number or a description: `LM7805`, `ESP32`, `10k resistor`, `HC-SR04
 |---|---|
 | **Searching 17 shops… 9 answered** | Results show once a few shops have answered with a match, and the rest join as they answer. **Stop waiting** skips the shops still running |
 | **Every offer** or **By product** | Every offer, the default, lists each shop's offer on its own. By product puts the same product at different shops in one card, with the cheapest shop and price, then the next few; open it for every shop's offer. Only close matches are merged (the package, values like 5V, model codes like S3 or 30-pin and the pack size must agree); anything unsure has its own card |
+| The shop picker in the search box | **All shops**, or one shop to search only there. The others are listed as **Not searched**; tick one to search it too, or **Search them too** for all of them. The link it makes (`?shop=`) opens the same search |
 | The **Shops** panel | Each shop's number of matches. Untick a shop to hide it, or **Only** to see just that one. Shops still searching spin; a shop that **didn't answer** or was **skipped** has **Try again** or **Search now** |
 | **Sale** | The shop is discounting it; the original price is struck through |
 | `pack of 10 · 0.50 EGP each` | The listing is a pack; this is the price per piece |
@@ -148,7 +150,7 @@ For Claude Desktop or another client, add it to the client's MCP config:
 
 | Tool | What it does |
 |---|---|
-| `search_parts` | Searches every shop for one part: in-stock products, best match first, then cheapest. Can narrow to some shops and include weak matches. |
+| `search_parts` | Searches every shop for one part: in-stock products, best match first, then cheapest. Can search only some shops (quicker), and include weak matches. |
 | `price_parts_list` | Prices a parts list: the pick per line, the cheapest mix, the cheapest single shop, and what each shop is missing. |
 | `check_price` | Re-checks one product's price and stock at its shop. |
 | `list_shops` | The shops and the keys the other tools take. |
@@ -194,7 +196,7 @@ The catch: browsers only let a website read another site's data if that site all
                                                                    Electra's stock
 ```
 
-1. **Fan out.** A search runs against all shops in parallel, and the results show as they come in: once three shops have answered with a match, then each shop as it answers. Each shop gets 25 seconds; a slow or broken shop is marked failed instead of holding up the rest. You can also stop waiting early: the shops still running are marked skipped, and each can be fetched on its own afterwards.
+1. **Fan out.** A search runs against all shops in parallel, and the results show as they come in: once three shops have answered with a match, then each shop as it answers. Each shop gets 25 seconds; a slow or broken shop is marked failed instead of holding up the rest. You can also stop waiting early: the shops still running are marked skipped, and each can be fetched on its own afterwards. A search at one shop works the same way, with every other shop skipped from the start.
 2. **Widen the net.** Shop search engines match text literally, and WooCommerce matches several words as one phrase, so the app also sends variants: `12 V 2 A` → `12v 2a`, `Mini-360 buck converter` → `mini360`, `mini 360` → `mini-360`, `XKC-Y25-NPN level sensor` → `xkc-y25`, `power supply with barrel jack` → `power supply`, `LM7805` → `7805`, `16x2 LCD` → `1602 LCD`. Variants only widen what the shops return; scoring still decides what matches.
 3. **Score.** Every product name is scored 0–100 against your query (see below). Scores of 70+ are shown as matches, 45–69 as weaker matches, and anything lower is dropped.
 4. **Filter and sort.** Out-of-stock and zero-price items are removed, and results are sorted by score, then price.

@@ -61,8 +61,9 @@ function product(p) {
   };
 }
 
+// the shops asked that failed; ones a search left out (`unasked`) weren't asked at all
 const failures = (shops) =>
-  shops.filter((s) => !s.ok).map((s) => ({ shop: s.name, error: s.error }));
+  shops.filter((s) => !s.ok && !s.unasked).map((s) => ({ shop: s.name, error: s.error }));
 
 // progress notifications, when the client asked for them
 function progress(extra) {
@@ -85,16 +86,16 @@ server.registerTool(
       "Takes up to about 25 seconds the first time; repeats within an hour are instant.",
     inputSchema: {
       query: z.string().min(1).max(200).describe("The part to search for"),
-      shops: z.array(z.enum(SHOP_KEYS)).optional().describe("Only return results from these shops (keys from list_shops)"),
+      shops: z.array(z.enum(SHOP_KEYS)).optional().describe("Only search these shops (keys from list_shops); faster than all of them"),
       limit: z.number().int().min(1).max(100).default(20).describe("Most results to return"),
       include_weak: z.boolean().default(false).describe("Also return weak matches, which are often a different part"),
     },
     annotations: { readOnlyHint: true, openWorldHint: true },
   },
   async ({ query, shops, limit, include_weak }, extra) => {
-    const result = await searchAll(query, { onProgress: progress(extra), cancel: extra.signal });
-    let results = result.results;
-    if (shops?.length) results = results.filter((r) => shops.includes(r.shop));
+    // only the shops asked for are searched; the others come back unasked, with no results
+    const result = await searchAll(query, { onProgress: progress(extra), cancel: extra.signal, shops });
+    const results = result.results;
     const strong = results.filter((r) => r.score >= STRONG);
     const shown = include_weak ? results : strong;
     return json({
@@ -104,7 +105,8 @@ server.registerTool(
       ...(include_weak ? {} : { weak_matches_hidden: results.length - strong.length }),
       failed_shops: failures(result.shops),
       searched_at: result.searched_at,
-      link: `${SITE}/?q=${encodeURIComponent(query)}`,
+      // the site searches one shop the same way; several open as a search of every shop
+      link: `${SITE}/?q=${encodeURIComponent(query)}${shops?.length === 1 ? `&shop=${shops[0]}` : ""}`,
     });
   },
 );
