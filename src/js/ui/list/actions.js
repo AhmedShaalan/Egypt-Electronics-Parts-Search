@@ -174,18 +174,21 @@ export const priceSavedList = list => priceWithFees(list, store.state.fees);
 
 /* ---------- ordering ---------- */
 
-// a shop's part of the order, to send them or keep: headed by the shop's name, underlined, so a
-// copy pasted elsewhere still says where it's from
-export const orderMessage = (shopName, entries) => `${shopName}\n${"-".repeat(shopName.length)}\n`
-  + `${entries.map(e => `- ${packsNeeded(e.line, e.product)} × ${e.product.name}`).join("\n")}\n\n`
-  + `Total: ${money(entries.reduce((sum, e) => sum + lineCost(e.line, e.product), 0))}`;
+const partsCost = entries => entries.reduce((sum, e) => sum + lineCost(e.line, e.product), 0);
 
-// the whole order: each shop's part as above, then what the parts come to (delivery is left out,
-// as it's only an estimate). `baskets` are [shop name, entries].
+// a shop's part of the order, to send them or keep: headed by the shop's name, underlined, so a
+// copy pasted elsewhere still says where it's from. Its total is the shop's on the page: the parts
+// and the delivery fee set for it, which is an estimate (~).
+export const orderMessage = (shopName, entries, fee) => `${shopName}\n${"-".repeat(shopName.length)}\n`
+  + `${entries.map(e => `- ${packsNeeded(e.line, e.product)} × ${e.product.name}`).join("\n")}\n\n`
+  + `Parts: ${money(partsCost(entries))}\nDelivery: ~${money(fee)}\nTotal: ~${money(partsCost(entries) + fee)}`;
+
+// the whole order: each shop's part as above, then all of it, the order's total on the page.
+// `baskets` are [shop name, entries, delivery fee].
 export function wholeOrderMessage(baskets) {
-  const parts = baskets.flatMap(([, es]) => es).reduce((sum, e) => sum + lineCost(e.line, e.product), 0);
-  const all = baskets.length > 1 ? `\n\nAll ${baskets.length} shops: ${money(parts)}` : "";
-  return baskets.map(([name, es]) => orderMessage(name, es)).join("\n\n") + all;
+  const total = baskets.reduce((sum, [, es, fee]) => sum + partsCost(es) + fee, 0);
+  const all = baskets.length > 1 ? `\n\nAll ${baskets.length} shops: ~${money(total)}` : "";
+  return baskets.map(([name, es, fee]) => orderMessage(name, es, fee)).join("\n\n") + all;
 }
 
 export async function fill(shop, entries) {
