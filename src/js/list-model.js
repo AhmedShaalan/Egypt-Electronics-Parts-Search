@@ -47,8 +47,8 @@ export function withQty(r, n) {
 
 // what a saved list keeps of a product chosen by hand
 export const pickOf = c => {
-  const { shop, ref, name, url, image, price, cart, cart_rules, options } = c;
-  return { shop, ref, name, url, image, price, ...(cart ? { cart } : {}), ...(cart_rules ? { cart_rules } : {}), ...(options ? { options } : {}) };
+  const { shop, ref, name, url, image, price, cart, cart_query, cart_rules, options } = c;
+  return { shop, ref, name, url, image, price, ...(cart ? { cart } : {}), ...(cart_query ? { cart_query } : {}), ...(cart_rules ? { cart_rules } : {}), ...(options ? { options } : {}) };
 };
 // a pick its shop still sells, as an offer for the line
 function offerOf(query, pick) {

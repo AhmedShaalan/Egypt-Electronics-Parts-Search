@@ -3,16 +3,18 @@
 
 // A part on the list: its quantity, what the plan buys for it and at what cost, and its offers.
 
+import { useState } from "preact/hooks";
 import { SHOPS, SHOPS_BY_KEY } from "../../shops.js";
+import { SHOP_TIMEOUT_MS } from "../../config.js";
 import { lineCost } from "../../search.js";
 import { MAX_QTY, isPick, pendingShops, held } from "../../list-model.js";
 import { money, safeUrl, priceDetail } from "../common.js";
-import { plural, choices } from "../format.js";
+import { plural } from "../format.js";
 import { Thumb, Menu, NumField, memo } from "../components.jsx";
 import { Chevron, ExtIcon, PenIcon, TrashIcon } from "../icons.jsx";
 import { set } from "./state.js";
 import { price } from "./pricing.js";
-import { setQty, remove } from "./actions.js";
+import { setQty, remove, chooseOption } from "./actions.js";
 import { Offers } from "./offers.jsx";
 
 function Qty({ r }) {
@@ -68,6 +70,39 @@ function Held({ r, n, open, toggle }) {
   );
 }
 
+// The colour or size of a product sold in several. Chosen here, it's the row's pick, bought as it
+// is and put in the cart from here. Which are out of stock is asked the first time it's opened.
+function Options({ r, c }) {
+  const [stock, setStock] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const o = c.options;
+  const ask = () => {
+    if (stock) return;
+    setStock({});
+    const shop = SHOPS_BY_KEY[c.shop];
+    for (const x of o.choices) {
+      shop.check(x.ref, AbortSignal.timeout(SHOP_TIMEOUT_MS))
+        .then(now => setStock(m => ({ ...m, [x.ref]: !!now?.in_stock && now.price > 0 })), () => {});
+    }
+  };
+  const pick = async e => {
+    setBusy(true);
+    await chooseOption(r.id, c, e.currentTarget.value);
+    setBusy(false);
+  };
+  const out = x => stock?.[x.ref] === false && x.ref !== o.chosen;
+  return (
+    <label class="l-option">
+      <span>{o.what[0].toUpperCase() + o.what.slice(1)}</span>
+      <select value={o.chosen || ""} disabled={busy} onFocus={ask} onPointerDown={ask} onChange={pick}>
+        {o.chosen ? null : <option value="" disabled>Choose…</option>}
+        {o.choices.map(x => <option key={x.ref} value={x.ref} disabled={out(x)}>{x.label}{out(x) ? " (out of stock)" : ""}</option>)}
+      </select>
+      {busy ? <span class="s-bar-anim" /> : null}
+    </label>
+  );
+}
+
 // `c` is the product the plan buys for the row, `open` whether its offers show, `flash` whether
 // it just changed. It's drawn again only when one of those changed.
 export const Row = memo(({ r, c, open, flash, filter }) => {
@@ -102,17 +137,18 @@ export const Row = memo(({ r, c, open, flash, filter }) => {
         <Thumb class="l-thumb" p={c} />
         <span class="l-product-text">
           <span class="l-product-name">{c.name}</span>
-          <span class="l-product-meta"><span class="l-shop">{c.shop_name}</span> · {priceDetail(r.line, c)}{c.options ? ` · ${choices(c)}` : ""}</span>
+          <span class="l-product-meta"><span class="l-shop">{c.shop_name}</span> · {priceDetail(r.line, c)}</span>
         </span>
         <span class="l-chip soft l-count">{plural(n, "offer")}</span><Chevron class="l-chev" />
       </button>
     );
   }
+  const below = [];
+  if (c?.options && SHOPS_BY_KEY[c.shop]?.option) below.push(<Options key="options" r={r} c={c} />);
   // shown before the slowest shops answered: they may still bring a cheaper offer
   const late = pendingShops(r);
-  if (late.length) {
-    product = <div class="l-prod">{product}<span class="l-late-note"><span class="s-bar-anim" />Waiting for {late.map(x => x.name).sort().join(", ")}</span></div>;
-  }
+  if (late.length) below.push(<span key="late" class="l-late-note"><span class="s-bar-anim" />Waiting for {late.map(x => x.name).sort().join(", ")}</span>);
+  if (below.length) product = <div class="l-prod">{product}{below}</div>;
   return (
     <div class={`l-row${flash ? " flash" : ""}${open ? " open" : ""}`} data-row={r.id}>
       <div class="l-row-main">

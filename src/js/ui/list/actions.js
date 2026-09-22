@@ -5,9 +5,10 @@
 // and opening lists, and ordering.
 
 import { parseLine, nameLine, lineCost, packsNeeded, saveList, updateList, renameList } from "../../search.js";
-import { MAX_LIST_LINES } from "../../config.js";
+import { MAX_LIST_LINES, SHOP_TIMEOUT_MS } from "../../config.js";
 import { goodFor } from "../../plans.js";
-import { newRow, priced, withQty, listText, listPicks, listPickItems, productKey, pickOf, priceSavedList as priceWithFees } from "../../list-model.js";
+import { SHOPS_BY_KEY } from "../../shops.js";
+import { newRow, priced, withQty, withResult, listText, listPicks, listPickItems, productKey, pickOf, priceSavedList as priceWithFees } from "../../list-model.js";
 import { $, money, toast } from "../common.js";
 import { plural } from "../format.js";
 import { fillCart } from "../cart.js";
@@ -86,6 +87,29 @@ export function choose(id, i) {
   change({ rows, customBase: base, strategy: next, open: null }, id);
   if (strategy !== "custom" && next === "custom") toast(`Switched to ${PLAN_NAMES.custom}, on top of ${PLAN_NAMES[base]}`);
   requestAnimationFrame(() => document.querySelector(`[data-row="${id}"] .l-product`)?.focus());
+}
+
+// Choosing a colour or size of a product sold in several: the row's pick becomes that one, asked of
+// its shop for its price, so it's bought as it is and can go in the cart. A sold-out one isn't.
+// Like choose(), it makes the plan Custom.
+export async function chooseOption(id, c, ref) {
+  const shop = SHOPS_BY_KEY[c.shop];
+  const label = c.options.choices.find(x => x.ref === ref)?.label;
+  let p;
+  try {
+    p = await shop.option(c, ref, AbortSignal.timeout(SHOP_TIMEOUT_MS));
+  } catch {
+    toast(`${shop.name} didn't answer. Try again`);
+    return;
+  }
+  const r = rowById(id);
+  if (!r || !priced(r)) return;
+  if (!p?.in_stock || !(p.price > 0)) { toast(`${label} is out of stock at ${shop.name}`); return; }
+  const { strategy } = store.state;
+  const base = strategy === "custom" ? store.state.customBase : strategy;
+  const rows = store.state.rows.map(x => (x.id === id ? withResult({ ...x, pinKey: productKey(p), pick: pickOf(p), pickState: "kept" }, x.result) : x));
+  change({ rows, customBase: base, strategy: "custom" }, id);
+  if (strategy !== "custom") toast(`Switched to ${PLAN_NAMES.custom}, on top of ${PLAN_NAMES[base]}`);
 }
 
 export function remove(id) {
@@ -174,8 +198,9 @@ export const priceSavedList = list => priceWithFees(list, store.state.fees);
 
 /* ---------- ordering ---------- */
 
-// " (choose colour: Blue, Green)" after a product sold in several, for the shop to ask which
-const toChoose = p => (p.options ? ` (choose ${p.options.what}: ${p.options.values.join(", ")})` : "");
+// " (choose colour: Blue, Green)" after a product sold in several when none was chosen, for the
+// shop to ask which; a chosen one says it in its name
+const toChoose = p => (p.options && !p.options.chosen ? ` (choose ${p.options.what}: ${p.options.choices.map(x => x.label).join(", ")})` : "");
 const partsCost = entries => entries.reduce((sum, e) => sum + lineCost(e.line, e.product), 0);
 
 // a shop's part of the order, to send them or keep: headed by the shop's name, underlined, so a

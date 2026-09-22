@@ -86,15 +86,35 @@ class WooShop extends Shop {
     return JSON.parse(text.replace(/[\u0000-\u001f]/g, " "));
   }
 
-  // a product sold in several colours or sizes, each picked on the shop's page: what's chosen
-  // ("colour", "number of pins"), and the choices it's sold in now ("Blue", "Green"); null for none
-  choices(variations) {
-    if (!variations?.length) return null;
+  // A product sold in several colours or sizes (a variable product): what's chosen ("colour",
+  // "number of pins"), the product's own name, and the choices it's sold in now, each its own
+  // product at the shop ({ ref, label: "Blue" }); null for none. option() gets one of them.
+  choices(d) {
+    const variations = d.variations || [];
     const names = [...new Set(variations.flatMap((v) => v.attributes.map((a) => cleanName(a.name).toLowerCase())))];
-    const values = [...new Set(variations.map((v) => v.attributes.map((a) => cleanName(a.value)).join(" / ")))];
-    if (values.length < 2) return null;
+    const choices = variations.map((v) => ({ ref: String(v.id), label: v.attributes.map((a) => cleanName(a.value)).join(" / ") }))
+      .filter((c, i, all) => all.findIndex((x) => x.label === c.label) === i);
+    if (choices.length < 2) return null;
     const what = names.every((n) => /colou?r/.test(n)) ? "colour" : names.join(" / ").replace(/\s*\(.*?\)/g, "");
-    return { what, values };
+    return { what, name: cleanName(d.name), choices };
+  }
+
+  // one choice of a product with options (see choices()), as a product of its own that its cart
+  // takes as it is; null when the shop no longer has it
+  async option(p, ref, signal) {
+    const r = await relay(`${this.base}/wp-json/${this.api}/products/${encodeURIComponent(ref)}`, { signal });
+    if (r.status === 404) return null;
+    const d = this.parse(await (await ok(r)).text());
+    const choice = p.options.choices.find((c) => c.ref === ref);
+    // the link the shop's own page adds it with: the product, the choice and its attributes
+    const add = new URL(cleanName(d.add_to_cart?.url || ""), this.base).searchParams;
+    return {
+      ...this.product(d),
+      name: `${p.options.name} — ${choice?.label ?? ""}`,
+      cart: d.is_purchasable !== false && add.has("add-to-cart"),
+      ...(add.has("add-to-cart") ? { cart_query: add.toString() } : {}),
+      options: { ...p.options, chosen: ref },
+    };
   }
 
   product(d) {
@@ -106,7 +126,7 @@ class WooShop extends Shop {
     if (image && this.imageCdn) image = this.imageCdn(image);
     // some products are only sold in multiples ("order in tens"); the cart refuses other amounts
     const { minimum = 1, multiple_of = 1 } = d.add_to_cart || {};
-    const options = this.choices(d.variations);
+    const options = this.choices(d);
     return {
       shop: this.key,
       ref: String(d.id),
@@ -128,7 +148,9 @@ class WooShop extends Shop {
     return items.map((i) => {
       const { minimum = 1, multiple_of = 1 } = i.cart_rules || {};
       const qty = Math.max(minimum, Math.ceil(i.qty / multiple_of) * multiple_of);
-      return `${this.base}/cart/?add-to-cart=${encodeURIComponent(i.ref)}&quantity=${qty}`;
+      // a colour or size of a product is added with the product's id and the choice's (option())
+      const add = i.cart_query || `add-to-cart=${encodeURIComponent(i.ref)}`;
+      return `${this.base}/cart/?${add}&quantity=${qty}`;
     });
   }
 

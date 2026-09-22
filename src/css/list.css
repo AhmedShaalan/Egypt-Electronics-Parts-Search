@@ -124,6 +124,9 @@ button.l-product.empty { display: flex; }
 .l-prod > .l-product { grid-area: auto; }
 .l-late-note { display: flex; align-items: center; gap: 8px; padding-left: 6px; font-size: 12px; color: var(--muted); min-width: 0; }
 .l-late-note .s-bar-anim { width: 40px; }
+.l-option { display: flex; align-items: center; gap: 8px; padding-left: 6px; font-size: 12px; color: var(--muted); min-width: 0; }
+#tab-list .l-option select { border-radius: 6px; padding: 3px 6px; background: var(--bg); font-size: 13px; color: var(--text); max-width: 60%; text-overflow: ellipsis; }
+.l-option .s-bar-anim { width: 40px; }
 .l-searching { display: flex; align-items: center; gap: 10px; }
 .l-searching .s-bar-anim { width: 120px; }
 @media (prefers-reduced-motion: reduce) { .l-row.flash { animation: none; } }

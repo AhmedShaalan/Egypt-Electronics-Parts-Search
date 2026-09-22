@@ -9,7 +9,7 @@ import { money } from "./common.js";
 export const plural = (n, word, many = word + "s") => `${n} ${n === 1 ? word : many}`;
 
 // "2 colours", "3 options": the choices a product is sold in, picked on its shop's page; "" for none
-export const choices = c => (c.options ? plural(c.options.values.length, c.options.what === "colour" ? "colour" : "option") : "");
+export const choices = c => (c.options ? plural(c.options.choices.length, c.options.what === "colour" ? "colour" : "option") : "");
 
 // a price without its currency, where EGP is said once nearby
 export const num = n => money(n).replace(" EGP", "");
