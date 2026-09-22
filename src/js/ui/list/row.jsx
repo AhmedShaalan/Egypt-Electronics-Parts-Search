@@ -5,7 +5,7 @@
 
 import { useState } from "preact/hooks";
 import { SHOPS, SHOPS_BY_KEY } from "../../shops.js";
-import { SHOP_TIMEOUT_MS } from "../../config.js";
+import { askChoices } from "../cart.js";
 import { lineCost } from "../../search.js";
 import { MAX_QTY, isPick, pendingShops, held } from "../../list-model.js";
 import { money, safeUrl, priceDetail } from "../common.js";
@@ -79,11 +79,7 @@ function Options({ r, c }) {
   const ask = () => {
     if (stock) return;
     setStock({});
-    const shop = SHOPS_BY_KEY[c.shop];
-    for (const x of o.choices) {
-      shop.check(x.ref, AbortSignal.timeout(SHOP_TIMEOUT_MS))
-        .then(now => setStock(m => ({ ...m, [x.ref]: !!now?.in_stock && now.price > 0 })), () => {});
-    }
+    askChoices(c, (ref, inStock) => setStock(m => ({ ...m, [ref]: inStock })));
   };
   const pick = async e => {
     setBusy(true);

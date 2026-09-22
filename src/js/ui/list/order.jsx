@@ -114,7 +114,7 @@ function Basket({ shop, entries, fee, filling }) {
           </div>
         : <button class="btn" type="button" title="Copy the order as a message, for their WhatsApp or order form" onClick={() => copy(orderMessage(sh.name, entries, fee))}><CopyIcon />Copy as message</button>}
       {cartable
-        ? (left ? <p class="l-how">{left === 1 ? "One part has" : `${left} parts have`} options to choose, so {left === 1 ? "it goes" : "they go"} in the cart by hand on their site.</p> : null)
+        ? (left ? <p class="l-how">{left === 1 ? "One part has" : `${left} parts have`} a colour or option to choose. Choose it in {left === 1 ? "its row" : "their rows"} to add {left === 1 ? "it" : "them"} here, or add {left === 1 ? "it" : "them"} on their site.</p> : null)
         : <p class="l-how">Its cart can't be filled from here. Open each part and add it on their site.</p>}
     </div>
   );

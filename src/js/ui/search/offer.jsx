@@ -3,10 +3,11 @@
 
 // A result: one shop's offer, or a card with the same product at several shops.
 
-import { money, safeUrl, key, buyRule } from "../common.js";
+import { money, safeUrl, key, buyRule, toast } from "../common.js";
 import { plural, num, choices } from "../format.js";
 import { COPY_FORMATS, copy, copyText } from "../copy.js";
-import { cartLink } from "../cart.js";
+import { useState } from "preact/hooks";
+import { cartLink, cartChoices, askChoices, cartChoice } from "../cart.js";
 import { isSaved, toggleSave } from "../saved.js";
 import { openAddToList, addToLastList, lastList } from "../add-to-list.js";
 import { Thumb, Menu } from "../components.jsx";
@@ -32,6 +33,28 @@ function AddItems({ p }) {
   </>;
 }
 
+// The cart button of a product sold in several colours or sizes: a menu of them, and the one
+// chosen goes in the cart. Which are out of stock is asked the first time it's opened.
+function CartChoices({ p }) {
+  const [stock, setStock] = useState(null);
+  const ask = () => {
+    if (stock) return;
+    setStock({});
+    askChoices(p, (ref, inStock) => setStock(m => ({ ...m, [ref]: inStock })));
+  };
+  const out = x => stock?.[x.ref] === false;
+  const add = async x => { const why = await cartChoice(p, x.ref); if (why) toast(why); };
+  const title = `Add to cart at ${p.shop_name}`;
+  return (
+    <Menu label={title} summary={<summary class="s-icon" title={title} aria-label={title} onClick={ask}><CartIcon /></summary>}>
+      <p class="menu-head">Which {p.options.what}?</p>
+      {p.options.choices.map(x => (
+        <button key={x.ref} type="button" role="menuitem" disabled={out(x)} onClick={() => add(x)}>{x.label}{out(x) ? " (out of stock)" : ""}</button>
+      ))}
+    </Menu>
+  );
+}
+
 // `mode` "shop" leads with the shop, for the offers in a product card; `flash` lights it up
 export function Offer({ p, mode, cheapest, reason, flash }) {
   const saved = isSaved(p);
@@ -55,7 +78,7 @@ export function Offer({ p, mode, cheapest, reason, flash }) {
       <div class="s-acts">
         {cart
           ? <a class="s-icon" href={cart} target="_blank" rel="noopener" title={`Add to cart at ${p.shop_name}`} aria-label={`Add to cart at ${p.shop_name}`}><CartIcon /></a>
-          : <span class="s-icon-space" />}
+          : cartChoices(p) ? <CartChoices p={p} /> : <span class="s-icon-space" />}
         <button type="button" class={`s-icon s-star${saved ? " on" : ""}`} aria-pressed={saved}
           title={saved ? "Remove from saved" : "Save"} aria-label={saved ? "Remove from saved" : "Save"}
           onClick={() => { toggleSave(p); set({ tick: store.state.tick + 1 }); }}><StarIcon /></button>

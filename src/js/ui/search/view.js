@@ -6,10 +6,10 @@
 import { SHOPS } from "../../shops.js";
 import { STRONG } from "../../matching.js";
 import { groupOffers } from "../../grouping.js";
-import { cartLink } from "../cart.js";
+import { cartLink, cartChoices } from "../cart.js";
 
 export const priceKey = (p, sort) => sort === "unit" ? p.unit_price : p.price;
-export const canCart = p => !!cartLink(p);
+export const canCart = p => !!cartLink(p) || cartChoices(p);
 
 // the shops and the offers to show; it depends on the result and the filters only
 export function viewOf(s) {
