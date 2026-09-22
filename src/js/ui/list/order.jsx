@@ -33,7 +33,7 @@ function Strategies({ s, plans, strategy }) {
         const p = plans[k];
         return (
           <button class="l-strat" type="button" role="radio" key={k} aria-checked={strategy === k} disabled={!p} onClick={() => change({ strategy: k })}>
-            <span class="l-radio" /><span class="t">{PLAN_NAMES[k]}{k === "best" ? <span class="l-rec">Suggested</span> : null}</span>
+            <span class="t">{PLAN_NAMES[k]}{k === "best" ? <span class="l-rec">Suggested</span> : null}</span>
             <span class="v num">{p ? money(p.total) : "—"}</span>
             <span class="s">{p ? `${plural(p.used.size, "shop")} · ${sub}` : sub}</span>
           </button>
@@ -41,10 +41,10 @@ function Strategies({ s, plans, strategy }) {
       })}
       {c
         ? <button class="l-strat" type="button" role="radio" aria-checked={strategy === "custom"} onClick={() => change({ strategy: "custom" })}>
-            <span class="l-radio" /><span class="t">{PLAN_NAMES.custom}</span><span class="v num">{money(c.total)}</span>
+            <span class="t">{PLAN_NAMES.custom}</span><span class="v num">{money(c.total)}</span>
             <span class="s">{plural(c.used.size, "shop")} · {plural(c.picks, "pick")} of yours on top of {PLAN_NAMES[s.customBase]}</span>
           </button>
-        : <div class="l-strat off"><span class="l-radio" /><span class="t">{PLAN_NAMES.custom}</span><span class="v" />
+        : <div class="l-strat off"><span class="t">{PLAN_NAMES.custom}</span><span class="v" />
             <span class="s">Choose another product in any row to make your own</span></div>}
     </div>
   );
