@@ -33,10 +33,18 @@ export function toast(msg, action) {
 // a product's key, the same in every shop's results
 export { productKey as key } from "../list-model.js";
 
-// "4 EGP each", or for a pack "2 packs of 10 at 5 EGP"
+// what the shop's cart insists on: "min. 10", "in 5s" or "min. 10, in 5s"; "" for none
+export function buyRule(c) {
+  const { minimum = 1, multiple_of = 1 } = c.cart_rules || {};
+  return [minimum > 1 && `min. ${minimum}`, multiple_of > 1 && `in ${multiple_of}s`].filter(Boolean).join(", ");
+}
+
+// "4 EGP each", for a pack "2 packs of 10 at 5 EGP", and with a minimum "10 at 2 EGP · min. 10"
 export function priceDetail(line, c) {
   const packs = packsNeeded(line, c);
-  return c.pack > 1 ? `${packs} pack${packs === 1 ? "" : "s"} of ${c.pack} at ${money(c.price)}` : `${money(c.price)} each`;
+  const rule = buyRule(c);
+  if (c.pack > 1) return `${packs} pack${packs === 1 ? "" : "s"} of ${c.pack} at ${money(c.price)}${rule ? ` · ${rule}` : ""}`;
+  return rule ? `${packs} at ${money(c.price)} · ${rule}` : `${money(c.price)} each`;
 }
 
 // a click on a modal dialog's dimmed backdrop, not in its padding

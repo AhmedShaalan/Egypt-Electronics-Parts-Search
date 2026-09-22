@@ -3,7 +3,7 @@
 
 // A result: one shop's offer, or a card with the same product at several shops.
 
-import { money, safeUrl, key } from "../common.js";
+import { money, safeUrl, key, buyRule } from "../common.js";
 import { plural, num } from "../format.js";
 import { COPY_FORMATS, copy, copyText } from "../copy.js";
 import { cartLink } from "../cart.js";
@@ -19,6 +19,7 @@ function Price({ p }) {
     <div class="s-price">
       <span class="s-price-main">{p.old_price ? <s>{num(p.old_price)}</s> : null}<b>{money(p.price)}</b></span>
       {p.pack > 1 && <small>pack of {p.pack} · {money(p.unit_price)} each</small>}
+      {buyRule(p) && <small class="s-rule">{buyRule(p)}</small>}
     </div>
   );
 }

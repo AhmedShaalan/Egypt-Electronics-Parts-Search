@@ -288,7 +288,12 @@ export async function priceList(text, onProgress) {
 // "close" = within 25 points of the best match for that line: L7805CV still counts for LM7805,
 // but accessories (ranked 30+ points lower) don't win on price
 export const isClose = (line, c) => c.score >= Math.max(...line.candidates.map((x) => x.score)) - 25;
-export const packsNeeded = (line, c) => Math.ceil(line.qty / (c.pack || 1));
+// how many to buy: enough packs for the quantity, and at least what the shop's cart takes
+// when it has a minimum or sells in multiples ("order in tens")
+export function packsNeeded(line, c) {
+  const { minimum = 1, multiple_of = 1 } = c.cart_rules || {};
+  return Math.max(minimum, Math.ceil(Math.ceil(line.qty / (c.pack || 1)) / multiple_of) * multiple_of);
+}
 export const lineCost = (line, c) => packsNeeded(line, c) * c.price;
 
 // the default pick per line (an index into its candidates, -1 for none): among the closest

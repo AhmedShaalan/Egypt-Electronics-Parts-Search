@@ -56,6 +56,8 @@ function product(p) {
     price: p.price,
     ...(p.old_price ? { old_price: p.old_price } : {}),
     ...(p.pack > 1 ? { pack: p.pack, unit_price: p.unit_price } : {}),
+    // the shop's cart won't take fewer, or amounts between multiples
+    ...(p.cart_rules ? { min_order: p.cart_rules.minimum, sold_in_multiples_of: p.cart_rules.multiple_of } : {}),
     match: p.score >= STRONG ? "strong" : "weak",
     url: p.url,
   };
@@ -118,7 +120,8 @@ server.registerTool(
     description:
       "Price a whole parts list, one part per line, with an optional quantity (\"LM7805 x2\", \"2x LM7805\", " +
       "\"LM7805, 2\", \"2pcs LM7805\"). For each line it picks the cheapest close match for the quantity " +
-      "(counting packs), then totals the cheapest mix of shops and what each shop alone would cost. " +
+      "(counting packs and each shop's minimum order), then totals the cheapest mix of shops and what each " +
+      "shop alone would cost. " +
       `At most 40 lines. A 10-part list takes up to a minute.`,
     inputSchema: {
       list: z.string().min(1).max(10_000).describe("The parts list, one part per line"),
