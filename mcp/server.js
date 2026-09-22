@@ -57,6 +57,8 @@ function product(p) {
     ...(p.old_price ? { old_price: p.old_price } : {}),
     ...(p.pack > 1 ? { pack: p.pack, unit_price: p.unit_price } : {}),
     // the shop's cart won't take fewer, or amounts between multiples
+    // sold in several colours or sizes, chosen on the shop's page
+    ...(p.options ? { choose: p.options.what, choices: p.options.values } : {}),
     ...(p.cart_rules ? { min_order: p.cart_rules.minimum, sold_in_multiples_of: p.cart_rules.multiple_of } : {}),
     match: p.score >= STRONG ? "strong" : "weak",
     url: p.url,

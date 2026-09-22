@@ -10,6 +10,7 @@ import { weakReason } from "../../matching.js";
 import { goodFor } from "../../plans.js";
 import { cheapestGood, weakCheaper, isPick } from "../../list-model.js";
 import { money, safeUrl, priceDetail, NO_AUTOFILL } from "../common.js";
+import { choices } from "../format.js";
 import { Thumb } from "../components.jsx";
 import { ExtIcon } from "../icons.jsx";
 import { store, set } from "./state.js";
@@ -67,7 +68,7 @@ export function Offers({ r, c, filter }) {
         <input type="radio" class="l-pick sr-only" name={`pick-${r.id}`} checked={x === c}
           aria-label={`${x.name} at ${x.shop_name}, ${money(lineCost(line, x))}`} onClick={() => choose(r.id, i)} onKeyDown={moveAmong} />
         <span class="l-pname"><Thumb class="l-thumb" p={x} big />
-          <span class="l-pname-text">{x.name}<small class="num">{priceDetail(line, x)}</small>
+          <span class="l-pname-text">{x.name}<small class="num">{priceDetail(line, x)}{x.options ? ` · ${choices(x)}` : ""}</small>
             <small class="l-shop-inline">{x.shop_name}{x.cart ? "" : " · order on their site"}</small>
             {goodFor(line, x) ? null : <small class="l-note">{weakReason(r.query, x.name)}</small>}</span>
         </span>

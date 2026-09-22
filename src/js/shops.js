@@ -86,6 +86,17 @@ class WooShop extends Shop {
     return JSON.parse(text.replace(/[\u0000-\u001f]/g, " "));
   }
 
+  // a product sold in several colours or sizes, each picked on the shop's page: what's chosen
+  // ("colour", "number of pins"), and the choices it's sold in now ("Blue", "Green"); null for none
+  choices(variations) {
+    if (!variations?.length) return null;
+    const names = [...new Set(variations.flatMap((v) => v.attributes.map((a) => cleanName(a.name).toLowerCase())))];
+    const values = [...new Set(variations.map((v) => v.attributes.map((a) => cleanName(a.value)).join(" / ")))];
+    if (values.length < 2) return null;
+    const what = names.every((n) => /colou?r/.test(n)) ? "colour" : names.join(" / ").replace(/\s*\(.*?\)/g, "");
+    return { what, values };
+  }
+
   product(d) {
     const prices = d.prices;
     const unit = 10 ** Number(prices.currency_minor_unit ?? 2);
@@ -95,6 +106,7 @@ class WooShop extends Shop {
     if (image && this.imageCdn) image = this.imageCdn(image);
     // some products are only sold in multiples ("order in tens"); the cart refuses other amounts
     const { minimum = 1, multiple_of = 1 } = d.add_to_cart || {};
+    const options = this.choices(d.variations);
     return {
       shop: this.key,
       ref: String(d.id),
@@ -107,6 +119,7 @@ class WooShop extends Shop {
       // a product with options (a variable product) needs one picked on the shop's page first
       cart: d.type === "simple" && d.is_purchasable !== false,
       ...(minimum > 1 || multiple_of > 1 ? { cart_rules: { minimum, multiple_of } } : {}),
+      ...(options ? { options } : {}),
     };
   }
 

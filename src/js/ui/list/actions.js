@@ -174,13 +174,15 @@ export const priceSavedList = list => priceWithFees(list, store.state.fees);
 
 /* ---------- ordering ---------- */
 
+// " (choose colour: Blue, Green)" after a product sold in several, for the shop to ask which
+const toChoose = p => (p.options ? ` (choose ${p.options.what}: ${p.options.values.join(", ")})` : "");
 const partsCost = entries => entries.reduce((sum, e) => sum + lineCost(e.line, e.product), 0);
 
 // a shop's part of the order, to send them or keep: headed by the shop's name, underlined, so a
 // copy pasted elsewhere still says where it's from. Its total is the shop's on the page: the parts
 // and the delivery fee set for it, which is an estimate (~).
 export const orderMessage = (shopName, entries, fee) => `${shopName}\n${"-".repeat(shopName.length)}\n`
-  + `${entries.map(e => `- ${packsNeeded(e.line, e.product)} × ${e.product.name}`).join("\n")}\n\n`
+  + `${entries.map(e => `- ${packsNeeded(e.line, e.product)} × ${e.product.name}${toChoose(e.product)}`).join("\n")}\n\n`
   + `Parts: ${money(partsCost(entries))}\nDelivery: ~${money(fee)}\nTotal: ~${money(partsCost(entries) + fee)}`;
 
 // the whole order: each shop's part as above, then all of it, the order's total on the page.

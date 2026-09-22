@@ -4,7 +4,7 @@
 // A result: one shop's offer, or a card with the same product at several shops.
 
 import { money, safeUrl, key, buyRule } from "../common.js";
-import { plural, num } from "../format.js";
+import { plural, num, choices } from "../format.js";
 import { COPY_FORMATS, copy, copyText } from "../copy.js";
 import { cartLink } from "../cart.js";
 import { isSaved, toggleSave } from "../saved.js";
@@ -41,6 +41,7 @@ export function Offer({ p, mode, cheapest, reason, flash }) {
   const chips = <>
     {cheapest && <span class="s-chip pick">Cheapest</span>}
     {p.old_price ? <span class="s-chip sale">Sale</span> : null}
+    {p.options && <span class="s-chip soft" title={`Choose the ${p.options.what} on their site: ${p.options.values.join(", ")}`}>{choices(p)}</span>}
     {reason && <span class="s-chip bad">{reason}</span>}
   </>;
   return (

@@ -7,7 +7,7 @@ import { SHOPS, SHOPS_BY_KEY } from "../../shops.js";
 import { lineCost } from "../../search.js";
 import { MAX_QTY, isPick, pendingShops, held } from "../../list-model.js";
 import { money, safeUrl, priceDetail } from "../common.js";
-import { plural } from "../format.js";
+import { plural, choices } from "../format.js";
 import { Thumb, Menu, NumField, memo } from "../components.jsx";
 import { Chevron, ExtIcon, PenIcon, TrashIcon } from "../icons.jsx";
 import { set } from "./state.js";
@@ -102,7 +102,7 @@ export const Row = memo(({ r, c, open, flash, filter }) => {
         <Thumb class="l-thumb" p={c} />
         <span class="l-product-text">
           <span class="l-product-name">{c.name}</span>
-          <span class="l-product-meta"><span class="l-shop">{c.shop_name}</span> · {priceDetail(r.line, c)}</span>
+          <span class="l-product-meta"><span class="l-shop">{c.shop_name}</span> · {priceDetail(r.line, c)}{c.options ? ` · ${choices(c)}` : ""}</span>
         </span>
         <span class="l-chip soft l-count">{plural(n, "offer")}</span><Chevron class="l-chev" />
       </button>

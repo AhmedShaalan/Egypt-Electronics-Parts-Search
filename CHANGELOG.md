@@ -5,6 +5,7 @@ What changed on [parts.ahmedshaalan.com](https://parts.ahmedshaalan.com/), newes
 ## 2.0.0 · 2026-09-22
 
 ### Added
+- A product sold in several colours or options says so: "2 colours" or "3 options" beside it in Search and on a parts list row, with the choices on hover in Search. A shop's order copied as a message names them ("choose colour: Blue, Green") so the shop knows to ask.
 - Parts list: "Copy all" on the order copies every shop's order as one message, with what the parts come to.
 - Search one shop: pick it in the search box. The other shops are listed as not searched, and ticking one searches it too. The link it makes opens the same search.
 - A shop: Mechatronx (17 in total). Products it sells in several values, like a resistor in 88 values, are searched one value at a time, so "10k resistor" finds the 10k one in stock.

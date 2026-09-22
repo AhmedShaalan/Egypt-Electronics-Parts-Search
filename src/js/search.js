@@ -381,6 +381,7 @@ export function saveItem(p) {
       // whether its shop's cart can take it from a link, as in the search results
       ...(p.cart ? { cart: true } : {}),
       ...(p.cart_rules ? { cart_rules: p.cart_rules } : {}),
+      ...(p.options ? { options: p.options } : {}),
       saved_price: p.price,
       price: p.price,
       in_stock: true,
