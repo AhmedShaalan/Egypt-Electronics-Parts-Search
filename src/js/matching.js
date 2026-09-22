@@ -209,13 +209,15 @@ export function searchVariants(query) {
   const variants = [tidy];
   // WooCommerce matches several words as one phrase, so "Mini360 buck converter" misses
   // "Mini360 DC-DC Buck Converter". The model number alone finds it; one with a segment
-  // the shop doesn't write gets trimmed too (XKC-Y25-NPN -> XKC-Y25).
+  // the shop doesn't write gets trimmed too (XKC-Y25-NPN -> XKC-Y25). A bare number works the
+  // same way: "5010 fan" misses "5010 Cooling Fan".
+  const bare = (w) => /^\d{3,}$/.test(w);
   const model = tidy
     .split(/\s+/)
     .map((w) => w.replace(/^[^0-9a-z]+|[^0-9a-z]+$/g, "")) // "(t5x20mm)" -> "t5x20mm"
-    .filter((w) => hasLetter(w) && hasDigit(w) && w.length >= 4)
-    // a part number or size before a value: t5x20mm, not 0.25a
-    .sort((a, b) => VALUE.test(a) - VALUE.test(b) || b.length - a.length)[0];
+    .filter((w) => (hasLetter(w) && hasDigit(w) && w.length >= 4) || bare(w))
+    // a part number or size, then a bare number, then a value: t5x20mm, not 0.25a
+    .sort((a, b) => VALUE.test(a) - VALUE.test(b) || bare(a) - bare(b) || b.length - a.length)[0];
   if (model) {
     if ((model.match(/-/g) || []).length >= 2) variants.push(model.slice(0, model.lastIndexOf("-")));
     variants.push(model);
