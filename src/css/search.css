@@ -118,6 +118,8 @@
 /* a search's results rise in once; ones added as more shops answer are left still */
 .s-cards, .s-flat { animation: s-rise .2s ease-out; }
 .s-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); position: relative; }
+/* not the padding of a panel (components.css), which shares the name */
+.s-cards > .s-card { padding: 0; }
 .s-card.open { border-color: var(--raised-border); box-shadow: 0 4px 16px rgb(0 0 0 / .06); }
 .s-card:has(details[open]), .s-offer:has(details[open]) { z-index: 20; }
 .s-card.flash, .s-offer.flash { animation: s-flash 1.4s ease-out; }
