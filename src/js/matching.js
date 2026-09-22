@@ -40,6 +40,15 @@ const longestDigitRun = (s) => (s.match(/\p{Nd}+/gu) || []).reduce((a, b) => (b.
 // the digits written before a part number's letters: "1" in 1n5401. They say what the part is
 // (1N is a diode, 2N a transistor), so two names that both have them must agree.
 const leadOf = (t, core) => t.match(new RegExp(`(\\d+)[a-z]+${core}`))?.[1];
+// A diode's number (1N…) is also a transistor's under other letters: MMBT5401 is a 2N5401, not a
+// 1N5401. So a diode's number only matches under its own letters, or none, IN for 1N, or LL for
+// the small glass one (LL4148 is a 1N4148).
+function sameFamily(t, nt, core) {
+  const want = t.slice(0, t.indexOf(core));
+  const has = nt.slice(0, nt.indexOf(core));
+  if (!/^1[a-z]+$/.test(want) || !has) return true;
+  return has.endsWith(want) || has.endsWith(`i${want.slice(1)}`) || has === "ll";
+}
 
 // "12 V", "250 mA", "10 k" -> "12v", "250ma", "10k", the way shops write values
 const UNIT_GAP = /(\d)\s+(v|mv|a|ma|mah|ah|w|kw|ohm|kohm|k|uf|nf|pf|mm|hz|khz|mhz)(?![0-9a-z])/g;
@@ -114,7 +123,7 @@ function tokenWeight(t, nameTokens, nameCompact) {
   if (hasLetter(t) && hasDigit(t) && !VALUE.test(t)) {
     const core = longestDigitRun(t);
     const lead = leadOf(t, core);
-    const fits = (nt) => !MEASURE.test(nt) && foundIn(core, nt) && !(lead && leadOf(nt, core) && leadOf(nt, core) !== lead);
+    const fits = (nt) => !MEASURE.test(nt) && foundIn(core, nt) && !(lead && leadOf(nt, core) && leadOf(nt, core) !== lead) && sameFamily(t, nt, core);
     if (core.length >= 3 && nameTokens.some(fits)) return 0.8; // lm7805 ~ l7805cv
   }
   if (t.length >= 3 && foundIn(compactText(t), nameCompact.text, nameCompact.starts)) return 0.6;

@@ -38,6 +38,7 @@ What changed on [parts.ahmedshaalan.com](https://parts.ahmedshaalan.com/), newes
 
 ### Fixed
 - A part number's digits no longer match the same digits in a measurement: TIP120 isn't a 120 ohm resistor or a 120 W power supply, IRF530N isn't a 530 nm LED, and Mini360 isn't a 360 W supply.
+- A diode's number (1N5401) no longer matches a transistor with the same digits under other letters (MMBT5401). IN5401 and LL4148 still count as 1N parts.
 - A search with a bare number and words, like "5010 fan", also asks the shops for the number alone, so it finds "5010 Cooling Fan" at shops whose search wants the words together. Before, it found nothing while "5010" alone found the fans.
 - A product whose name gives its wire count, like a "3-wire" fan, is no longer taken for a wire and marked as an accessory.
 - A search for a 1N part (a diode, like 1N5401) no longer matches the 2N part with the same number (a transistor, 2N5401), and the other way round. The same goes for any part number that starts with digits and letters. The MCP server matches the same way.
