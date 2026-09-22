@@ -357,6 +357,24 @@ class MyShop extends Shop {
 
 `ref` is any string your connector can use to look the product up again, such as an ID, slug or handle.
 
+## Commits
+
+One change per commit, with a short subject and, when there's more to say, a few bullets:
+
+```
+feat(list): add delivery fees to totals
+
+- one fee for any shop, plus your own per shop
+- kept in the browser, included in Back up
+```
+
+The subject is `type(area): what changed`, under 60 characters, written as a command ("add", not "added").
+
+- **Type:** `feat` (something new a visitor can do), `fix`, `style` (looks only), `refactor` (same behaviour), `docs`, `build`, `seo`, `chore`.
+- **Area:** `search`, `list`, `saved`, `shops`, `ai`, `about`, `mcp`, `worker`, `matching`, `site`. Leave it out when the change spans the whole site.
+
+What changed for visitors, in plain words, goes in [CHANGELOG.md](CHANGELOG.md).
+
 ## Configuration
 
 | Setting | Where | Default |
