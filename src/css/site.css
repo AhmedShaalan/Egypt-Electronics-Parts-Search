@@ -92,6 +92,8 @@ header nav a {
   text-decoration: none; padding: 14px 10px 12px; color: var(--muted);
   border-bottom: 2px solid transparent; font-weight: 500; white-space: nowrap;
 }
+header nav a:has(.tab-icon) { display: inline-flex; align-items: center; gap: 5px; }
+.tab-icon { width: 16px; height: 16px; margin-bottom: 1px; color: var(--star); }
 header nav a:hover { color: var(--text); border-color: var(--border); }
 header nav a.active { color: var(--text); border-color: var(--accent); }
 .icons { display: flex; align-items: center; gap: 2px; margin-right: -6px; }
