@@ -15,7 +15,7 @@ What changed on [parts.ahmedshaalan.com](https://parts.ahmedshaalan.com/), newes
 - A part removed from a parts list, and a saved item or list removed, folds away instead of vanishing.
 - All of it is off when the device is set to reduce motion.
 - Search: the cart button of a product with colours or options lists them, and the one chosen goes in the shop's cart. Ones out of stock can't be chosen.
-- Parts list: "Copy all" on the order copies every shop's order as one message, with what the parts come to.
+- Parts list: "Copy all" on the order copies every shop's order as one message, with what the parts come to. "Copy the order" under My lists copies the same message from the top of the page.
 - Search one shop: pick it in the search box. The other shops are listed as not searched, and ticking one searches it too. The link it makes opens the same search.
 - A shop: Mechatronx (17 in total). Products it sells in several values, like a resistor in 88 values, are searched one value at a time, so "10k resistor" finds the 10k one in stock.
 - Search results can be grouped by product: with "By product", the same part at different shops is one card, cheapest first, with every shop's offer inside. Only close matches are merged (the package, values like 5V or 1/4W, model codes like S3 or 30-pin, and the pack size must agree, and prices far apart stay apart); anything unsure stays on its own. "Every offer", the list of every shop's offers, is still the default.
@@ -31,7 +31,7 @@ What changed on [parts.ahmedshaalan.com](https://parts.ahmedshaalan.com/), newes
 - Parts list: choose how to buy. Best overall (parts plus delivery), Cheapest parts, any shop, or Fewest shops, and Your picks once you choose a product yourself. When a part is at a pricier shop to save a delivery, its offers say so, and rows the plan moves to another shop light up.
 - Parts list: delivery fees, one for any shop and your own figure for the shops you know, kept in the browser and counted in every total.
 - Parts list: the order as one basket per shop, with "Fill cart at …" or, for shops whose cart can't be filled from here, "Copy as message" for their WhatsApp or order form.
-- Parts list: the list has a name and says when it has unsaved changes; "My lists" switches between saved lists, starts a new one or copies it as text. Quantities have + and − buttons, a removed row has Undo, and a shop that didn't answer can be asked again for every part at once. The list on the tab is kept when the page is reloaded. Leaving the tab or closing the page with unsaved changes asks first.
+- Parts list: the list has a name and says when it has unsaved changes; "My lists" switches between saved lists, starts a new one or copies the order. Quantities have + and − buttons, a removed row has Undo, and a shop that didn't answer can be asked again for every part at once. The list on the tab is kept when the page is reloaded. Leaving the tab or closing the page with unsaved changes asks first.
 - An About tab: why the site exists, how a search runs, what's kept and counted, what it can't do yet, common questions, short terms of use and credits.
 - Shops: find a shop by name, and show only those whose cart can be filled from here.
 - AI: the setup steps change to match the app (Claude Code, Claude Desktop, Cursor or another) and the computer picked, with a check after each step, questions to try, fixes for the usual problems, and how to update or remove it.

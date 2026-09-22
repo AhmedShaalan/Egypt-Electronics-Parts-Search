@@ -148,17 +148,26 @@ function Total({ plan, children }) {
   </>;
 }
 
-export function Order({ s, plans, strategy, plan }) {
-  const empty = !s.rows.length;
-  const okRows = s.rows.filter(priced);
-  const missing = okRows.filter(r => !plan?.assign.has(r.id)).length;
+// What the plan buys at each shop, the shops whose cart can be filled first: [shop key, entries].
+// The order panel shows them, and both ways of copying the order go through them.
+export function basketsOf(rows, plan) {
   const byShop = new Map();
-  for (const r of okRows) {
+  for (const r of rows.filter(priced)) {
     const c = plan?.assign.get(r.id);
     if (c) byShop.set(c.shop, [...(byShop.get(c.shop) || []), { row: r, line: r.line, product: c }]);
   }
   const canFill = ([k, es]) => cartShop(k) && es.some(e => e.product.cart);
-  const baskets = [...byShop].sort((a, b) => canFill(b) - canFill(a) || b[1].length - a[1].length);
+  return [...byShop].sort((a, b) => canFill(b) - canFill(a) || b[1].length - a[1].length);
+}
+
+// every shop's order as one message, with the delivery fees set here
+export const orderText = (baskets, fees) => wholeOrderMessage(baskets.map(([k, es]) => [SHOPS_BY_KEY[k].name, es, deliveryFee(fees, k)]));
+
+export function Order({ s, plans, strategy, plan }) {
+  const empty = !s.rows.length;
+  const okRows = s.rows.filter(priced);
+  const missing = okRows.filter(r => !plan?.assign.has(r.id)).length;
+  const baskets = basketsOf(s.rows, plan);
   const notes = [missing && `${plural(missing, "part")} not counted`].filter(Boolean);
   return (
     <aside class="l-order" id="order" aria-label="Order">
@@ -180,10 +189,10 @@ export function Order({ s, plans, strategy, plan }) {
       </div>
       <div class="l-panel">
         <div class="l-panel-head">
-          <h2>Your order{byShop.size ? ` · ${plural(byShop.size, "shop")}` : ""}</h2>
+          <h2>Your order{baskets.length ? ` · ${plural(baskets.length, "shop")}` : ""}</h2>
           {baskets.length
             ? <button class="btn small" type="button" title="Copy every shop's order as one message"
-                onClick={() => copy(wholeOrderMessage(baskets.map(([k, es]) => [SHOPS_BY_KEY[k].name, es, deliveryFee(s.fees, k)])))}><CopyIcon />Copy all</button>
+                onClick={() => copy(orderText(baskets, s.fees))}><CopyIcon />Copy all</button>
             : null}
         </div>
         {baskets.length

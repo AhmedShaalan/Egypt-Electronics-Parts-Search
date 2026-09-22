@@ -6,19 +6,22 @@
 
 import { useRef } from "preact/hooks";
 import { SHOPS, SHOPS_BY_KEY } from "../../shops.js";
-import { priced, listText } from "../../list-model.js";
+import { priced } from "../../list-model.js";
 import { NO_AUTOFILL } from "../common.js";
 import { plural } from "../format.js";
 import { copy } from "../copy.js";
 import { currentSaved, partCount } from "../saved.js";
 import { Menu } from "../components.jsx";
 import { Chevron, CopyIcon, PlusIcon } from "../icons.jsx";
-import { set, isDirty, isSavedList } from "./state.js";
+import { set, plansNow, isDirty, isSavedList } from "./state.js";
+import { basketsOf, orderText } from "./order.jsx";
 import { failedShops, lateShops, retryShops } from "./pricing.js";
 import { addText, save, openSavedList, startNewList } from "./actions.js";
 
 export function Head({ s }) {
   const lists = currentSaved().lists;
+  // the same message as Copy all on the order
+  const baskets = basketsOf(s.rows, plansNow().plan);
   const dirty = isDirty();
   const saved = isSavedList();
   const label = !s.rows.length && !saved ? null : !saved ? "Not saved" : dirty ? "Unsaved changes" : "Saved";
@@ -37,7 +40,7 @@ export function Head({ s }) {
           ))}
           {lists.length ? <hr /> : null}
           <button type="button" role="menuitem" onClick={startNewList}><PlusIcon />New list</button>
-          <button type="button" role="menuitem" disabled={!s.rows.length} onClick={() => copy(listText(s.rows))}><CopyIcon />Copy as text</button>
+          <button type="button" role="menuitem" disabled={!baskets.length} onClick={() => copy(orderText(baskets, s.fees))}><CopyIcon />Copy the order</button>
         </Menu>
       </div>
     </div>
