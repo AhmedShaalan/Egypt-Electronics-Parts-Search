@@ -33,13 +33,13 @@ export function toast(msg, action) {
 // a product's key, the same in every shop's results
 export { productKey as key } from "../list-model.js";
 
-// what the shop's cart insists on: "min. 10", "in 5s" or "min. 10, in 5s"; "" for none
+// what the shop's cart insists on: "min qty 10", "sold in 5s" or "min qty 10, sold in 5s"; "" for none
 export function buyRule(c) {
   const { minimum = 1, multiple_of = 1 } = c.cart_rules || {};
-  return [minimum > 1 && `min. ${minimum}`, multiple_of > 1 && `in ${multiple_of}s`].filter(Boolean).join(", ");
+  return [minimum > 1 && `min qty ${minimum}`, multiple_of > 1 && `sold in ${multiple_of}s`].filter(Boolean).join(", ");
 }
 
-// "4 EGP each", for a pack "2 packs of 10 at 5 EGP", and with a minimum "10 at 2 EGP · min. 10"
+// "4 EGP each", for a pack "2 packs of 10 at 5 EGP", and with a minimum "10 at 2 EGP · min qty 10"
 export function priceDetail(line, c) {
   const packs = packsNeeded(line, c);
   const rule = buyRule(c);
