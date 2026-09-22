@@ -3,9 +3,9 @@
 
 // A part on the list: its quantity, what the plan buys for it and at what cost, and its offers.
 
-import { SHOPS } from "../../shops.js";
+import { SHOPS, SHOPS_BY_KEY } from "../../shops.js";
 import { lineCost } from "../../search.js";
-import { MAX_QTY, isPick, pendingShops } from "../../list-model.js";
+import { MAX_QTY, isPick, pendingShops, held } from "../../list-model.js";
 import { money, safeUrl, priceDetail } from "../common.js";
 import { plural } from "../format.js";
 import { Thumb, Menu, NumField, memo } from "../components.jsx";
@@ -41,6 +41,33 @@ function RowMenu({ r, c }) {
 // a product chosen by hand says so; why the plan took a pricier one is under the offers (Why)
 const PickChip = ({ r, c }) => (isPick(r, c) ? <span class="l-chip pick">Your pick</span> : null);
 
+// A pick the search didn't find (list-model.js pickState): still the row's product, shown with
+// what its shop said, and not bought until another is chosen.
+const HELD = {
+  waiting: ["pick", "Your pick", shop => `Waiting for ${shop}`],
+  checking: ["pick", "Your pick", shop => `Asking ${shop} about it`],
+  out: ["warn", "Out of stock", shop => `Out of stock at ${shop}`],
+  gone: ["bad", "No longer sold", shop => `${shop} no longer sells it`],
+  unknown: ["warn", "Couldn't check", shop => `${shop} didn't answer`],
+};
+function Held({ r, n, open, toggle }) {
+  const shop = SHOPS_BY_KEY[r.pinKey.split("|")[0]]?.name ?? "Its shop";
+  const [, , say] = HELD[r.pickState] || HELD.checking;
+  const busy = r.pickState === "waiting" || r.pickState === "checking";
+  return (
+    <div class="l-product held">
+      {r.pick ? <Thumb class="l-thumb" p={r.pick} /> : null}
+      <span class="l-product-text">
+        <span class="l-product-name">{r.pick?.name ?? `Your pick at ${shop}`}</span>
+        <span class="l-product-meta">
+          {busy ? <span class="s-bar-anim" /> : null}{say(shop)}{busy ? "…" : " · not in the total"}
+          {n && !busy ? <> · <button class="s-linkbtn" type="button" aria-expanded={open} onClick={toggle}>Choose another</button></> : null}
+        </span>
+      </span>
+    </div>
+  );
+}
+
 // `c` is the product the plan buys for the row, `open` whether its offers show, `flash` whether
 // it just changed. It's drawn again only when one of those changed.
 export const Row = memo(({ r, c, open, flash, filter }) => {
@@ -57,6 +84,10 @@ export const Row = memo(({ r, c, open, flash, filter }) => {
   } else if (r.status === "error") {
     chip = <span class="l-chip bad">Not searched</span>;
     product = <div class="l-product empty">Couldn't search: {r.error} <button class="s-linkbtn" type="button" onClick={() => price([r.id])}>Try again</button></div>;
+  } else if (held(r)) {
+    const [cls, label] = HELD[r.pickState] || HELD.checking;
+    chip = <span class={`l-chip ${cls}`}>{label}</span>;
+    product = <Held r={r} n={n} open={open} toggle={toggle} />;
   } else if (!c) {
     chip = <span class="l-chip bad">{n ? "Check match" : "Not found"}</span>;
     const msg = n ? "Only look-alikes found. Open them to pick one yourself, or try a part number." : "No shop has this in stock. Try another name or a part number.";
@@ -82,15 +113,13 @@ export const Row = memo(({ r, c, open, flash, filter }) => {
   if (late.length) {
     product = <div class="l-prod">{product}<span class="l-late-note"><span class="s-bar-anim" />Waiting for {late.map(x => x.name).sort().join(", ")}</span></div>;
   }
-  const gone = r.pickGone && r.pin == null
-    ? <span class="l-chip warn" title="The product chosen for this part is sold out or gone, so the plan chose again">Your pick is gone</span> : null;
   return (
     <div class={`l-row${flash ? " flash" : ""}${open ? " open" : ""}`} data-row={r.id}>
       <div class="l-row-main">
         <Qty r={r} />
-        <div class="l-name-line"><span class="l-part" title={r.query}>{r.query}</span>{chip}{gone}</div>
+        <div class="l-name-line"><span class="l-part" title={r.query}>{r.query}</span>{chip}</div>
         <div class="l-cost num">{cost ?? "—"}</div>
-        <div class="l-acts"><RowMenu r={r} c={c} /></div>
+        <div class="l-acts"><RowMenu r={r} c={c || (held(r) && r.pick ? { ...r.pick, shop_name: SHOPS_BY_KEY[r.pick.shop]?.name } : null)} /></div>
         {product}
       </div>
       {open && n ? <Offers r={r} c={c} filter={filter} /> : null}

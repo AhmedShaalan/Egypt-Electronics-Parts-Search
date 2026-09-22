@@ -127,7 +127,7 @@ Two tabs, **Starred items** and **Parts lists**; the page opens on the one you u
 
 **Parts lists** are cards with each list's first parts, its total and from how many shops. **Update prices** prices one list or all of them again, and each card shows how its total moved; **changed since** means parts were added after it was priced. The ⋯ menu opens, renames, duplicates, copies or deletes a list.
 
-Opening a saved list shows it on the **Parts list** tab and prices it again. The products you chose are kept with the list and chosen again when you open it; if one is sold out or gone, its row says **Your pick is gone** and the plan chooses again. A saved list's total includes delivery, using the plan it would be bought with.
+Opening a saved list shows it on the **Parts list** tab and prices it again. The products you chose are kept with the list and chosen again when you open it. If the search doesn't find one any more, its shop is asked about it: one still for sale stays your pick, and one **Out of stock** or **No longer sold**, or at a shop that didn't answer (**Couldn't check**), stays on its row, faded, with **Choose another**, and isn't counted in the total until you do. A saved list's total includes delivery, using the plan it would be bought with.
 
 Saved items live in your browser's storage, so they're private to that browser and device. Clearing site data or using a private window removes them: **Back up** downloads them as a file, with your delivery fees, and **Restore** adds a backup's items and lists back. It takes the backup's delivery fees only if this browser has none of its own set.
 

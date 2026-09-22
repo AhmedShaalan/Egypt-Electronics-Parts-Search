@@ -108,6 +108,10 @@ button.l-product:hover { border-color: var(--border); }
 button.l-product[aria-expanded="true"] { border-color: var(--accent); }
 .l-product[aria-expanded="true"] .l-chev { transform: rotate(180deg); }
 .l-product.empty { color: var(--muted); font-size: 13px; padding: 10px; display: block; }
+/* a pick that can't be bought now: shown, faded, with what its shop said */
+.l-product.held .l-thumb, .l-product.held .l-product-name { opacity: .55; }
+.l-product.held .l-product-meta { display: flex; align-items: center; gap: 6px; }
+.l-product.held .s-bar-anim { width: 40px; }
 button.l-product.empty { display: flex; }
 .l-product-text { flex: 1; min-width: 0; display: grid; }
 .l-product-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

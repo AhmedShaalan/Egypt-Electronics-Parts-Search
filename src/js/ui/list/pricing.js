@@ -6,7 +6,7 @@
 
 import { SHOPS_BY_KEY } from "../../shops.js";
 import { searchAll, fetchShop, mergeShop } from "../../search.js";
-import { priced, unpriced, pendingShops, withResult } from "../../list-model.js";
+import { priced, unpriced, pendingShops, settling, withResult, checkPick, withPick } from "../../list-model.js";
 import { toast, announce } from "../common.js";
 import { plural } from "../format.js";
 import { store, set, change, flashRows, rowById } from "./state.js";
@@ -53,7 +53,10 @@ async function priceRow(r, run, free) {
   // removed, changed to another part or another list opened meanwhile
   const gone = () => run !== listRun || ctl.signal.aborted || rowById(r.id)?.query !== r.query;
   // other rows may move to another shop once this one is priced; they light up, without a message
-  const show = result => change(s => ({ rows: s.rows.map(x => (x.id === r.id ? withResult(x, result) : x)) }));
+  const show = result => { change(s => ({ rows: s.rows.map(x => (x.id === r.id ? withResult(x, result) : x)) })); settlePick(r.id); };
+  // a part with a product chosen by hand waits for that product's shop
+  const pickShop = r.pinKey?.split("|")[0];
+  const pickPending = partial => !!pickShop && !!partial.shops.find(s => s.key === pickShop)?.pending;
   let shown = false;
   setRow({ status: "searching", done: 0, error: "" });
   try {
@@ -62,7 +65,7 @@ async function priceRow(r, run, free) {
       onProgress: (done, total, partial) => {
         if (gone()) return;
         if (shown) show(partial); // a slow shop answered
-        else if (total - done <= LATE) { shown = true; show(partial); flashRows([r.id]); free(); }
+        else if (total - done <= LATE && !pickPending(partial)) { shown = true; show(partial); flashRows([r.id]); free(); }
         else setRow({ done });
       },
     });
@@ -74,6 +77,21 @@ async function priceRow(r, run, free) {
   } finally {
     if (cancels.get(r.id) === ctl) cancels.delete(r.id);
   }
+}
+
+// A pick the search didn't find: its shop is asked about it (list-model.js checkPick). It stays
+// chosen either way; the row then shows it, in stock or not.
+const asking = new Set(); // "row id|shop|ref" of the picks being asked about
+async function settlePick(id) {
+  const r = rowById(id);
+  const job = `${id}|${r?.pinKey}`;
+  if (r?.pickState !== "checking" || asking.has(job)) return;
+  const run = listRun;
+  asking.add(job);
+  const found = await checkPick(r.pinKey, r.pick).finally(() => asking.delete(job));
+  const now = rowById(id);
+  if (run !== listRun || now?.pickState !== "checking" || now.pinKey !== r.pinKey || now.query !== r.query) return;
+  change(s => ({ rows: s.rows.map(x => (x.id === id ? withPick(x, found) : x)) }));
 }
 
 // stops a row's search, when it's removed or changed to another part
@@ -106,7 +124,7 @@ export function failedShops() {
 // for parts already showing prices, and whether the total is final
 export function progress() {
   const n = store.state.rows.length;
-  const settled = store.state.rows.filter(r => !unpriced(r)).length;
+  const settled = store.state.rows.filter(r => !unpriced(r) && !settling(r)).length;
   const late = lateShops();
   return { n, settled, late, final: settled === n && !late.length };
 }
@@ -136,6 +154,7 @@ export async function retryShops() {
         const fetched = await fetchShop(query, shop);
         if (run !== listRun) return;
         change(s => ({ rows: s.rows.map(r => (priced(r) && r.query === query ? withResult(r, mergeShop(r.result, fetched)) : r)) }));
+        for (const r of store.state.rows) if (r.query === query) settlePick(r.id);
       } catch { /* still failing: it stays on the list of shops that didn't answer */ }
     }
   };

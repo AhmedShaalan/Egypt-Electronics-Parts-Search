@@ -432,9 +432,11 @@ export async function refreshItems(onProgress) {
   return { items: getSaved().items, failed };
 }
 
-// `picks` keeps the products chosen instead of the cheapest: { part name: "shop|ref" }.
-// `total` and `shops` are what it cost and from how many shops when it was priced.
-export function saveList(name, text, total, picks = {}, shops = null) {
+// `picks` keeps the products chosen instead of the cheapest: { part name: "shop|ref" }, and
+// `pickItems` what they were: { "shop|ref": { name, url, price, … } }, to show one the shop
+// no longer lists under the part's name. `total` and `shops` are what it cost and from how
+// many shops when it was priced.
+export function saveList(name, text, total, picks = {}, shops = null, pickItems = {}) {
   if (!text.trim()) throw new Error("The list is empty");
   const data = load();
   const t = now();
@@ -443,6 +445,7 @@ export function saveList(name, text, total, picks = {}, shops = null) {
     name: name.trim().slice(0, 80) || "Parts list",
     text,
     picks,
+    pick_items: pickItems,
     saved_total: total ?? null,
     saved_shops: shops,
     saved_at: t,
@@ -454,13 +457,13 @@ export function saveList(name, text, total, picks = {}, shops = null) {
 }
 
 // saves a changed list over the saved one it was opened from; null if that one was deleted
-export function updateList(id, text, total, picks = {}, shops = null) {
+export function updateList(id, text, total, picks = {}, shops = null, pickItems = {}) {
   if (!text.trim()) throw new Error("The list is empty");
   const data = load();
   const list = data.lists.find((l) => l.id === id);
   if (!list) return null;
   const t = now();
-  Object.assign(list, { text, picks, saved_total: total ?? null, saved_shops: shops, saved_at: t, priced_at: t, changed: false });
+  Object.assign(list, { text, picks, pick_items: pickItems, saved_total: total ?? null, saved_shops: shops, saved_at: t, priced_at: t, changed: false });
   if (!store(data)) throw new Error("Couldn't save: this browser blocks storage");
   return { id: list.id, name: list.name };
 }

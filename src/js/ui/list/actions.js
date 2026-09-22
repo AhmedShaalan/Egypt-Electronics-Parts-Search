@@ -7,7 +7,7 @@
 import { parseLine, nameLine, lineCost, packsNeeded, saveList, updateList, renameList } from "../../search.js";
 import { MAX_LIST_LINES } from "../../config.js";
 import { goodFor } from "../../plans.js";
-import { newRow, priced, withQty, listText, listPicks, productKey, priceSavedList as priceWithFees } from "../../list-model.js";
+import { newRow, priced, withQty, listText, listPicks, listPickItems, productKey, pickOf, priceSavedList as priceWithFees } from "../../list-model.js";
 import { $, money, toast } from "../common.js";
 import { plural } from "../format.js";
 import { fillCart } from "../cart.js";
@@ -77,7 +77,7 @@ export function choose(id, i) {
   const hasGood = r.line.candidates.some(x => goodFor(r.line, x));
   // a part with only weaker matches is bought only when picked, so choosing its pick again unpicks it
   const pin = hasGood ? (c === plans[base]?.assign.get(id) ? null : i) : (r.pin === i ? null : i);
-  const rows = store.state.rows.map(x => (x.id === id ? { ...x, pin, pinKey: pin == null ? null : productKey(c), pickGone: false } : x));
+  const rows = store.state.rows.map(x => (x.id === id ? { ...x, pin, pinKey: pin == null ? null : productKey(c), pick: pin == null ? null : pickOf(c), pickState: null } : x));
   const picked = rows.some(x => x.pin != null && priced(x) && x.line.candidates.some(y => goodFor(x.line, y)));
   const next = picked ? "custom" : base;
   change({ rows, customBase: base, strategy: next, open: null }, id);
@@ -114,9 +114,10 @@ export function save() {
   const total = done ? Math.round(plan.total * 100) / 100 : null;
   const shops = done ? plan.used.size : null;
   try {
-    let list = isSavedList() ? updateList(store.state.listId, text, total, listPicks(store.state.rows), shops) : null;
+    const { rows } = store.state;
+    let list = isSavedList() ? updateList(store.state.listId, text, total, listPicks(rows), shops, listPickItems(rows)) : null;
     if (list && list.name !== name) renameList(list.id, name);
-    list ||= saveList(name, text, total, listPicks(store.state.rows), shops);
+    list ||= saveList(name, text, total, listPicks(rows), shops, listPickItems(rows));
     set({ listId: list.id, name, savedSnap: snap({ ...store.state, name }) });
     reloadSaved();
     toast(`Saved “${name}”`);
@@ -146,7 +147,7 @@ export function openSavedList(id) {
   askToLeave(() => {
     const parsed = l.text.split(/\r?\n/).map(parseLine).filter(Boolean);
     const picks = l.picks || {};
-    const rows = parsed.slice(0, MAX_LIST_LINES).map(([q, n]) => newRow(q, n, picks[q] || null));
+    const rows = parsed.slice(0, MAX_LIST_LINES).map(([q, n]) => newRow(q, n, picks[q] || null, l.pick_items?.[picks[q]] || null));
     const next = { rows, name: l.name, listId: l.id, strategy: Object.keys(picks).length ? "custom" : "best" };
     replaceList({ ...next, savedSnap: snap(next) });
     location.hash = "#list";

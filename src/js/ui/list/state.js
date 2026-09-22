@@ -7,7 +7,7 @@
 import { MAX_LIST_LINES } from "../../config.js";
 import { SHOPS_BY_KEY } from "../../shops.js";
 import { createPlanner } from "../../plans.js";
-import { newRow, planRows, unpriced, pendingShops } from "../../list-model.js";
+import { newRow, planRows, unpriced, pendingShops, settling, held } from "../../list-model.js";
 import { toast } from "../common.js";
 import { plural } from "../format.js";
 import { currentSaved, onSavedChange } from "../saved.js";
@@ -40,7 +40,7 @@ onSavedChange(() => set({ tick: store.state.tick + 1 }));
 
 export const rowById = id => store.state.rows.find(r => r.id === id);
 // until every shop has answered for every part, the totals may still change
-export const pricing = () => store.state.rows.some(r => unpriced(r) || pendingShops(r).length);
+export const pricing = () => store.state.rows.some(r => unpriced(r) || pendingShops(r).length || settling(r));
 
 // what saving keeps, to tell unsaved changes
 export const snap = s => JSON.stringify([s.name.trim(), s.rows.map(r => [r.query, r.qty, r.pinKey])]);
@@ -79,12 +79,12 @@ const DRAFT_FIELDS = ["name", "listId", "savedSnap", "strategy", "customBase"];
 function draftChanged(s, before) {
   if (DRAFT_FIELDS.some(k => s[k] !== before[k])) return true;
   const a = s.rows, b = before.rows;
-  return a !== b && (a.length !== b.length || a.some((r, i) => r.query !== b[i].query || r.qty !== b[i].qty || r.pinKey !== b[i].pinKey));
+  return a !== b && (a.length !== b.length || a.some((r, i) => r.query !== b[i].query || r.qty !== b[i].qty || r.pinKey !== b[i].pinKey || r.pick?.name !== b[i].pick?.name));
 }
 function saveDraft(s) {
   saveJSON("list-draft", {
     name: s.name, listId: s.listId, savedSnap: s.savedSnap, strategy: s.strategy, customBase: s.customBase,
-    rows: s.rows.map(r => [r.query, r.qty, r.pinKey]),
+    rows: s.rows.map(r => [r.query, r.qty, r.pinKey, r.pick]),
   });
 }
 function loadDraft() {
@@ -93,7 +93,7 @@ function loadDraft() {
   set({
     name: d.name || store.state.name, listId: d.listId ?? null, savedSnap: d.savedSnap ?? null,
     strategy: d.strategy || "best", customBase: d.customBase || "best",
-    rows: d.rows.slice(0, MAX_LIST_LINES).map(([q, n, k]) => newRow(q, n, k)),
+    rows: d.rows.slice(0, MAX_LIST_LINES).map(([q, n, k, p]) => newRow(q, n, k, p)),
   });
 }
 loadDraft();
@@ -114,8 +114,9 @@ export function plansNow() {
 export function change(patch, touched = null) {
   const before = plansNow().plan?.assign;
   set(patch);
-  // Custom with no picks left is the plan it started from
-  if (store.state.strategy === "custom" && !pricing() && !plansNow().plans.custom) set({ strategy: store.state.customBase });
+  // Custom with no picks left is the plan it started from; a pick that can't be bought now is
+  // still a pick, and it's bought again once its shop has it
+  if (store.state.strategy === "custom" && !pricing() && !plansNow().plans.custom && !store.state.rows.some(held)) set({ strategy: store.state.customBase });
   const { plan, strategy } = plansNow();
   if (!before || !plan) return;
   const moved = [...plan.assign].filter(([id, c]) => id !== touched && before.has(id) && before.get(id).shop !== c.shop);
