@@ -172,8 +172,16 @@ export function score(query, name) {
   const acc = accessoryOf(qTokens, name);
   if (acc?.madeFor) s -= 35;
   else if (acc) s -= 30;
+  if (potFor(qTokens, nameTokens)) s -= 35;
   return Math.max(0, Math.trunc(s));
 }
+
+// A potentiometer or trimmer is another component than the fixed resistor searched for, however
+// alike its name: "Variable Resistor - POT (10 K-Ohm)" is not a 10k resistor.
+const POT = new Set(["potentiometer", "potentiometers", "pot", "pots", "trimmer", "trimpot", "rheostat", "preset"]);
+const isPot = (tokens) => tokens.some((t) => POT.has(t)) || (tokens.includes("variable") && tokens.some((t) => t.startsWith("resistor")));
+const potFor = (qTokens, nameTokens) =>
+  !isPot(qTokens) && !qTokens.includes("variable") && qTokens.some((t) => t.startsWith("resistor") || /^\d+(?:\.\d+)?(?:k|m)?ohm$/.test(t)) && isPot(nameTokens);
 
 const isAccessory = (t) => ACCESSORY_NAMES.has(t) || ACCESSORY_PREFIXES.some((p) => t.startsWith(p));
 
@@ -208,6 +216,7 @@ export function weakReason(query, name) {
   if (acc?.madeFor === "compatible") return "Works with it, not the part itself";
   if (acc?.madeFor) return "Made for it, not the part itself";
   if (acc) return `An accessory: ${acc.word}`;
+  if (potFor(qTokens, nameTokens)) return "A potentiometer, not a fixed resistor";
   if (missing.length) return `No “${missing.join(" ")}” in its name`;
   return "Only part of the name matches";
 }
