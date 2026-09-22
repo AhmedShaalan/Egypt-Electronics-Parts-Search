@@ -64,7 +64,8 @@
 .l-cols span:nth-child(3) { text-align: right; }
 .l-row { border-bottom: 1px solid var(--border); position: relative; }
 .l-row:last-child { border-bottom: 0; }
-.l-row.flash { animation: l-flash 1.4s ease-out; }
+.l-row { animation: s-rise .2s ease-out; }
+.l-row.flash { animation: s-rise .2s ease-out, l-flash 1.4s ease-out; }
 @keyframes l-flash { from { background: var(--accent-soft); } }
 /* every row is two lines, the part then the product bought for it; the cost is on the part's line,
    the quantity and the ⋯ menu sit centred beside both */
@@ -132,10 +133,11 @@ button.l-product.empty { display: flex; }
 .l-option summary.s-linkbtn::-webkit-details-marker { display: none; }
 .l-searching { display: flex; align-items: center; gap: 10px; }
 .l-searching .s-bar-anim { width: 120px; }
-@media (prefers-reduced-motion: reduce) { .l-row.flash { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .l-row, .l-row.flash, #tab-list .l-options { animation: none; } }
 
 /* ---------- a row's offers: float over the rows below it ---------- */
 .l-options {
+  animation: s-pop .14s ease-out; transform-origin: top center;
   position: absolute; z-index: 25; top: calc(100% - 8px); left: 50%; transform: translateX(-50%); width: min(760px, calc(100% - 16px));
   background: var(--raised); border: 1px solid var(--raised-border); border-radius: var(--radius);
   box-shadow: 0 16px 40px rgb(0 0 0 / .35); padding: 12px; max-height: min(480px, 75vh);

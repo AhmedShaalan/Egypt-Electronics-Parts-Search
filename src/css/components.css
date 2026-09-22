@@ -83,6 +83,14 @@
 @keyframes s-spin { to { transform: rotate(360deg); } }
 @keyframes s-flash { from { background: var(--accent-soft); } }
 
+/* things coming onto the page: rising into place, a menu or dialog opening out, a tab fading in */
+@keyframes s-rise { from { opacity: 0; translate: 0 6px; } }
+@keyframes s-pop { from { opacity: 0; scale: .97; } }
+@keyframes s-fade { from { opacity: 0; } }
+.s-menu[open] > .menu-list { animation: s-pop .12s ease-out; transform-origin: top right; }
+dialog.modal[open] { animation: s-pop .16s ease-out; }
+dialog.modal[open]::backdrop { animation: s-fade .16s ease-out; }
+
 @media (prefers-reduced-motion: reduce) {
-  .s-bar-anim::after { animation: none; }
+  .s-bar-anim::after, .s-menu[open] > .menu-list, dialog.modal[open], dialog.modal[open]::backdrop { animation: none; }
 }
