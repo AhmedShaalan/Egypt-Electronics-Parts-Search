@@ -176,6 +176,11 @@ table.l-opts { width: 100%; border-collapse: collapse; border: 0; border-radius:
 .l-order { min-width: 0; position: sticky; top: calc(var(--header-h, 0px) + 16px); display: grid; gap: 14px; }
 .l-panel { min-width: 0; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; }
 .l-panel h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 0 0 10px; font-weight: 600; }
+/* a fee is kept as it's typed: the heading says so for a moment */
+.l-fees h2 { display: flex; align-items: center; }
+.l-fee-state { margin-left: auto; display: inline-flex; align-items: center; gap: 4px; text-transform: none; letter-spacing: 0; font-weight: 550; animation: s-fade .2s ease-out; }
+.l-fee-state svg { width: 13px; height: 13px; color: var(--good); }
+@media (prefers-reduced-motion: reduce) { .l-fee-state { animation: none; } }
 /* a heading with a button at the end of its line */
 .l-panel-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: -4px 0 6px; }
 .l-panel-head h2 { margin: 0; }

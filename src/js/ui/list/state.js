@@ -26,6 +26,7 @@ export const store = createStore({
   strategy: "best",   // best | cheap | fewest | custom
   customBase: "best", // the plan Custom starts from: the picks, the rest as that plan has them
   fees: loadFees(),
+  feeState: null,     // "saving" or "saved" just after a delivery fee was changed
   open: null,         // the row whose offers are showing
   filters: {},        // row id -> the text filtering its offers
   editing: null,      // the row in the Change part dialog
@@ -56,9 +57,17 @@ function loadFees() {
   const f = loadJSON("delivery-fees", null);
   return f && typeof f.default === "number" ? { default: f.default, byShop: f.byShop || {} } : { default: 50, byShop: {} };
 }
+// A fee is kept as it's typed, so the fees say "Saving…", then "Saved" for a moment, to show
+// there's nothing to press.
+let feeSaid = null;
 export function setFees(fees) {
   saveJSON("delivery-fees", fees);
-  change({ fees });
+  change({ fees, feeState: "saving" });
+  clearTimeout(feeSaid);
+  feeSaid = setTimeout(() => {
+    set({ feeState: "saved" });
+    feeSaid = setTimeout(() => set({ feeState: null }), 1600);
+  }, 400);
 }
 
 // the fees for a backup, or null while they've never been changed from the default

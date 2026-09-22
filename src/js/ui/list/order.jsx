@@ -14,7 +14,7 @@ import { plural } from "../format.js";
 import { copy } from "../copy.js";
 import { cartShop } from "../cart.js";
 import { NumField, Money } from "../components.jsx";
-import { CartIcon, CloseIcon, CopyIcon } from "../icons.jsx";
+import { CartIcon, CheckIcon, CloseIcon, CopyIcon } from "../icons.jsx";
 import { change, setFees, PLAN_NAMES } from "./state.js";
 import { fill, orderMessage, wholeOrderMessage } from "./actions.js";
 import { progress } from "./pricing.js";
@@ -175,7 +175,7 @@ export function Order({ s, plans, strategy, plan }) {
       </div>
       <div class={`l-panel l-fees${empty ? " has-overlay" : ""}`}>
         {empty ? <div class="l-overlay">Add parts first, then set delivery fees here.</div> : null}
-        <h2>Delivery fees</h2>
+        <h2>Delivery fees{s.feeState ? <span class="l-fee-state">{s.feeState === "saved" ? <><CheckIcon />Saved</> : "Saving…"}</span> : null}</h2>
         <Fees fees={s.fees} used={plan?.used || new Set()} />
       </div>
       <div class="l-panel">

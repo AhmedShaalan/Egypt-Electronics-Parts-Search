@@ -9,6 +9,7 @@ What changed on [parts.ahmedshaalan.com](https://parts.ahmedshaalan.com/), newes
 - Parts list: choose the colour or option of such a product in its row. The row then buys that one, at its own price, and it goes in the cart with "Fill cart" and is named in the copied order. Ones out of stock can't be chosen. A saved list keeps the choice.
 - Parts list: "+ Another colour" beside a chosen colour or option adds another one of the same product as a row of its own, to buy two colours of the same wire. One already on the list is lit up instead.
 - Things come onto the page gently: tabs fade in, the page's own and Saved's, search results and new parts list rows rise into place, and menus, dialogs, a row's offers and a product card's offers open out.
+- Parts list: the delivery fees say "Saving…", then "Saved", as a fee is changed, so it's clear they're kept as you type.
 - Parts list: a bar floats at the foot of the page while the list has changes to save, once the Save button at the top has scrolled away. It saves, or discards the changes and puts the list back as it was saved, asking first.
 - Parts list: the total, each plan's total, each shop's subtotal and each row's cost count to their new amount as prices come in or another plan is chosen.
 - A part removed from a parts list, and a saved item or list removed, folds away instead of vanishing.
