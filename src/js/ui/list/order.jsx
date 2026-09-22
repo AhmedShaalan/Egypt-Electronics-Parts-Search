@@ -16,7 +16,7 @@ import { cartShop } from "../cart.js";
 import { NumField } from "../components.jsx";
 import { CartIcon, CloseIcon, CopyIcon } from "../icons.jsx";
 import { change, setFees, PLAN_NAMES } from "./state.js";
-import { fill, orderMessage } from "./actions.js";
+import { fill, orderMessage, wholeOrderMessage } from "./actions.js";
 import { progress } from "./pricing.js";
 
 const STRATEGIES = [
@@ -179,7 +179,13 @@ export function Order({ s, plans, strategy, plan }) {
         <Fees fees={s.fees} used={plan?.used || new Set()} />
       </div>
       <div class="l-panel">
-        <h2>Your order{byShop.size ? ` · ${plural(byShop.size, "shop")}` : ""}</h2>
+        <div class="l-panel-head">
+          <h2>Your order{byShop.size ? ` · ${plural(byShop.size, "shop")}` : ""}</h2>
+          {baskets.length
+            ? <button class="btn small" type="button" title="Copy every shop's order as one message"
+                onClick={() => copy(wholeOrderMessage(baskets.map(([k, es]) => [SHOPS_BY_KEY[k].name, es])))}><CopyIcon />Copy all</button>
+            : null}
+        </div>
         {baskets.length
           ? baskets.map(([k, es]) => <Basket key={k} shop={k} entries={es} fee={deliveryFee(s.fees, k)} filling={s.filling} />)
           : <p class="l-muted">{empty ? "Add parts to see the order." : "Nothing to order yet."}</p>}

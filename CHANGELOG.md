@@ -5,6 +5,7 @@ What changed on [parts.ahmedshaalan.com](https://parts.ahmedshaalan.com/), newes
 ## 2.0.0 · 2026-09-22
 
 ### Added
+- Parts list: "Copy all" on the order copies every shop's order as one message, with what the parts come to.
 - Search one shop: pick it in the search box. The other shops are listed as not searched, and ticking one searches it too. The link it makes opens the same search.
 - A shop: Mechatronx (17 in total). Products it sells in several values, like a resistor in 88 values, are searched one value at a time, so "10k resistor" finds the 10k one in stock.
 - Search results can be grouped by product: with "By product", the same part at different shops is one card, cheapest first, with every shop's offer inside. Only close matches are merged (the package, values like 5V or 1/4W, model codes like S3 or 30-pin, and the pack size must agree, and prices far apart stay apart); anything unsure stays on its own. "Every offer", the list of every shop's offers, is still the default.

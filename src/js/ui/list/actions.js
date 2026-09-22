@@ -180,6 +180,13 @@ export const orderMessage = (shopName, entries) => `${shopName}\n${"-".repeat(sh
   + `${entries.map(e => `- ${packsNeeded(e.line, e.product)} × ${e.product.name}`).join("\n")}\n\n`
   + `Total: ${money(entries.reduce((sum, e) => sum + lineCost(e.line, e.product), 0))}`;
 
+// the whole order: each shop's part as above, then what the parts come to (delivery is left out,
+// as it's only an estimate). `baskets` are [shop name, entries].
+export function wholeOrderMessage(baskets) {
+  const parts = baskets.flatMap(([, es]) => es).reduce((sum, e) => sum + lineCost(e.line, e.product), 0);
+  const all = baskets.length > 1 ? `\n\nAll ${baskets.length} shops: ${money(parts)}` : "";
+  return baskets.map(([name, es]) => orderMessage(name, es)).join("\n\n") + all;
+}
 
 export async function fill(shop, entries) {
   set({ filling: { shop, done: 0, total: 0 } });
