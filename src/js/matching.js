@@ -51,6 +51,8 @@ const ZERO_DECIMALS = /(\d)\.0+(?![0-9])/g;
 const MILLIAMPS = /(?<![0-9a-z.])(\d+(?:\.\d+)?)ma(?![0-9a-z])/g;
 // a value with its unit: 250ma, 12v, 10k, 100nf
 const VALUE = /^\d+(?:\.\d+)?(?:v|mv|vdc|vac|a|ma|mah|ah|w|kw|ohm|kohm|k|uf|nf|pf|mm|hz|khz|mhz)$/;
+// a measurement in a name: 530nm, 12v, 5mm. A part number's digits found in one are a coincidence.
+const MEASURE = /^\d+(?:\.\d+)?(?:v|mv|vdc|vac|a|ma|mah|ah|w|kw|ohm|kohm|k|uf|nf|pf|uh|mh|nm|um|mm|cm|m|g|kg|hz|khz|mhz|rpm|db)$/;
 // "Mini-360", "LM 7805" -> "mini360", "lm7805": a name and its model number written apart
 const NAME_NUMBER_GAP = /(^|[^0-9a-z])([a-z]{2,})[-\s](\d{3,})(?![0-9a-z])/g;
 // "mini360" -> "mini-360", for shops that only find the name with its dash
@@ -112,7 +114,7 @@ function tokenWeight(t, nameTokens, nameCompact) {
   if (hasLetter(t) && hasDigit(t) && !VALUE.test(t)) {
     const core = longestDigitRun(t);
     const lead = leadOf(t, core);
-    const fits = (nt) => foundIn(core, nt) && !(lead && leadOf(nt, core) && leadOf(nt, core) !== lead);
+    const fits = (nt) => !MEASURE.test(nt) && foundIn(core, nt) && !(lead && leadOf(nt, core) && leadOf(nt, core) !== lead);
     if (core.length >= 3 && nameTokens.some(fits)) return 0.8; // lm7805 ~ l7805cv
   }
   if (t.length >= 3 && foundIn(compactText(t), nameCompact.text, nameCompact.starts)) return 0.6;
