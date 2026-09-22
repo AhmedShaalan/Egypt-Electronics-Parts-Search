@@ -22,6 +22,8 @@ let nextId = 1;
 export const newRow = (query, qty, pinKey = null) => ({ id: nextId++, query, qty, status: "waiting", done: 0, result: null, line: null, pin: null, pinKey, pickGone: false, error: "" });
 export const priced = r => r.status === "ok";
 export const unpriced = r => r.status === "waiting" || r.status === "searching";
+// the shops a priced row is still waiting for (ui/list/pricing.js shows it before the slowest answer)
+export const pendingShops = r => (priced(r) ? r.result.shops.filter(s => s.pending) : []);
 
 export function withQty(r, n) {
   const qty = Math.max(1, Math.min(MAX_QTY, n || 1));

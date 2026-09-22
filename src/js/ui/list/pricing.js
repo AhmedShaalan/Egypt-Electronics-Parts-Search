@@ -6,12 +6,15 @@
 
 import { SHOPS_BY_KEY } from "../../shops.js";
 import { searchAll, fetchShop, mergeShop } from "../../search.js";
-import { priced, withResult } from "../../list-model.js";
+import { priced, pendingShops, withResult } from "../../list-model.js";
 import { toast, announce } from "../common.js";
 import { plural } from "../format.js";
 import { store, set, change, flashRows, rowById } from "./state.js";
 
 const AT_ONCE = 4; // parts searched at the same time, to be gentle with the shops
+// A part shows its prices once all but this many shops have answered, and the next part starts.
+// The slow ones are added as they answer, so one shop taking its time doesn't hold up the list.
+const LATE = 3;
 
 let listRun = 0;             // bumped when another list is opened, so pricing for the old one stops
 const queue = [];            // rows waiting to be searched: { id, run }
@@ -31,28 +34,43 @@ function pump() {
     const r = rowById(job.id);
     if (job.run !== listRun || !r || priced(r) || searching(r.id)) continue;
     active++;
-    priceRow(r, job.run).finally(() => {
+    let freed = false;
+    const free = () => {
+      if (freed) return;
+      freed = true;
       active--;
       pump();
       if (!active && !queue.length && store.state.rows.length) announce(`Priced ${plural(store.state.rows.filter(priced).length, "part")}`);
-    });
+    };
+    priceRow(r, job.run, free).finally(free);
   }
 }
-async function priceRow(r, run) {
+// `free` lets the next part start: once this one shows its prices
+async function priceRow(r, run, free) {
   const ctl = new AbortController();
   cancels.set(r.id, ctl);
   const setRow = patch => set(s => ({ rows: s.rows.map(x => (x.id === r.id ? { ...x, ...patch } : x)) }));
+  // removed, changed to another part or another list opened meanwhile
+  const gone = () => run !== listRun || ctl.signal.aborted || rowById(r.id)?.query !== r.query;
+  // other rows may move to another shop once this one is priced; they light up, without a message
+  const show = result => change(s => ({ rows: s.rows.map(x => (x.id === r.id ? withResult(x, result) : x)) }));
+  let shown = false;
   setRow({ status: "searching", done: 0, error: "" });
   try {
-    const result = await searchAll(r.query, { cancel: ctl.signal, onProgress: done => run === listRun && !ctl.signal.aborted && setRow({ done }) });
-    const now = rowById(r.id);
-    // removed, changed to another part or another list opened meanwhile
-    if (run !== listRun || ctl.signal.aborted || !now || now.query !== r.query) return;
-    // other rows may move to another shop once this one is priced; they light up, without a message
-    change(s => ({ rows: s.rows.map(x => (x.id === r.id ? withResult(x, result) : x)) }));
-    flashRows([r.id]);
+    const result = await searchAll(r.query, {
+      cancel: ctl.signal,
+      onProgress: (done, total, partial) => {
+        if (gone()) return;
+        if (shown) show(partial); // a slow shop answered
+        else if (total - done <= LATE) { shown = true; show(partial); flashRows([r.id]); free(); }
+        else setRow({ done });
+      },
+    });
+    if (gone()) return;
+    show(result);
+    if (!shown) flashRows([r.id]);
   } catch (e) {
-    if (run === listRun && !ctl.signal.aborted) setRow({ status: "error", error: e.message });
+    if (!gone() && !shown) setRow({ status: "error", error: e.message });
   } finally {
     if (cancels.get(r.id) === ctl) cancels.delete(r.id);
   }
@@ -80,8 +98,15 @@ export function listTabShown() {
 // the shops that failed, for any part
 export function failedShops() {
   const failed = new Map();
-  for (const r of store.state.rows) if (priced(r)) for (const s of r.result.shops) if (!s.ok) failed.set(s.key, s);
+  for (const r of store.state.rows) if (priced(r)) for (const s of r.result.shops) if (!s.ok && !s.pending) failed.set(s.key, s);
   return [...failed.values()];
+}
+
+// the shops some part is still waiting for, having shown its prices without them
+export function lateShops() {
+  const late = new Map();
+  for (const r of store.state.rows) for (const s of pendingShops(r)) late.set(s.key, s);
+  return [...late.values()];
 }
 
 // asks the shops that failed again, for each part they failed on, and merges in what they answer
@@ -91,7 +116,7 @@ export async function retryShops() {
   const jobs = [];
   for (const r of store.state.rows) {
     if (!priced(r)) continue;
-    for (const s of r.result.shops) if (!s.ok && !jobs.some(j => j.query === r.query && j.key === s.key)) jobs.push({ query: r.query, key: s.key });
+    for (const s of r.result.shops) if (!s.ok && !s.pending && !jobs.some(j => j.query === r.query && j.key === s.key)) jobs.push({ query: r.query, key: s.key });
   }
   set({ retrying: true });
   let next = 0;

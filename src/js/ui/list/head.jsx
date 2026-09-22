@@ -14,7 +14,7 @@ import { currentSaved, partCount } from "../saved.js";
 import { Menu } from "../components.jsx";
 import { Chevron, CopyIcon, PlusIcon } from "../icons.jsx";
 import { set, isDirty, isSavedList } from "./state.js";
-import { failedShops, retryShops } from "./pricing.js";
+import { failedShops, lateShops, retryShops } from "./pricing.js";
 import { addText, save, openSavedList, startNewList } from "./actions.js";
 
 export function Head({ s }) {
@@ -47,11 +47,13 @@ export function Head({ s }) {
 export function ShopsStatus({ s }) {
   if (!s.rows.some(priced)) return null;
   const failed = failedShops();
+  const late = lateShops();
+  const names = shops => shops.map(f => f.name || SHOPS_BY_KEY[f.key]?.name).join(", ");
   return (
     <div class="l-status">
-      <span>Prices from <b>{SHOPS.length - failed.length} of {SHOPS.length} shops</b></span>
+      <span>Prices from <b>{SHOPS.length - failed.length - late.length} of {SHOPS.length} shops</b></span>
       {failed.length ? <>
-        <span class="l-fail">{failed.map(f => f.name || SHOPS_BY_KEY[f.key]?.name).join(", ")} didn't answer</span>
+        <span class="l-fail">{names(failed)} didn't answer</span>
         <button class="s-linkbtn" type="button" disabled={s.retrying} onClick={retryShops}>{s.retrying ? "Asking again…" : "Try again"}</button>
       </> : null}
     </div>

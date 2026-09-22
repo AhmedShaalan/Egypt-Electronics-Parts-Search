@@ -7,7 +7,7 @@
 import { MAX_LIST_LINES } from "../../config.js";
 import { SHOPS_BY_KEY } from "../../shops.js";
 import { createPlanner } from "../../plans.js";
-import { newRow, planRows, unpriced } from "../../list-model.js";
+import { newRow, planRows, unpriced, pendingShops } from "../../list-model.js";
 import { toast } from "../common.js";
 import { plural } from "../format.js";
 import { currentSaved, onSavedChange } from "../saved.js";
@@ -39,7 +39,8 @@ export const { set } = store;
 onSavedChange(() => set({ tick: store.state.tick + 1 }));
 
 export const rowById = id => store.state.rows.find(r => r.id === id);
-export const pricing = () => store.state.rows.some(unpriced);
+// until every shop has answered for every part, the totals may still change
+export const pricing = () => store.state.rows.some(r => unpriced(r) || pendingShops(r).length);
 
 // what saving keeps, to tell unsaved changes
 export const snap = s => JSON.stringify([s.name.trim(), s.rows.map(r => [r.query, r.qty, r.pinKey])]);

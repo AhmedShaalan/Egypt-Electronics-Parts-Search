@@ -5,7 +5,7 @@
 
 import { SHOPS } from "../../shops.js";
 import { lineCost } from "../../search.js";
-import { MAX_QTY, isPick } from "../../list-model.js";
+import { MAX_QTY, isPick, pendingShops } from "../../list-model.js";
 import { money, safeUrl, priceDetail } from "../common.js";
 import { plural } from "../format.js";
 import { Thumb, Menu, NumField, memo } from "../components.jsx";
@@ -76,6 +76,11 @@ export const Row = memo(({ r, c, open, flash, filter }) => {
         <span class="l-chip soft l-count">{plural(n, "offer")}</span><Chevron class="l-chev" />
       </button>
     );
+  }
+  // shown before the slowest shops answered: they may still bring a cheaper offer
+  const late = pendingShops(r);
+  if (late.length) {
+    product = <div class="l-prod">{product}<span class="l-late-note"><span class="s-bar-anim" />Waiting for {late.map(x => x.name).sort().join(", ")}</span></div>;
   }
   const gone = r.pickGone && r.pin == null
     ? <span class="l-chip warn" title="The product chosen for this part is sold out or gone, so the plan chose again">Your pick is gone</span> : null;

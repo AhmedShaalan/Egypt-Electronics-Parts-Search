@@ -37,6 +37,7 @@ What changed on [parts.ahmedshaalan.com](https://parts.ahmedshaalan.com/), newes
 
 ### Fixed
 - A model written with a space or joined up ("mini 360", "Mini360") finds the shops that only list it with a dash ("Mini-360"), so it gets the same results as "mini-360". The MCP server searches the same way.
+- On the Parts list, a part shows its prices once all but the slowest three shops have answered, and the next part starts. The slow shops are added as they answer, and the part says under it which it's still waiting for. A shop taking its time no longer holds up the whole list.
 - A part added from Search or Saved to the list open on the Parts list tab shows up there too, instead of only in the saved copy, where saving the tab would have dropped it. After adding a result to a list, the other results offer "Add to ‹list›" straight away.
 - Pressing Search again for what's already shown, however it's written, asks the shops again instead of showing the same results.
 
