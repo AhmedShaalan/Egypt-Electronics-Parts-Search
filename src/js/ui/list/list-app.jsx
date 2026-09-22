@@ -12,12 +12,14 @@ import { store, plansNow, rowById } from "./state.js";
 import { Head, ShopsStatus, Intake } from "./head.jsx";
 import { Row } from "./row.jsx";
 import { Order } from "./order.jsx";
+import { progress } from "./pricing.js";
 import { ChangeDialog } from "./change-dialog.jsx";
 
 export function ListApp() {
   const s = store.use();
   const { plans, strategy, plan } = plansNow();
   const found = s.rows.filter(r => plan?.assign.has(r.id)).length;
+  const { n, settled, final } = progress();
   return <>
     <Head s={s} />
     <ShopsStatus s={s} />
@@ -39,8 +41,10 @@ export function ListApp() {
     {s.rows.length
       ? <div class="l-mobile-bar">
           <div>
-            <div class="t num">{plan ? money(plan.total) : "—"}</div>
-            <div class="s">{plural(found, "part")} · {plural(plan?.used.size || 0, "shop")} · delivery incl.</div>
+            <div class={`t num${final ? "" : " so-far"}`}>{plan ? money(plan.total) : "—"}</div>
+            <div class="s">{final
+              ? `${plural(found, "part")} · ${plural(plan?.used.size || 0, "shop")} · delivery incl.`
+              : settled < n ? `So far · ${settled} of ${n} parts priced` : "So far · waiting for a shop or two"}</div>
           </div>
           <button class="btn primary" type="button" onClick={() => $("#order").scrollIntoView({ behavior: "smooth" })}>View order</button>
         </div>

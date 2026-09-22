@@ -6,7 +6,7 @@
 
 import { SHOPS_BY_KEY } from "../../shops.js";
 import { searchAll, fetchShop, mergeShop } from "../../search.js";
-import { priced, pendingShops, withResult } from "../../list-model.js";
+import { priced, unpriced, pendingShops, withResult } from "../../list-model.js";
 import { toast, announce } from "../common.js";
 import { plural } from "../format.js";
 import { store, set, change, flashRows, rowById } from "./state.js";
@@ -100,6 +100,15 @@ export function failedShops() {
   const failed = new Map();
   for (const r of store.state.rows) if (priced(r)) for (const s of r.result.shops) if (!s.ok && !s.pending) failed.set(s.key, s);
   return [...failed.values()];
+}
+
+// how far pricing has got: parts settled (priced, or failed) of all, the shops still to answer
+// for parts already showing prices, and whether the total is final
+export function progress() {
+  const n = store.state.rows.length;
+  const settled = store.state.rows.filter(r => !unpriced(r)).length;
+  const late = lateShops();
+  return { n, settled, late, final: settled === n && !late.length };
 }
 
 // the shops some part is still waiting for, having shown its prices without them

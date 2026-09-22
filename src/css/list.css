@@ -187,7 +187,14 @@ table.l-opts { width: 100%; border-collapse: collapse; border: 0; border-radius:
 .l-strat .v { font-weight: 700; }
 .l-strat .s { grid-column: 2 / 4; font-size: 12px; color: var(--muted); }
 .l-rec { font-size: 11px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: .05em; margin-left: 6px; }
-.l-total { font-size: 34px; font-weight: 750; letter-spacing: -0.02em; line-height: 1.1; margin-top: 14px; }
+.l-total { font-size: 34px; font-weight: 750; letter-spacing: -0.02em; line-height: 1.1; margin-top: 14px; border-radius: 6px; }
+/* a total that can still change: parts still being priced, or a shop still to answer */
+.l-total-state { margin-top: 6px; font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+.l-progress { height: 4px; margin-top: 12px; border-radius: 4px; background: var(--surface-2); overflow: hidden; }
+.l-progress i { display: block; height: 100%; background: var(--accent); border-radius: 4px; transition: width .3s; }
+.l-total.so-far { color: var(--muted); }
+.l-total.lit { animation: s-flash 1.4s ease-out; }
+@media (prefers-reduced-motion: reduce) { .l-total.lit { animation: none; } .l-progress i { transition: none; } }
 .l-total-sub { font-size: 13px; color: var(--muted); margin-top: 4px; }
 
 .l-fee-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font-size: 13px; }
@@ -240,6 +247,7 @@ table.l-opts { width: 100%; border-collapse: collapse; border: 0; border-radius:
   padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px)); align-items: center; gap: 12px;
 }
 .l-mobile-bar .t { font-size: 20px; font-weight: 750; }
+.l-mobile-bar .t.so-far { color: var(--muted); }
 .l-mobile-bar .s { font-size: 12px; color: var(--muted); }
 .l-mobile-bar .btn { margin-left: auto; padding: 8px 14px; font-weight: 550; }
 @media (max-width: 960px) {

@@ -4,6 +4,7 @@
 // The order, beside the rows: how to buy (plans.js), delivery fees, and one basket per shop with
 // its cart.
 
+import { useEffect, useRef, useState } from "preact/hooks";
 import { SHOPS, SHOPS_BY_KEY } from "../../shops.js";
 import { lineCost, packsNeeded } from "../../search.js";
 import { priced } from "../../list-model.js";
@@ -16,6 +17,7 @@ import { NumField } from "../components.jsx";
 import { CartIcon, CloseIcon, CopyIcon } from "../icons.jsx";
 import { change, setFees, PLAN_NAMES } from "./state.js";
 import { fill, orderMessage } from "./actions.js";
+import { progress } from "./pricing.js";
 
 const STRATEGIES = [
   ["best", "parts + delivery, lowest"],
@@ -118,11 +120,38 @@ function Basket({ shop, entries, fee, filling }) {
   );
 }
 
+// The total, and under it `children`, what it's made of. While parts are still being priced, or a
+// shop is still to answer, it's marked as a total so far, with how far pricing has got below, so
+// a number still climbing isn't taken for the final one. It lights up once when it is.
+function Total({ plan, children }) {
+  const { n, settled, late, final } = progress();
+  const [lit, setLit] = useState(false);
+  const was = useRef(final);
+  useEffect(() => {
+    const now = was.current !== final && final && !!plan;
+    was.current = final;
+    if (!now) return;
+    setLit(true);
+    const t = setTimeout(() => setLit(false), 1400);
+    return () => { clearTimeout(t); setLit(false); };
+  }, [final]);
+  const label = settled < n ? `So far · ${settled} of ${n} parts priced`
+    : late.length ? `Almost done · waiting for ${late.map(x => x.name || SHOPS_BY_KEY[x.key]?.name).sort().join(", ")}` : null;
+  const share = settled < n ? settled / n : 0.95;
+  return <>
+    <div class={`l-total num${final ? "" : " so-far"}${lit ? " lit" : ""}`}>{plan ? money(plan.total) : "—"}</div>
+    {children}
+    {!final && n ? <>
+      <div class="l-progress" aria-hidden="true"><i style={{ width: `${Math.round(share * 100)}%` }} /></div>
+      <div class="l-total-state">{label}</div>
+    </> : null}
+  </>;
+}
+
 export function Order({ s, plans, strategy, plan }) {
   const empty = !s.rows.length;
   const okRows = s.rows.filter(priced);
   const missing = okRows.filter(r => !plan?.assign.has(r.id)).length;
-  const waiting = s.rows.length - okRows.length;
   const byShop = new Map();
   for (const r of okRows) {
     const c = plan?.assign.get(r.id);
@@ -130,18 +159,19 @@ export function Order({ s, plans, strategy, plan }) {
   }
   const canFill = ([k, es]) => cartShop(k) && es.some(e => e.product.cart);
   const baskets = [...byShop].sort((a, b) => canFill(b) - canFill(a) || b[1].length - a[1].length);
-  const notes = [waiting && `${plural(waiting, "part")} still being priced`, missing && `${plural(missing, "part")} not counted`].filter(Boolean);
+  const notes = [missing && `${plural(missing, "part")} not counted`].filter(Boolean);
   return (
     <aside class="l-order" id="order" aria-label="Order">
       <div class={`l-panel${empty ? " has-overlay" : ""}`}>
         {empty ? <div class="l-overlay">No parts yet. Type or paste them in the box.</div> : null}
         <h2>How to buy</h2>
         <Strategies s={s} plans={plans} strategy={strategy} />
-        <div class="l-total num">{plan ? money(plan.total) : "—"}</div>
-        <div class="l-total-sub num">
-          {plan ? `${money(plan.parts)} parts + ~${money(plan.delivery)} delivery from ${plural(plan.used.size, "shop")}` : "Nothing to buy yet"}
-          {notes.length ? ` · ${notes.join(" · ")}` : ""}
-        </div>
+        <Total plan={plan}>
+          <div class="l-total-sub num">
+            {plan ? `${money(plan.parts)} parts + ~${money(plan.delivery)} delivery from ${plural(plan.used.size, "shop")}` : "Nothing to buy yet"}
+            {notes.length ? ` · ${notes.join(" · ")}` : ""}
+          </div>
+        </Total>
       </div>
       <div class={`l-panel l-fees${empty ? " has-overlay" : ""}`}>
         {empty ? <div class="l-overlay">Add parts first, then set delivery fees here.</div> : null}
