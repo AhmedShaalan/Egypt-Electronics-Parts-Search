@@ -1,8 +1,8 @@
 # Changelog
 
-What changed on [parts.ahmedshaalan.com](https://parts.ahmedshaalan.com/), newest first. The site is updated as changes land. Each entry is also a git tag (`v1.8.0`), which is the version to use if you run the [MCP server](mcp/) or your own copy.
+What changed on [parts.ahmedshaalan.com](https://parts.ahmedshaalan.com/), newest first. The site is updated as changes land. Each entry is also a git tag (`v2.0.0`), which is the version to use if you run the [MCP server](mcp/) or your own copy.
 
-## Unreleased
+## 2.0.0 · 2026-09-22
 
 ### Added
 - Search results can be grouped by product: with "By product", the same part at different shops is one card, cheapest first, with every shop's offer inside. Only close matches are merged (the package, values like 5V or 1/4W, model codes like S3 or 30-pin, and the pack size must agree, and prices far apart stay apart); anything unsure stays on its own. "Every offer", the list of every shop's offers, is still the default.

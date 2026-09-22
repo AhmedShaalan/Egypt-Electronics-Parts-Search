@@ -427,7 +427,7 @@ The search code in `src/js` (connectors, matching, totals) has no dependencies a
 
 ## Changelog
 
-What changed and when is in [CHANGELOG.md](CHANGELOG.md). Each version there is a git tag, so a copy of the MCP server can be kept on a known version (`git checkout v1.8.0`) or updated with `git pull`.
+What changed and when is in [CHANGELOG.md](CHANGELOG.md). Each version there is a git tag, so a copy of the MCP server can be kept on a known version (`git checkout v2.0.0`) or updated with `git pull`.
 
 ## Feedback
 
