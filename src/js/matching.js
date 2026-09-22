@@ -26,8 +26,11 @@ const ACCESSORY_WORDS = new Set(["for", "compatible"]);
 const ACCESSORY_NAMES = new Set([
   "adapter", "breakout", "base", "baseboard", "shield", "pcb", "cable", "case", "enclosure", "shell",
   "holder", "socket", "programmer", "expansion", "cover", "bracket", "mount", "connector", "download",
-  "protective", "acrylic", "sticker", "stand", "jumper", "wire", "wires",
+  "protective", "acrylic", "sticker", "stand", "jumper", "wire", "wires", "clip", "snap",
 ]);
+// the ones that are never the part itself: these take it below a real match. The others (cable,
+// shield, connector…) also describe parts: "DS18B20 waterproof cable" is the sensor.
+const ONLY_ACCESSORY = new Set(["holder", "clip", "snap", "case", "enclosure", "shell", "bracket", "mount", "cover", "stand", "sticker", "protective", "acrylic"]);
 // accessory words that also appear glued to the next word ("Casefor Arduino")
 const ACCESSORY_PREFIXES = ["case", "cable", "shield", "adapter", "holder", "enclosure", "programmer"];
 
@@ -170,7 +173,8 @@ export function score(query, name) {
   // what follows can only lower the score
   if (s < WEAK) return Math.max(0, Math.trunc(s));
   const acc = accessoryOf(qTokens, name);
-  if (acc?.madeFor) s -= 35;
+  // searching for an accessory, the other accessory words describe it: "holder" ~ "Holder Bracket"
+  if (acc?.madeFor || (ONLY_ACCESSORY.has(acc?.word) && !acc.extra && !qTokens.some(isAccessory))) s -= 35;
   else if (acc) s -= 30;
   if (potFor(qTokens, nameTokens)) s -= 35;
   return Math.max(0, Math.trunc(s));
@@ -199,9 +203,14 @@ function accessoryOf(qTokens, name) {
   if (madeFor) return { madeFor: madeFor === "compatible" ? "compatible" : "for" };
   // boards, cables and cases that carry the part's name rank below the part
   const inQuery = (t) => qTokens.some((q) => q.startsWith(t) || t.startsWith(q)); // wire ~ wires
-  // after a number the word describes the part itself: a "3-wire" fan
-  const word = raw.find((t, i) => isAccessory(t) && !inQuery(t) && !isDigit(raw[i - 1] || "") && nameTokens.includes(t));
-  return word ? { word } : null;
+  // after a number the word describes the part itself: a "3-wire" fan; after "without" it isn't
+  // there at all: "Arduino UNO R3 Without cable". After "with" it comes with the part ("ESP32
+  // Display with Acrylic Case"), so it's `extra`, marked down less.
+  const cut = (w) => raw.indexOf(w) < 0 ? raw.length : raw.indexOf(w);
+  const without = cut("without");
+  const extras = Math.min(cut("with"), cut("including"));
+  const at = raw.findIndex((t, i) => isAccessory(t) && !inQuery(t) && !isDigit(raw[i - 1] || "") && i < without && nameTokens.includes(t));
+  return at >= 0 ? { word: raw[at], extra: at > extras } : null;
 }
 
 // Why a product scored below a real match, in a few words for the results: the part number or
