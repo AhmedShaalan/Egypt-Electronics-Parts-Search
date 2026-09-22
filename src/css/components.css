@@ -57,7 +57,7 @@
   transform: translateY(-2px) rotate(45deg); transition: transform .15s;
 }
 .s-qa details[open] summary::after { transform: translateY(1px) rotate(-135deg); }
-.s-qa-ans { padding: 0 16px 16px; font-size: 14px; color: var(--muted); }
+.s-qa-ans { padding: 10px 16px 16px; font-size: 14px; color: var(--muted); }
 .s-qa-ans p { margin: 0 0 8px; }
 .s-qa-ans p:last-child { margin-bottom: 0; }
 
