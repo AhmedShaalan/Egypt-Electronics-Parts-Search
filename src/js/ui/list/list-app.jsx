@@ -6,7 +6,8 @@
 // per shop with its cart. A list is named and saved in this browser.
 
 import { priced } from "../../list-model.js";
-import { $, money } from "../common.js";
+import { $ } from "../common.js";
+import { Money } from "../components.jsx";
 import { plural } from "../format.js";
 import { store, plansNow, rowById } from "./state.js";
 import { Head, ShopsStatus, Intake } from "./head.jsx";
@@ -41,7 +42,7 @@ export function ListApp() {
     {s.rows.length
       ? <div class="l-mobile-bar">
           <div>
-            <div class={`t num${final ? "" : " so-far"}`}>{plan ? money(plan.total) : "—"}</div>
+            <div class={`t num${final ? "" : " so-far"}`}>{plan ? <Money value={plan.total} /> : "—"}</div>
             <div class="s">{final
               ? `${plural(found, "part")} · ${plural(plan?.used.size || 0, "shop")} · delivery incl.`
               : settled < n ? `Pricing ${settled} of ${n} parts…` : "Almost done · waiting for a shop or two"}</div>

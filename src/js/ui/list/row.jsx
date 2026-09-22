@@ -8,9 +8,9 @@ import { SHOPS, SHOPS_BY_KEY } from "../../shops.js";
 import { askChoices } from "../cart.js";
 import { lineCost } from "../../search.js";
 import { MAX_QTY, isPick, pendingShops, held } from "../../list-model.js";
-import { money, safeUrl, priceDetail } from "../common.js";
+import { safeUrl, priceDetail } from "../common.js";
 import { plural } from "../format.js";
-import { Thumb, Menu, NumField, memo } from "../components.jsx";
+import { Thumb, Menu, NumField, Money, memo } from "../components.jsx";
 import { Chevron, ExtIcon, PenIcon, TrashIcon } from "../icons.jsx";
 import { set } from "./state.js";
 import { price } from "./pricing.js";
@@ -151,7 +151,7 @@ export const Row = memo(({ r, c, open, flash, filter }) => {
       : <div class="l-product empty">{msg}</div>;
   } else {
     chip = <PickChip r={r} c={c} />;
-    cost = money(lineCost(r.line, c));
+    cost = <Money value={lineCost(r.line, c)} />;
     product = (
       <button class="l-product" type="button" aria-expanded={open} onClick={toggle} title={`${plural(n, "offer")}. Click to compare`}>
         <Thumb class="l-thumb" p={c} />

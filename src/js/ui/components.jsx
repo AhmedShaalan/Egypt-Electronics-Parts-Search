@@ -5,7 +5,7 @@
 
 import { Component, h } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
-import { safeUrl } from "./common.js";
+import { safeUrl, money, reducedMotion } from "./common.js";
 import { DotsIcon } from "./icons.jsx";
 
 // A component drawn again only when one of its props changed, for the parts of a long list.
@@ -129,4 +129,26 @@ export function Toc({ sections, current, onPick }) {
       </ul>
     </nav>
   );
+}
+
+// A sum of money that counts to its new amount when it changes, as prices come in or a plan is
+// chosen, from wherever it had got to
+export function Money({ value }) {
+  const [shown, setShown] = useState(value);
+  const at = useRef(value);
+  useEffect(() => {
+    const from = at.current;
+    if (from === value || reducedMotion()) { at.current = value; setShown(value); return; }
+    const start = performance.now();
+    let frame;
+    const step = t => {
+      const k = Math.min(1, (t - start) / 400);
+      at.current = k < 1 ? from + (value - from) * (1 - (1 - k) ** 3) : value;
+      setShown(k < 1 ? Math.round(at.current) : value);
+      if (k < 1) frame = requestAnimationFrame(step);
+    };
+    frame = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(frame);
+  }, [value]);
+  return money(shown);
 }

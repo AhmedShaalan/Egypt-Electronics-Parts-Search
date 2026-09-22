@@ -13,7 +13,7 @@ import { money, safeUrl } from "../common.js";
 import { plural } from "../format.js";
 import { copy } from "../copy.js";
 import { cartShop } from "../cart.js";
-import { NumField } from "../components.jsx";
+import { NumField, Money } from "../components.jsx";
 import { CartIcon, CloseIcon, CopyIcon } from "../icons.jsx";
 import { change, setFees, PLAN_NAMES } from "./state.js";
 import { fill, orderMessage, wholeOrderMessage } from "./actions.js";
@@ -34,14 +34,14 @@ function Strategies({ s, plans, strategy }) {
         return (
           <button class="l-strat" type="button" role="radio" key={k} aria-checked={strategy === k} disabled={!p} onClick={() => change({ strategy: k })}>
             <span class="t">{PLAN_NAMES[k]}{k === "best" ? <span class="l-rec">Suggested</span> : null}</span>
-            <span class="v num">{p ? money(p.total) : "—"}</span>
+            <span class="v num">{p ? <Money value={p.total} /> : "—"}</span>
             <span class="s">{p ? `${plural(p.used.size, "shop")} · ${sub}` : sub}</span>
           </button>
         );
       })}
       {c
         ? <button class="l-strat" type="button" role="radio" aria-checked={strategy === "custom"} onClick={() => change({ strategy: "custom" })}>
-            <span class="t">{PLAN_NAMES.custom}</span><span class="v num">{money(c.total)}</span>
+            <span class="t">{PLAN_NAMES.custom}</span><span class="v num"><Money value={c.total} /></span>
             <span class="s">{plural(c.used.size, "shop")} · {plural(c.picks, "pick")} of yours on top of {PLAN_NAMES[s.customBase]}</span>
           </button>
         : <div class="l-strat off"><span class="t">{PLAN_NAMES.custom}</span><span class="v" />
@@ -95,7 +95,7 @@ function Basket({ shop, entries, fee, filling }) {
   const busy = filling?.shop === shop;
   return (
     <div class="l-basket">
-      <div class="l-basket-head"><b>{sh.name}</b><span class="num l-sub">{money(sub)}</span></div>
+      <div class="l-basket-head"><b>{sh.name}</b><span class="num l-sub"><Money value={sub} /></span></div>
       <ul>
         {entries.map(e => (
           <li key={e.row.id}>
@@ -139,7 +139,7 @@ function Total({ plan, children }) {
     : late.length ? `Almost done · waiting for ${late.map(x => x.name || SHOPS_BY_KEY[x.key]?.name).sort().join(", ")}` : null;
   const share = settled < n ? settled / n : 0.95;
   return <>
-    <div class={`l-total num${final ? "" : " so-far"}${lit ? " lit" : ""}`}>{plan ? money(plan.total) : "—"}</div>
+    <div class={`l-total num${final ? "" : " so-far"}${lit ? " lit" : ""}`}>{plan ? <Money value={plan.total} /> : "—"}</div>
     {children}
     {!final && n ? <>
       <div class="l-progress" aria-hidden="true"><i style={{ width: `${Math.round(share * 100)}%` }} /></div>

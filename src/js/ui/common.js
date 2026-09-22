@@ -8,6 +8,8 @@ import { packsNeeded } from "../search.js";
 export const $ = (s, el = document) => el.querySelector(s);
 export const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 export const money = n => Number(n).toLocaleString("en-US", { minimumFractionDigits: n % 1 ? 2 : 0, maximumFractionDigits: 2 }) + " EGP";
+
+export const reducedMotion = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 // links and images come from the shops' data, so only web addresses get through (no javascript:)
 export const safeUrl = u => /^https?:\/\//i.test(String(u ?? "")) ? u : "#";
 // read out by screen readers when results arrive

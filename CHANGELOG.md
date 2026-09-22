@@ -9,6 +9,7 @@ What changed on [parts.ahmedshaalan.com](https://parts.ahmedshaalan.com/), newes
 - Parts list: choose the colour or option of such a product in its row. The row then buys that one, at its own price, and it goes in the cart with "Fill cart" and is named in the copied order. Ones out of stock can't be chosen. A saved list keeps the choice.
 - Parts list: "+ Another colour" beside a chosen colour or option adds another one of the same product as a row of its own, to buy two colours of the same wire. One already on the list is lit up instead.
 - Things come onto the page gently: tabs fade in, search results and new parts list rows rise into place, and menus, dialogs and a row's offers open out.
+- Parts list: the total, each plan's total, each shop's subtotal and each row's cost count to their new amount as prices come in or another plan is chosen.
 - All of it is off when the device is set to reduce motion.
 - Search: the cart button of a product with colours or options lists them, and the one chosen goes in the shop's cart. Ones out of stock can't be chosen.
 - Parts list: "Copy all" on the order copies every shop's order as one message, with what the parts come to.
