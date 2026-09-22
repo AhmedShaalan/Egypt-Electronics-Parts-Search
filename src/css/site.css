@@ -135,6 +135,8 @@ h1 { font-size: 20px; letter-spacing: -0.01em; margin: 0 0 12px; }
 .btn.primary { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
 .btn.primary:hover { filter: brightness(1.08); }
 .btn.small { padding: 5px 10px; font-size: 13px; }
+.btn.danger { color: var(--bad); border-color: var(--bad); }
+.btn.danger:hover { background: var(--bad-soft); }
 .btn:disabled { opacity: .55; cursor: default; }
 
 .chip { font-size: 12px; padding: 3px 9px; border-radius: 99px; background: var(--surface-2); color: var(--muted); }

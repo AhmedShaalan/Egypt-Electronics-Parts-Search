@@ -267,6 +267,7 @@ table.l-opts { width: 100%; border-collapse: collapse; border: 0; border-radius:
 /* the same amber dot as "Unsaved changes" at the top of the list */
 .l-savebar-state { display: flex; align-items: center; gap: 7px; white-space: nowrap; }
 .l-savebar .l-dot { background: var(--warn); }
+.l-savebar-btns { display: flex; align-items: center; gap: 8px; }
 .l-savebar .btn { padding: 6px 14px; white-space: nowrap; }
 @media (max-width: 960px) { .l-savebar { bottom: calc(84px + env(safe-area-inset-bottom, 0px)); } }
 @media (prefers-reduced-motion: reduce) { .l-savebar { animation: none; } }

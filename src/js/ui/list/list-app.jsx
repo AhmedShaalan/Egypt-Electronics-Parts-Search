@@ -10,12 +10,13 @@ import { priced } from "../../list-model.js";
 import { $ } from "../common.js";
 import { Money } from "../components.jsx";
 import { plural } from "../format.js";
-import { store, plansNow, rowById, hasUnsaved, isSavedList } from "./state.js";
+import { store, set, plansNow, rowById, hasUnsaved, isSavedList } from "./state.js";
 import { Head, ShopsStatus, Intake } from "./head.jsx";
 import { Row } from "./row.jsx";
 import { Order } from "./order.jsx";
 import { progress } from "./pricing.js";
 import { ChangeDialog } from "./change-dialog.jsx";
+import { DiscardDialog } from "./discard-dialog.jsx";
 import { save } from "./actions.js";
 
 // Floats over the list while it has changes to save, once the Save button at the top has
@@ -33,7 +34,10 @@ function SaveBar() {
   return (
     <div class="l-savebar">
       <span class="l-savebar-state" role="status"><span class="l-dot" />Unsaved changes</span>
-      <button class="btn primary small" type="button" onClick={save}>{isSavedList() ? "Save changes" : "Save"}</button>
+      <span class="l-savebar-btns">
+        <button class="btn small" type="button" onClick={() => set({ discarding: true })}>Discard</button>
+        <button class="btn primary small" type="button" onClick={save}>{isSavedList() ? "Save changes" : "Save"}</button>
+      </span>
     </div>
   );
 }
@@ -74,5 +78,6 @@ export function ListApp() {
       : null}
     <SaveBar />
     <ChangeDialog r={s.editing != null ? rowById(s.editing) : null} />
+    <DiscardDialog />
   </>;
 }

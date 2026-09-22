@@ -33,6 +33,7 @@ export const store = createStore({
   retrying: false,    // asking the shops that failed again
   filling: null,      // { shop, done, total } while a shop's cart fills
   leaving: null,      // what runs once the list may be left, while Unsaved changes asks (leave-dialog.jsx)
+  discarding: false,  // whether Discard changes is asking (discard-dialog.jsx)
   tick: 0,            // bumped when the saved lists change
 }, { onSet: (s, before) => { if (draftChanged(s, before)) saveDraft(s); } });
 export const { set } = store;

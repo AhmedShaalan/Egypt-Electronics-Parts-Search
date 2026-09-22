@@ -200,21 +200,36 @@ function replaceList(patch) {
   set({ rows: [], name: newName(), listId: null, savedSnap: null, strategy: "best", customBase: "best", open: null, filters: {}, editing: null, flash: new Set(), retrying: false, ...patch });
 }
 
+// puts a saved list on the tab, as it was saved, and prices it again; gives how many parts it has
+function loadList(l) {
+  const parsed = l.text.split(/\r?\n/).map(parseLine).filter(Boolean);
+  const picks = l.picks || {};
+  const rows = parsed.slice(0, MAX_LIST_LINES).map(([q, n]) => newRow(q, n, picks[q] || null, l.pick_items?.[picks[q]] || null));
+  const next = { rows, name: l.name, listId: l.id, strategy: Object.keys(picks).length ? "custom" : "best" };
+  replaceList({ ...next, savedSnap: snap(next) });
+  price(rows.map(r => r.id));
+  return parsed.length;
+}
+
 // opens a saved list in this tab and prices it again
 export function openSavedList(id) {
   const l = currentSaved().lists.find(x => x.id === id);
   if (!l) return;
   if (store.state.listId === id && !isDirty()) { location.hash = "#list"; return; }
   askToLeave(() => {
-    const parsed = l.text.split(/\r?\n/).map(parseLine).filter(Boolean);
-    const picks = l.picks || {};
-    const rows = parsed.slice(0, MAX_LIST_LINES).map(([q, n]) => newRow(q, n, picks[q] || null, l.pick_items?.[picks[q]] || null));
-    const next = { rows, name: l.name, listId: l.id, strategy: Object.keys(picks).length ? "custom" : "best" };
-    replaceList({ ...next, savedSnap: snap(next) });
+    const parts = loadList(l);
     location.hash = "#list";
-    price(rows.map(r => r.id));
-    if (parsed.length > MAX_LIST_LINES) toast(`Only the first ${MAX_LIST_LINES} parts were opened; ${parsed.length - MAX_LIST_LINES} more were left out`);
+    if (parts > MAX_LIST_LINES) toast(`Only the first ${MAX_LIST_LINES} parts were opened; ${parts - MAX_LIST_LINES} more were left out`);
   });
+}
+
+// Throws away what changed since the list was saved: it goes back to how it was saved, priced
+// again. A list that was never saved is emptied. discard-dialog.jsx asks first.
+export function discardChanges() {
+  const l = currentSaved().lists.find(x => x.id === store.state.listId);
+  if (l) { loadList(l); toast(`“${l.name}” is back as it was saved`); return; }
+  replaceList({});
+  toast("List cleared");
 }
 
 // an empty list to start from
