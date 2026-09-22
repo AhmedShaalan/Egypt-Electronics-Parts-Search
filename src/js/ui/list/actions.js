@@ -9,7 +9,7 @@ import { MAX_LIST_LINES, SHOP_TIMEOUT_MS } from "../../config.js";
 import { goodFor } from "../../plans.js";
 import { SHOPS_BY_KEY } from "../../shops.js";
 import { newRow, priced, withQty, withResult, listText, listPicks, listPickItems, productKey, pickOf, priceSavedList as priceWithFees } from "../../list-model.js";
-import { $, money, toast } from "../common.js";
+import { $, money, toast, collapse } from "../common.js";
 import { plural } from "../format.js";
 import { fillCart } from "../cart.js";
 import { currentSaved, reloadSaved } from "../saved.js";
@@ -143,10 +143,13 @@ export async function addOption(id, c, ref) {
   toast(strategy !== "custom" ? `Added ${label}. Switched to ${PLAN_NAMES.custom}, on top of ${PLAN_NAMES[base]}` : `Added ${label}`);
 }
 
-export function remove(id) {
-  const idx = store.state.rows.findIndex(r => r.id === id);
-  const gone = store.state.rows[idx];
+export async function remove(id) {
+  if (!rowById(id)) return;
   stopRow(id);
+  await collapse(document.querySelector(`[data-row="${id}"]`));
+  const idx = store.state.rows.findIndex(r => r.id === id);
+  if (idx < 0) return;
+  const gone = store.state.rows[idx];
   change(s => ({ rows: s.rows.filter(r => r.id !== id), open: s.open === id ? null : s.open }));
   const run = currentRun();
   toast(`Removed “${gone.query}”`, {

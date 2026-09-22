@@ -23,7 +23,7 @@ function ListCard({ l, s }) {
   // the whole card opens the list; its buttons and menu do their own thing
   const open = e => { if (!e.target.closest("button, a, details")) openSavedList(l.id); };
   return (
-    <article class={`v-lcard${updating ? " updating" : ""}`} onClick={open}>
+    <article data-list={l.id} class={`v-lcard${updating ? " updating" : ""}`} onClick={open}>
       <div class="v-l-head">
         <button class="v-l-name" type="button" title={`Open ${l.name}`} onClick={() => openSavedList(l.id)}>{l.name}</button>
         <Menu label={`More for ${l.name}`}>

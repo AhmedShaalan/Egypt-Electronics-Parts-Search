@@ -10,6 +10,18 @@ export const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;"
 export const money = n => Number(n).toLocaleString("en-US", { minimumFractionDigits: n % 1 ? 2 : 0, maximumFractionDigits: 2 }) + " EGP";
 
 export const reducedMotion = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+// Folds a row or card away before it's taken off the page: resolves once it's closed, at once
+// when motion is reduced. It stays folded until whatever draws it drops it.
+export function collapse(els) {
+  const list = [].concat(els).filter(Boolean);
+  if (!list.length || reducedMotion()) return Promise.resolve();
+  return Promise.all(list.map(el => {
+    el.style.overflow = "hidden";
+    const fold = [{ height: `${el.offsetHeight}px`, opacity: 1 }, { height: "0px", opacity: 0, paddingBlock: "0px", marginBlock: "0px", borderWidth: "0px" }];
+    return el.animate(fold, { duration: 180, easing: "ease-in", fill: "forwards" }).finished.catch(() => {});
+  }));
+}
 // links and images come from the shops' data, so only web addresses get through (no javascript:)
 export const safeUrl = u => /^https?:\/\//i.test(String(u ?? "")) ? u : "#";
 // read out by screen readers when results arrive

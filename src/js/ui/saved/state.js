@@ -4,7 +4,7 @@
 // The Saved tab's state, and what can be done to the saved items and lists.
 
 import { deleteItems, restoreSaved, refreshItems, deleteList, duplicateList, setListPrice, exportSaved, importSaved } from "../../search.js";
-import { money, toast } from "../common.js";
+import { money, toast, collapse } from "../common.js";
 import { plural } from "../format.js";
 import { copy } from "../copy.js";
 import { currentSaved, onSavedChange, reloadSaved } from "../saved.js";
@@ -52,7 +52,8 @@ export function select(ids, on) {
   set({ selected });
 }
 
-export function removeItems(ids) {
+export async function removeItems(ids) {
+  await collapse(ids.map(id => document.querySelector(`[data-item="${id}"]`)));
   const removed = deleteItems(ids);
   select(ids, false);
   reloadSaved();
@@ -120,7 +121,8 @@ export async function updateLists(ids) {
   }
 }
 
-export function removeList(l) {
+export async function removeList(l) {
+  await collapse(document.querySelector(`[data-list="${l.id}"]`));
   const removed = deleteList(l.id);
   reloadSaved();
   toast(`Deleted “${l.name}”`, { label: "Undo", run: () => { restoreSaved({ lists: removed }); reloadSaved(); } });

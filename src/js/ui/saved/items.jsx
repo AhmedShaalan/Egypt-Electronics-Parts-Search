@@ -22,7 +22,7 @@ function ItemRow({ it, s }) {
   const ticked = s.selected.has(it.id);
   const last = lastList();
   return (
-    <div class={`v-item${ticked ? " selected" : ""}${k === "cant" ? " gone" : ""}${s.flash.has(it.id) ? " flash" : ""}`}>
+    <div data-item={it.id} class={`v-item${ticked ? " selected" : ""}${k === "cant" ? " gone" : ""}${s.flash.has(it.id) ? " flash" : ""}`}>
       <label class="v-tick"><input type="checkbox" checked={ticked} onChange={e => select([it.id], e.currentTarget.checked)} aria-label={`Select ${it.name}`} /></label>
       <Thumb class="v-thumb" p={it} />
       <div class="v-text">
