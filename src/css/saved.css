@@ -19,6 +19,9 @@
 }
 .v-tabs button:hover { color: var(--text); border-color: var(--border); }
 .v-tabs button[aria-selected="true"] { color: var(--text); border-color: var(--accent); }
+/* what a tab shows fades in, as the tabs at the top of the page do */
+#saved-pane { animation: s-fade .18s ease-out; }
+@media (prefers-reduced-motion: reduce) { #saved-pane { animation: none; } }
 .v-n { font-size: 12px; background: var(--surface-2); border-radius: 99px; padding: 0 7px; font-variant-numeric: tabular-nums; }
 
 .v-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; margin-bottom: 10px; }

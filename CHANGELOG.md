@@ -8,7 +8,7 @@ What changed on [parts.ahmedshaalan.com](https://parts.ahmedshaalan.com/), newes
 - A product sold in several colours or options says so: "2 colours" or "3 options" beside it in Search and on a parts list row, with the choices on hover in Search. A shop's order copied as a message names them ("choose colour: Blue, Green") so the shop knows to ask.
 - Parts list: choose the colour or option of such a product in its row. The row then buys that one, at its own price, and it goes in the cart with "Fill cart" and is named in the copied order. Ones out of stock can't be chosen. A saved list keeps the choice.
 - Parts list: "+ Another colour" beside a chosen colour or option adds another one of the same product as a row of its own, to buy two colours of the same wire. One already on the list is lit up instead.
-- Things come onto the page gently: tabs fade in, search results and new parts list rows rise into place, and menus, dialogs, a row's offers and a product card's offers open out.
+- Things come onto the page gently: tabs fade in, the page's own and Saved's, search results and new parts list rows rise into place, and menus, dialogs, a row's offers and a product card's offers open out.
 - Parts list: the total, each plan's total, each shop's subtotal and each row's cost count to their new amount as prices come in or another plan is chosen.
 - A part removed from a parts list, and a saved item or list removed, folds away instead of vanishing.
 - All of it is off when the device is set to reduce motion.

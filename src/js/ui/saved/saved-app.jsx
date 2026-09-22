@@ -49,7 +49,7 @@ export function SavedApp() {
     <div class="v-tabs" role="tablist" aria-label="Saved">
       {tab("items", "Starred items", items.length)}{tab("lists", "Parts lists", lists.length)}
     </div>
-    <div id="saved-pane" role="tabpanel" aria-labelledby={`saved-${s.tab}`}>
+    <div id="saved-pane" key={s.tab} role="tabpanel" aria-labelledby={`saved-${s.tab}`}>
       {s.tab === "items" ? <Items s={s} items={items} /> : <Lists s={s} lists={lists} />}
     </div>
     <BulkBar s={s} items={items} />
