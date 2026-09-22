@@ -174,8 +174,12 @@ export const priceSavedList = list => priceWithFees(list, store.state.fees);
 
 /* ---------- ordering ---------- */
 
-export const orderMessage = entries => `Hello, I'd like to order:\n${entries.map(e => `- ${packsNeeded(e.line, e.product)} × ${e.product.name}`).join("\n")}\n\n`
-  + `Total on your site: ${money(entries.reduce((sum, e) => sum + lineCost(e.line, e.product), 0))}`;
+// a shop's part of the order, to send them or keep: headed by the shop's name, underlined, so a
+// copy pasted elsewhere still says where it's from
+export const orderMessage = (shopName, entries) => `${shopName}\n${"-".repeat(shopName.length)}\n`
+  + `${entries.map(e => `- ${packsNeeded(e.line, e.product)} × ${e.product.name}`).join("\n")}\n\n`
+  + `Total: ${money(entries.reduce((sum, e) => sum + lineCost(e.line, e.product), 0))}`;
+
 
 export async function fill(shop, entries) {
   set({ filling: { shop, done: 0, total: 0 } });

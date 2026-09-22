@@ -110,9 +110,9 @@ function Basket({ shop, entries, fee, filling }) {
             <button class="btn" type="button" disabled={!!filling} onClick={() => fill(shop, entries)} title="Opens the shop with these in its cart, quantities set. You check out there.">
               <CartIcon />{busy ? (filling.total > 1 ? `Adding ${Math.min(filling.done + 1, filling.total)} of ${filling.total}…` : "Opening…") : `Fill cart at ${sh.name}`}
             </button>
-            <button class="btn l-icon-only" type="button" title="Copy the order as a message" aria-label={`Copy the ${sh.name} order as a message`} onClick={() => copy(orderMessage(entries))}><CopyIcon /></button>
+            <button class="btn l-icon-only" type="button" title="Copy the order as a message" aria-label={`Copy the ${sh.name} order as a message`} onClick={() => copy(orderMessage(sh.name, entries))}><CopyIcon /></button>
           </div>
-        : <button class="btn" type="button" title="Copy the order as a message, for their WhatsApp or order form" onClick={() => copy(orderMessage(entries))}><CopyIcon />Copy as message</button>}
+        : <button class="btn" type="button" title="Copy the order as a message, for their WhatsApp or order form" onClick={() => copy(orderMessage(sh.name, entries))}><CopyIcon />Copy as message</button>}
       {cartable
         ? (left ? <p class="l-how">{left === 1 ? "One part has" : `${left} parts have`} options to choose, so {left === 1 ? "it goes" : "they go"} in the cart by hand on their site.</p> : null)
         : <p class="l-how">Its cart can't be filled from here. Open each part and add it on their site.</p>}
