@@ -14,7 +14,7 @@ import { Thumb, Menu, NumField, memo } from "../components.jsx";
 import { Chevron, ExtIcon, PenIcon, TrashIcon } from "../icons.jsx";
 import { set } from "./state.js";
 import { price } from "./pricing.js";
-import { setQty, remove, chooseOption } from "./actions.js";
+import { setQty, remove, chooseOption, addOption } from "./actions.js";
 import { Offers } from "./offers.jsx";
 
 function Qty({ r }) {
@@ -88,14 +88,38 @@ function Options({ r, c }) {
   };
   const out = x => stock?.[x.ref] === false && x.ref !== o.chosen;
   return (
-    <label class="l-option">
-      <span>{o.what[0].toUpperCase() + o.what.slice(1)}</span>
-      <select value={o.chosen || ""} disabled={busy} onFocus={ask} onPointerDown={ask} onChange={pick}>
-        {o.chosen ? null : <option value="" disabled>Choose…</option>}
-        {o.choices.map(x => <option key={x.ref} value={x.ref} disabled={out(x)}>{x.label}{out(x) ? " (out of stock)" : ""}</option>)}
-      </select>
+    <div class="l-option">
+      <label>
+        <span>{o.what[0].toUpperCase() + o.what.slice(1)}</span>
+        <select value={o.chosen || ""} disabled={busy} onFocus={ask} onPointerDown={ask} onChange={pick}>
+          {o.chosen ? null : <option value="" disabled>Choose…</option>}
+          {o.choices.map(x => <option key={x.ref} value={x.ref} disabled={out(x)}>{x.label}{out(x) ? " (out of stock)" : ""}</option>)}
+        </select>
+      </label>
       {busy ? <span class="s-bar-anim" /> : null}
-    </label>
+      {o.chosen && !busy ? <AddOption r={r} c={c} /> : null}
+    </div>
+  );
+}
+
+// another of them on a row of its own, to buy two colours of the same wire
+function AddOption({ r, c }) {
+  const [stock, setStock] = useState(null);
+  const o = c.options;
+  const ask = () => {
+    if (stock) return;
+    setStock({});
+    askChoices(c, (ref, inStock) => setStock(m => ({ ...m, [ref]: inStock })));
+  };
+  const out = x => stock?.[x.ref] === false;
+  const title = `Add another ${o.what} of it to the list`;
+  return (
+    <Menu label={title} summary={<summary class="s-linkbtn" title={title} onClick={ask}>+ Another {o.what}</summary>}>
+      <p class="menu-head">Add which {o.what}?</p>
+      {o.choices.filter(x => x.ref !== o.chosen).map(x => (
+        <button key={x.ref} type="button" role="menuitem" disabled={out(x)} onClick={() => addOption(r.id, c, x.ref)}>{x.label}{out(x) ? " (out of stock)" : ""}</button>
+      ))}
+    </Menu>
   );
 }
 

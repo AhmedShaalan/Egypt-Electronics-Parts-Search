@@ -13,7 +13,7 @@ import { $, money, toast } from "../common.js";
 import { plural } from "../format.js";
 import { fillCart } from "../cart.js";
 import { currentSaved, reloadSaved } from "../saved.js";
-import { store, set, change, rowById, pricing, plansNow, snap, isSavedList, isDirty, hasUnsaved, newName, PLAN_NAMES } from "./state.js";
+import { store, set, change, flashRows, rowById, pricing, plansNow, snap, isSavedList, isDirty, hasUnsaved, newName, PLAN_NAMES } from "./state.js";
 import { price, stopRow, stopAll, currentRun } from "./pricing.js";
 
 /* ---------- changing the list ---------- */
@@ -110,6 +110,37 @@ export async function chooseOption(id, c, ref) {
   const rows = store.state.rows.map(x => (x.id === id ? withResult({ ...x, pinKey: productKey(p), pick: pickOf(p), pickState: "kept" }, x.result) : x));
   change({ rows, customBase: base, strategy: "custom" }, id);
   if (strategy !== "custom") toast(`Switched to ${PLAN_NAMES.custom}, on top of ${PLAN_NAMES[base]}`);
+}
+
+// Another colour or size of a row's product, for buying more than one of them: a row of its own
+// below it, named after it and with it as its pick, for as many as that row. One already on the
+// list is lit up instead.
+export async function addOption(id, c, ref) {
+  const shop = SHOPS_BY_KEY[c.shop];
+  const label = c.options.choices.find(x => x.ref === ref)?.label;
+  let p;
+  try {
+    p = await shop.option(c, ref, AbortSignal.timeout(SHOP_TIMEOUT_MS));
+  } catch {
+    toast(`${shop.name} didn't answer. Try again`);
+    return;
+  }
+  const r = rowById(id);
+  if (!r) return;
+  if (!p?.in_stock || !(p.price > 0)) { toast(`${label} is out of stock at ${shop.name}`); return; }
+  const [q] = parseLine(`${nameLine(p.name)} x1`);
+  const { rows, strategy } = store.state;
+  const there = rows.find(x => x.pinKey === productKey(p) || x.query.toLowerCase() === q.toLowerCase());
+  if (there) { flashRows([there.id]); toast(`${label} is already on the list`); return; }
+  if (rows.length >= MAX_LIST_LINES) { toast(`A list can have ${MAX_LIST_LINES} parts`); return; }
+  const row = { ...newRow(q, r.qty, productKey(p), pickOf(p)), pickState: "kept" };
+  const next = rows.slice();
+  next.splice(next.indexOf(r) + 1, 0, row);
+  const base = strategy === "custom" ? store.state.customBase : strategy;
+  change({ rows: next, customBase: base, strategy: "custom" });
+  price([row.id]);
+  flashRows([row.id]);
+  toast(strategy !== "custom" ? `Added ${label}. Switched to ${PLAN_NAMES.custom}, on top of ${PLAN_NAMES[base]}` : `Added ${label}`);
 }
 
 export function remove(id) {
