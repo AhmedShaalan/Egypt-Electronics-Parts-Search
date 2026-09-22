@@ -37,6 +37,9 @@ const hasDigit = (s) => /\p{Nd}/u.test(s);
 const hasLetter = (s) => /[a-z]/.test(s);
 const stripDots = (s) => s.replace(/^\.+|\.+$/g, "");
 const longestDigitRun = (s) => (s.match(/\p{Nd}+/gu) || []).reduce((a, b) => (b.length > a.length ? b : a), "");
+// the digits written before a part number's letters: "1" in 1n5401. They say what the part is
+// (1N is a diode, 2N a transistor), so two names that both have them must agree.
+const leadOf = (t, core) => t.match(new RegExp(`(\\d+)[a-z]+${core}`))?.[1];
 
 // "12 V", "250 mA", "10 k" -> "12v", "250ma", "10k", the way shops write values
 const UNIT_GAP = /(\d)\s+(v|mv|a|ma|mah|ah|w|kw|ohm|kohm|k|uf|nf|pf|mm|hz|khz|mhz)(?![0-9a-z])/g;
@@ -108,7 +111,9 @@ function tokenWeight(t, nameTokens, nameCompact) {
   // a part number's digits can stand for it, a value's can't: 250ma is not 250v
   if (hasLetter(t) && hasDigit(t) && !VALUE.test(t)) {
     const core = longestDigitRun(t);
-    if (core.length >= 3 && nameTokens.some((nt) => foundIn(core, nt))) return 0.8; // lm7805 ~ l7805cv
+    const lead = leadOf(t, core);
+    const fits = (nt) => foundIn(core, nt) && !(lead && leadOf(nt, core) && leadOf(nt, core) !== lead);
+    if (core.length >= 3 && nameTokens.some(fits)) return 0.8; // lm7805 ~ l7805cv
   }
   if (t.length >= 3 && foundIn(compactText(t), nameCompact.text, nameCompact.starts)) return 0.6;
   return 0.0;

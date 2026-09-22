@@ -36,6 +36,7 @@ What changed on [parts.ahmedshaalan.com](https://parts.ahmedshaalan.com/), newes
 - The site is now built with [Vite](https://vite.dev) before it's published, and every tab is a [Preact](https://preactjs.com) component, each in its own folder with its own styles. It loads as one script and one stylesheet, whose names change with every release so browsers never keep an old copy.
 
 ### Fixed
+- A search for a 1N part (a diode, like 1N5401) no longer matches the 2N part with the same number (a transistor, 2N5401), and the other way round. The same goes for any part number that starts with digits and letters. The MCP server matches the same way.
 - A model written with a space or joined up ("mini 360", "Mini360") finds the shops that only list it with a dash ("Mini-360"), so it gets the same results as "mini-360". The MCP server searches the same way.
 - The Parts list's total says "So far" while parts are still being priced or a shop is still to answer, with how far it has got underneath, and stays grey until it's final. It lights up once when it is. The total in the bar at the bottom of a phone's screen says so too.
 - On the Parts list, a part shows its prices once all but the slowest three shops have answered, and the next part starts. The slow shops are added as they answer, and the part says under it which it's still waiting for. A shop taking its time no longer holds up the whole list.
