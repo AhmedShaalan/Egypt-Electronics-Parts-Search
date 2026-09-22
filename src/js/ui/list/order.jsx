@@ -135,7 +135,7 @@ function Total({ plan, children }) {
     const t = setTimeout(() => setLit(false), 1400);
     return () => { clearTimeout(t); setLit(false); };
   }, [final]);
-  const label = settled < n ? `So far · ${settled} of ${n} parts priced`
+  const label = settled < n ? `Pricing ${settled} of ${n} parts…`
     : late.length ? `Almost done · waiting for ${late.map(x => x.name || SHOPS_BY_KEY[x.key]?.name).sort().join(", ")}` : null;
   const share = settled < n ? settled / n : 0.95;
   return <>
@@ -143,7 +143,7 @@ function Total({ plan, children }) {
     {children}
     {!final && n ? <>
       <div class="l-progress" aria-hidden="true"><i style={{ width: `${Math.round(share * 100)}%` }} /></div>
-      <div class="l-total-state">{label}</div>
+      <div class="l-total-state"><span class="l-spin" aria-hidden="true" />{label}</div>
     </> : null}
   </>;
 }

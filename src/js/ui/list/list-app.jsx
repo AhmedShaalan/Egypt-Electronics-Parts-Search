@@ -44,7 +44,7 @@ export function ListApp() {
             <div class={`t num${final ? "" : " so-far"}`}>{plan ? money(plan.total) : "—"}</div>
             <div class="s">{final
               ? `${plural(found, "part")} · ${plural(plan?.used.size || 0, "shop")} · delivery incl.`
-              : settled < n ? `So far · ${settled} of ${n} parts priced` : "So far · waiting for a shop or two"}</div>
+              : settled < n ? `Pricing ${settled} of ${n} parts…` : "Almost done · waiting for a shop or two"}</div>
           </div>
           <button class="btn primary" type="button" onClick={() => $("#order").scrollIntoView({ behavior: "smooth" })}>View order</button>
         </div>
