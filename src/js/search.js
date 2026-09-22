@@ -480,7 +480,9 @@ export const nameLine = name => name.replace(/\s+/g, " ").replace(/^[\s#*•·-]
 
 // Adds a product to a saved list, or to a new one when id is null. The list is text, so the
 // product goes in as a line with its name, at the top; adding the same part again raises its quantity.
-export function addToList(id, name, newName) {
+// `pick`, when given, is the product itself (list-model.js pickOf): the line keeps it as its pick,
+// so the list prices that product rather than whatever its name finds first
+export function addToList(id, name, newName, pick = null) {
   const data = load();
   let list = id == null ? null : data.lists.find((l) => l.id === id);
   if (!list) {
@@ -499,6 +501,14 @@ export function addToList(id, name, newName) {
   else if (lines.length >= MAX_LIST_LINES) throw new Error(`That list is full: a list can have ${MAX_LIST_LINES} parts`);
   else lines.unshift(withQty(1));
   list.text = lines.join("\n");
+  if (pick) {
+    // keyed by the line as the list reads it back, with the product kept for when it's gone
+    const pinKey = `${pick.shop}|${pick.ref}`;
+    const [q] = parseLine(`${line} x1`);
+    list.picks = { ...list.picks, [q]: pinKey };
+    const kept = new Set(Object.values(list.picks));
+    list.pick_items = Object.fromEntries(Object.entries({ ...list.pick_items, [pinKey]: pick }).filter(([k]) => kept.has(k)));
+  }
   // the total it was priced at no longer covers the list
   if (list.saved_total != null) list.changed = true;
   if (!store(data)) throw new Error("Couldn't save: this browser blocks storage");

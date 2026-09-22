@@ -4,6 +4,7 @@
 // The dialog that adds a search result to a saved parts list.
 
 import { getSaved, addToList } from "../search.js";
+import { pickOf } from "../list-model.js";
 import { $, esc, toast, onBackdrop } from "./common.js";
 import { currentSaved, partCount, reloadSaved } from "./saved.js";
 import { openSavedList, addedToList } from "./list/index.js";
@@ -13,16 +14,17 @@ let lastListId = null; // the list picked last time is picked again, for adding 
 // the list something was added to last, while it still exists, for adding the next part in one click
 export const lastList = () => currentSaved().lists.find(l => l.id === lastListId) || null;
 
-// the products' names go in as lines of the list, the first making a new list when `id` is null.
-// Each goes in at the top, so they're added last first to keep their order.
+// the products' names go in as lines of the list, the first making a new list when `id` is null,
+// each line with the product as its pick. Each goes in at the top, so they're added last first to
+// keep their order.
 function addAll(id, ps, newName) {
   let list = null;
   for (const p of [...ps].reverse()) {
-    list = addToList(id, p.name, newName);
+    list = addToList(id, p.name, newName, pickOf(p));
     id = list.id;
   }
   reloadSaved();
-  addedToList(list.id, ps.map(p => p.name));
+  addedToList(list.id, ps);
   lastListId = list.id;
   toast(`Added ${ps.length === 1 ? "" : `${ps.length} items `}to “${list.name}”`, { label: "Open list", run: () => openSavedList(list.id) });
   return list;

@@ -39,6 +39,7 @@ What changed on [parts.ahmedshaalan.com](https://parts.ahmedshaalan.com/), newes
 - The site is now built with [Vite](https://vite.dev) before it's published, and every tab is a [Preact](https://preactjs.com) component, each in its own folder with its own styles. It loads as one script and one stylesheet, whose names change with every release so browsers never keep an old copy.
 
 ### Fixed
+- A product added to a parts list from Search or Saved is that line's pick, so the list prices that exact product. Before, the list searched its name again and could pick another shop's.
 - A part number's digits no longer match the same digits in a measurement: TIP120 isn't a 120 ohm resistor or a 120 W power supply, IRF530N isn't a 530 nm LED, and Mini360 isn't a 360 W supply.
 - A diode's number (1N5401) no longer matches a transistor with the same digits under other letters (MMBT5401). IN5401 and LL4148 still count as 1N parts.
 - A search for a fixed resistor ("10k resistor") no longer takes a potentiometer or trimmer of that value as a match; it's shown among the weaker matches as "A potentiometer, not a fixed resistor".

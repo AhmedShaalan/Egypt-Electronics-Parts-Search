@@ -44,23 +44,26 @@ export function addText(text) {
 }
 
 // products added to a saved list from Search or Saved (add-to-list.js): when that list is open
-// here, they join it here too, at the top, so the tab shows them and saving it doesn't drop them.
-// A list with nothing unsaved stays that way.
-export function addedToList(id, names) {
+// here, they join it here too, at the top, each with the product as its pick, so the tab shows
+// them and saving it doesn't drop them. A list with nothing unsaved stays that way.
+export function addedToList(id, products) {
   if (store.state.listId !== id) return;
   const clean = !isDirty();
   const rows = store.state.rows.slice();
   const added = [];
-  for (const name of names) {
+  for (const p of products) {
     // as addToList reads it: " x1" keeps a name like "Resistor 10K 40pcs" from being taken as 40
-    const [q] = parseLine(`${nameLine(name)} x1`);
+    const [q] = parseLine(`${nameLine(p.name)} x1`);
     const same = rows.findIndex(r => r.query.toLowerCase() === q.toLowerCase());
     if (same >= 0) { rows[same] = withQty(rows[same], rows[same].qty + 1); continue; }
     const twice = added.findIndex(r => r.query.toLowerCase() === q.toLowerCase());
     if (twice >= 0) { added[twice] = withQty(added[twice], added[twice].qty + 1); continue; }
-    if (rows.length + added.length < MAX_LIST_LINES) added.push(newRow(q, 1));
+    if (rows.length + added.length < MAX_LIST_LINES) added.push(newRow(q, 1, productKey(p), pickOf(p)));
   }
-  change({ rows: [...added, ...rows] });
+  // the products added are picks, which only Your picks buys: on top of the plan on screen
+  const { strategy } = store.state;
+  const plan = added.length && strategy !== "custom" ? { strategy: "custom", customBase: strategy } : {};
+  change({ rows: [...added, ...rows], ...plan });
   if (clean) set({ savedSnap: snap(store.state) });
   price(added.map(r => r.id));
 }
