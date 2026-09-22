@@ -37,6 +37,7 @@ What changed on [parts.ahmedshaalan.com](https://parts.ahmedshaalan.com/), newes
 
 ### Fixed
 - A search with a bare number and words, like "5010 fan", also asks the shops for the number alone, so it finds "5010 Cooling Fan" at shops whose search wants the words together. Before, it found nothing while "5010" alone found the fans.
+- A product whose name gives its wire count, like a "3-wire" fan, is no longer taken for a wire and marked as an accessory.
 - A search for a 1N part (a diode, like 1N5401) no longer matches the 2N part with the same number (a transistor, 2N5401), and the other way round. The same goes for any part number that starts with digits and letters. The MCP server matches the same way.
 - A model written with a space or joined up ("mini 360", "Mini360") finds the shops that only list it with a dash ("Mini-360"), so it gets the same results as "mini-360". The MCP server searches the same way.
 - The Parts list's total says "So far" while parts are still being priced or a shop is still to answer, with how far it has got underneath, and stays grey until it's final. It lights up once when it is. The total in the bar at the bottom of a phone's screen says so too.

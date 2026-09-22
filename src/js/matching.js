@@ -180,7 +180,8 @@ function accessoryOf(qTokens, name) {
   if (madeFor) return { madeFor: madeFor === "compatible" ? "compatible" : "for" };
   // boards, cables and cases that carry the part's name rank below the part
   const inQuery = (t) => qTokens.some((q) => q.startsWith(t) || t.startsWith(q)); // wire ~ wires
-  const word = nameTokens.find((t) => isAccessory(t) && !inQuery(t));
+  // after a number the word describes the part itself: a "3-wire" fan
+  const word = raw.find((t, i) => isAccessory(t) && !inQuery(t) && !isDigit(raw[i - 1] || "") && nameTokens.includes(t));
   return word ? { word } : null;
 }
 
