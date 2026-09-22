@@ -667,6 +667,84 @@ class VoltxShop extends Shop {
   }
 }
 
+class MechatronxShop extends Shop {
+  // Laravel storefront with its own JSON product API, which doesn't allow browsers (relay). A
+  // search is one request for up to 100 products with price, offer and stock. A product with
+  // options ("Resistor 1/4W" in 88 values) comes back as one entry with no stock of its own; its
+  // options are products with their own price and stock, read from the product itself for the
+  // first few such entries, and kept for an hour.
+  platform = "Custom";
+  static OPTION_PARENTS = 5;
+
+  constructor(...args) {
+    super(...args);
+    this.options = new Map();
+  }
+
+  get api() {
+    return `${this.base}/api/products`;
+  }
+
+  async search(query, signal) {
+    const params = new URLSearchParams({ search: query, per_page: "100" });
+    const { data = [] } = await (await ok(await relay(`${this.api}?${params}`, { signal }))).json();
+    const parents = data.filter((d) => d.isVariantParent).slice(0, MechatronxShop.OPTION_PARENTS);
+    const options = await Promise.all(parents.map((d) => this.optionsOf(d, signal).catch(() => [])));
+    return [...data.filter((d) => !d.isVariantParent).map((d) => this.product(d)), ...options.flat()]
+      .filter((p) => p.in_stock && p.price > 0);
+  }
+
+  optionsOf(parent, signal) {
+    const kept = this.options.get(parent.slug);
+    if (kept && Date.now() - kept.at < HOUR) return kept.rows;
+    const rows = (async () => {
+      const { data } = await (await ok(await relay(`${this.api}/${encodeURIComponent(parent.slug)}`, { signal }))).json();
+      return (data?.variations || []).map((v) => this.product(v, parent));
+    })();
+    this.options.set(parent.slug, { at: Date.now(), rows });
+    rows.catch(() => this.options.delete(parent.slug));
+    return rows;
+  }
+
+  // an option is named after its product and its values: "Resistor 1/4W (1Pcs) — 10k Ohm". Its
+  // own name is often a code ("LED 5MM-T-BLUE") or leaves the value out.
+  optionName(parent, v) {
+    const values = Object.entries(v.attributes || {}).map(([k, x]) =>
+      (/resist/i.test(k) && /^[\d.]+[kKmM]?$/.test(x) ? `${x} Ohm` : x));
+    return cleanName(values.length ? `${parent.name} — ${values.join(" / ")}` : v.name);
+  }
+
+  // the API gives the full-size image, up to 2000px and 400 KB; the shop's own cards use a
+  // small WebP copy of it
+  card(image) {
+    return image ? image.replace(/\/storage\/products\/main\/([^/]+)\.\w+$/, "/storage/products/card/$1.webp") : null;
+  }
+
+  product(d, parent) {
+    const price = Number(d.price || 0);
+    const regular = Number(d.originalPrice || 0);
+    return {
+      shop: this.key,
+      ref: String(d.id),
+      name: parent ? this.optionName(parent, d) : cleanName(d.name),
+      price,
+      url: parent ? `${this.base}/product/${parent.slug}?variant=${d.id}` : `${this.base}/product/${d.slug}`,
+      image: this.card(d.image || parent?.image),
+      in_stock: d.inStock === true && d.availableOnline !== false && !d.comingSoon,
+      old_price: regular > price ? regular : null,
+    };
+  }
+
+  async check(ref, signal) {
+    const r = await relay(`${this.api}/${encodeURIComponent(ref)}`, { signal });
+    if (r.status === 404) return null;
+    const { data } = await (await ok(r)).json();
+    if (!data?.id) return null;
+    const p = this.product(data);
+    return { price: p.price, in_stock: p.in_stock };
+  }
+}
+
 export const SHOPS = [
   new OdooShop("ram", "RAM Electronics", "https://www.ram-e-shop.com"),
   Object.assign(new WooShop("makers", "Makers Electronics", "https://makerselectronics.com"), {
@@ -688,5 +766,6 @@ export const SHOPS = [
   new ElectraShop("electra", "Electra Store", "https://electra.store"),
   new MtmShop("mtm", "MTM Electronics", "https://mtm-electronic.com"),
   new VoltxShop("voltx", "VoltX Electronics", "https://voltx-store.com"),
+  new MechatronxShop("mechatronx", "Mechatronx", "https://mecha-tronx.com"),
 ];
 export const SHOPS_BY_KEY = Object.fromEntries(SHOPS.map((s) => [s.key, s]));

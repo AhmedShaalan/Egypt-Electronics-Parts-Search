@@ -11,7 +11,7 @@
 // and custom: the plan the person started from, with the products they chose themselves.
 //
 // For speed, each part's options are its cheapest offer per shop, cheapest first, so a set is
-// checked in a few steps per part; 16 shops make 65,536 sets, done in well under a second.
+// checked in a few steps per part; 17 shops make 131,072 sets, done in under half a second.
 
 import { isClose, lineCost } from "./search.js";
 

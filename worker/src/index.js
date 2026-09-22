@@ -19,6 +19,7 @@ const SHOP_HOSTS = new Set([
   "hdelectronicseg.com",
   "circuit-electronics.com",
   "electra.store",
+  "mecha-tronx.com",
 ]);
 
 const BROWSER_HEADERS = {

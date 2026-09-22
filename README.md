@@ -9,7 +9,7 @@ Find a part, see every in-stock price side by side, and price a whole parts list
 
 ### [**→ Open the site**](https://parts.ahmedshaalan.com/)
 
-`16 shops` · `live prices` · `out-of-stock hidden` · `works on your phone` · `free, no sign-up` · [`MCP for AI assistants`](#use-it-from-claude-or-another-ai-assistant) · [`AGPL-3.0 license`](LICENSE)
+`17 shops` · `live prices` · `out-of-stock hidden` · `works on your phone` · `free, no sign-up` · [`MCP for AI assistants`](#use-it-from-claude-or-another-ai-assistant) · [`AGPL-3.0 license`](LICENSE)
 
 <img src=".github/screenshots/search.png" alt="Search results for LM7805: 24 matches from all 16 shops, best match first, with the shops and their match counts on the side" width="760">
 
@@ -26,7 +26,7 @@ Egypt Electronics Parts Search asks every shop at once, recognizes those names a
 ## Features
 
 **🔍 Search every shop at once**
-- Queries all 16 shops at the same time; results fill in as the shops answer
+- Queries all 17 shops at the same time; results fill in as the shops answer
 - The same product at different shops is one card, cheapest first, with every shop's offer inside (or see every offer in one list)
 - Hides out-of-stock items automatically, and shows sale prices and the per-piece price for packs ("(10pcs)")
 - Sort by best match, cheapest, or cheapest per piece; tick shops on or off, or show only sale items or ones you can add to cart from here
@@ -80,7 +80,7 @@ Type a part number or a description: `LM7805`, `ESP32`, `10k resistor`, `HC-SR04
 
 | You'll see | What it means |
 |---|---|
-| **Searching 16 shops… 9 answered** | Results show once a few shops have answered with a match, and the rest join as they answer. **Stop waiting** skips the shops still running |
+| **Searching 17 shops… 9 answered** | Results show once a few shops have answered with a match, and the rest join as they answer. **Stop waiting** skips the shops still running |
 | **Every offer** or **By product** | Every offer, the default, lists each shop's offer on its own. By product puts the same product at different shops in one card, with the cheapest shop and price, then the next few; open it for every shop's offer. Only close matches are merged (the package, values like 5V, model codes like S3 or 30-pin and the pack size must agree); anything unsure has its own card |
 | The **Shops** panel | Each shop's number of matches. Untick a shop to hide it, or **Only** to see just that one. Shops still searching spin; a shop that **didn't answer** or was **skipped** has **Try again** or **Search now** |
 | **Sale** | The shop is discounting it; the original price is struck through |
@@ -115,7 +115,7 @@ Bullets and numbering are ignored, `#` lines are treated as comments, and names 
 | **How to buy** | **Best overall** is the lowest parts cost plus delivery; **Cheapest parts, any shop** takes the cheapest product for each part wherever it is, so its delivery to more shops can make it cost more in all; **Fewest shops** means the fewest deliveries. Choosing a product yourself makes it **Your picks**: the plan you were on, with your picks. The rows follow the choice, and when a change moves other parts to another shop, they light up and a message says so |
 | **Delivery fees** | One estimate for any shop, and your own figure for the shops you know. They're kept in this browser and apply to every list |
 | **Your order** | One basket per shop with what goes in it. **Fill cart at …** opens the shop with them in its cart, quantities set (counting packs); a Shopify shop takes them all at once, a WooCommerce shop one per link, so the tab adds them one after another and ends on the cart. Products with options to choose (a size, a colour) are added on the shop's page. For a shop whose cart can't be filled from here, open each part from the basket, or **Copy as message** for their WhatsApp or order form |
-| **Prices from 15 of 16 shops** | A shop didn't answer; **Try again** asks it again for every part |
+| **Prices from 16 of 17 shops** | A shop didn't answer; **Try again** asks it again for every part |
 
 The list's name is its title. **Save** keeps it in this browser, the header says when there are unsaved changes, and **My lists** switches to another saved list, starts a new one or copies this one as text. The list on the tab is kept when the page is reloaded.
 
@@ -175,6 +175,7 @@ It runs the site's own code from `src/js`, so it matches and totals exactly like
 | [Electra Store](https://electra.store) | Custom (Laravel) | Full catalog from the shop's API, searched in the browser, plus a stock lookup per product | — |
 | [MTM Electronics](https://mtm-electronic.com) | Custom (Next.js + Laravel) | Full catalog from the shop's API, searched in the browser | — |
 | [VoltX Electronics](https://voltx-store.com) | Custom (Next.js) | The shop's own public search API | — |
+| [Mechatronx](https://mecha-tronx.com) | Custom (Laravel) | The shop's own product API, plus the options of products that have them | — |
 
 **Add to cart** needs a shop whose cart a link can fill. The others only add to their cart from their own page (behind a security token, or with the cart kept in the browser), so for them the product link opens the page and the shop's own button is one click away.
 
@@ -182,14 +183,15 @@ It runs the site's own code from `src/js`, so it matches and totals exactly like
 
 The whole app runs in your browser. It's a static site on GitHub Pages, with no server of its own.
 
-The catch: browsers only let a website read another site's data if that site allows it (CORS). The two Shopify shops, El Gammal, MTM, VoltX and Electra's catalog do; the other ten don't. For those, requests go through a tiny **relay** on Cloudflare Workers that fetches the shop's page and hands it back.
+The catch: browsers only let a website read another site's data if that site allows it (CORS). The two Shopify shops, El Gammal, MTM, VoltX and Electra's catalog do; the other eleven don't. For those, requests go through a tiny **relay** on Cloudflare Workers that fetches the shop's page and hands it back.
 
 ```
                                 ┌──────────── direct ────────────► Future, DevBoards, El Gammal,
  GitHub Pages site ─────────────┤                                  MTM, VoltX, Electra's catalog  (CORS allowed)
  (all search logic, in JS)      └─► Cloudflare Worker relay ─────► RAM, Makers, Micro Ohm, Most,
                                     (allow-listed shops only,      UGE, Ampere, Lampatronics,
-                                     1-hour cache)                 Free, HD, Circuit, Electra's stock
+                                     1-hour cache)                 Free, HD, Circuit, Mechatronx,
+                                                                   Electra's stock
 ```
 
 1. **Fan out.** A search runs against all shops in parallel, and the results show as they come in: once three shops have answered with a match, then each shop as it answers. Each shop gets 25 seconds; a slow or broken shop is marked failed instead of holding up the rest. You can also stop waiting early: the shops still running are marked skipped, and each can be fetched on its own afterwards.
@@ -236,6 +238,7 @@ In a parts list, the default pick for each line is the **cheapest product within
 - **Electra:** the store's own search only matches exact-case substrings, so the app downloads its catalog from `/api/v1/products` (about 5,300 products in 6 pages, allowed directly), keeps it for an hour and searches it locally. The API's stock count means nothing, so the product pages of the 20 best matches are read for their schema.org offer (price and availability), through the relay, which sends back only the page's first 24 KB. Offers are cached for an hour.
 - **MTM:** the backend hands out the whole catalog in one request (`/backend/public/api/products`, about 3 MB, allowed directly), so the app keeps it for an hour and searches it locally. Products without a price are left out.
 - **VoltX:** the storefront's own search API (`/api/products/search/public`) returns name, price, offer and stock in one response and allows browsers directly, so a search is a single request with no relay.
+- **Mechatronx:** the storefront's product API (`/api/products?search=…`, through the relay) returns up to 100 products with price, offer and stock. A product with options, like a resistor sold in 88 values, comes back as one entry without stock of its own, so for the first 5 of those the app reads the product (`/api/products/<slug>`) for its options, each with its own price and stock, named after the product and its value ("Resistor 1/4W (1Pcs) — 10k Ohm"). Options are kept for an hour.
 - **Lampatronics:** the storefront is a JavaScript app backed by `/api/frontend/product`. The API requires the key the site embeds in every page. The app reads that key from the home page and re-reads it if it's ever rejected. Up to 3 pages of 50 results.
 
 ## Project structure
@@ -400,7 +403,7 @@ What changed for visitors, in plain words, goes in [CHANGELOG.md](CHANGELOG.md).
 
 - **Matching is heuristic.** It handles part numbers well. Vague names like "LCD" or "sensor" need a glance at the pick, and some accessories still slip through as a strong match (for example, an I2C adapter board for `16x2 LCD`). Every parts-list row opens its offers for exactly this.
 - **Delivery fees are your estimates.** The parts list counts the fees you set; shops don't publish them in a form the site can read, and a fee can depend on where you are and how much you order. Search results don't include delivery.
-- **Add to cart works at 10 of the 16 shops**, and not for products with options to choose. Some products are only sold in multiples ("order in tens"); the cart then gets the next amount the shop accepts. Prices in the cart are the shop's current ones, which may have changed since the search.
+- **Add to cart works at 10 of the 17 shops**, and not for products with options to choose. Some products are only sold in multiples ("order in tens"); the cart then gets the next amount the shop accepts. Prices in the cart are the shop's current ones, which may have changed since the search.
 - **Shops change.** A site redesign or platform switch can break its connector. The shop then shows as `failed` rather than returning wrong data.
 - **A shop may block the relay.** Shops can refuse requests coming from Cloudflare's servers; that shop then shows as `failed`.
 - **Only shops with a real online store are covered.** Shops that sell only through Facebook or WhatsApp can't be searched.
