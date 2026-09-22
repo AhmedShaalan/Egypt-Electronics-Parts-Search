@@ -69,7 +69,8 @@
 .s-f-sec + .s-f-head { margin-top: 16px; }
 .s-filters h3 { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 0; font-weight: 600; }
 .s-f-head .s-linkbtn { font-size: 12px; }
-.s-f-sec { display: grid; }
+/* as wide as the panel, so a long shop name ends in "…" rather than pushing its count out */
+.s-f-sec { display: grid; grid-template-columns: minmax(0, 1fr); }
 .s-f-row { display: flex; align-items: center; gap: 8px; min-height: 30px; border-radius: 6px; padding-inline: 4px; margin-inline: -4px; }
 .s-f-row:hover { background: var(--surface-2); }
 .s-f-row label { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; cursor: pointer; }
