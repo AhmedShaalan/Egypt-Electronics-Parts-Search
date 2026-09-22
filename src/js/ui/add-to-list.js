@@ -6,7 +6,7 @@
 import { getSaved, addToList } from "../search.js";
 import { $, esc, toast, onBackdrop } from "./common.js";
 import { currentSaved, partCount, reloadSaved } from "./saved.js";
-import { openSavedList } from "./list/index.js";
+import { openSavedList, addedToList } from "./list/index.js";
 
 let lastListId = null; // the list picked last time is picked again, for adding several parts in a row
 
@@ -22,6 +22,7 @@ function addAll(id, ps, newName) {
     id = list.id;
   }
   reloadSaved();
+  addedToList(list.id, ps.map(p => p.name));
   lastListId = list.id;
   toast(`Added ${ps.length === 1 ? "" : `${ps.length} items `}to “${list.name}”`, { label: "Open list", run: () => openSavedList(list.id) });
   return list;

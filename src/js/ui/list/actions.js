@@ -4,7 +4,7 @@
 // What can be done to the list on the tab: adding and changing parts, choosing products, saving
 // and opening lists, and ordering.
 
-import { parseLine, lineCost, packsNeeded, saveList, updateList, renameList } from "../../search.js";
+import { parseLine, nameLine, lineCost, packsNeeded, saveList, updateList, renameList } from "../../search.js";
 import { MAX_LIST_LINES } from "../../config.js";
 import { goodFor } from "../../plans.js";
 import { newRow, priced, withQty, listText, listPicks, productKey, priceSavedList as priceWithFees } from "../../list-model.js";
@@ -41,6 +41,28 @@ export function addText(text) {
   const said = [added.length && `Added ${plural(added.length, "part")}`, more && `${plural(more, "part")} already on the list got more`].filter(Boolean).join(", ");
   toast(left ? `${said || "Nothing added"}. A list can have ${MAX_LIST_LINES} parts, so ${left} ${left === 1 ? "was" : "were"} left out` : said);
   return true;
+}
+
+// products added to a saved list from Search or Saved (add-to-list.js): when that list is open
+// here, they join it here too, at the top, so the tab shows them and saving it doesn't drop them.
+// A list with nothing unsaved stays that way.
+export function addedToList(id, names) {
+  if (store.state.listId !== id) return;
+  const clean = !isDirty();
+  const rows = store.state.rows.slice();
+  const added = [];
+  for (const name of names) {
+    // as addToList reads it: " x1" keeps a name like "Resistor 10K 40pcs" from being taken as 40
+    const [q] = parseLine(`${nameLine(name)} x1`);
+    const same = rows.findIndex(r => r.query.toLowerCase() === q.toLowerCase());
+    if (same >= 0) { rows[same] = withQty(rows[same], rows[same].qty + 1); continue; }
+    const twice = added.findIndex(r => r.query.toLowerCase() === q.toLowerCase());
+    if (twice >= 0) { added[twice] = withQty(added[twice], added[twice].qty + 1); continue; }
+    if (rows.length + added.length < MAX_LIST_LINES) added.push(newRow(q, 1));
+  }
+  change({ rows: [...added, ...rows] });
+  if (clean) set({ savedSnap: snap(store.state) });
+  price(added.map(r => r.id));
 }
 
 export const setQty = (id, n) => change(s => ({ rows: s.rows.map(r => (r.id === id ? withQty(r, n) : r)) }), id);

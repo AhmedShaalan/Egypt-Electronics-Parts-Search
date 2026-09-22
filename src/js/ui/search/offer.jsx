@@ -27,7 +27,7 @@ function AddItems({ p }) {
   const last = lastList();
   return <>
     {last && <button type="button" role="menuitem" onClick={() => addToLastList(p)}><AddIcon /> Add to “{last.name}”</button>}
-    <button type="button" role="menuitem" onClick={() => openAddToList(p)}><ListsIcon /> {last ? "Add to another list…" : "Add to a parts list…"}</button>
+    <button type="button" role="menuitem" onClick={() => openAddToList(p, { onAdded: () => set({ tick: store.state.tick + 1 }) })}><ListsIcon /> {last ? "Add to another list…" : "Add to a parts list…"}</button>
   </>;
 }
 

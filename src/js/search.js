@@ -465,6 +465,9 @@ export function updateList(id, text, total, picks = {}, shops = null) {
   return { id: list.id, name: list.name };
 }
 
+// the line a product's name becomes in a list: a leading "#" or bullet would make it a comment or be dropped
+export const nameLine = name => name.replace(/\s+/g, " ").replace(/^[\s#*•·-]+/, "").trim() || "Part";
+
 // Adds a product to a saved list, or to a new one when id is null. The list is text, so the
 // product goes in as a line with its name, at the top; adding the same part again raises its quantity.
 export function addToList(id, name, newName) {
@@ -474,8 +477,7 @@ export function addToList(id, name, newName) {
     list = { id: data.nextId++, name: (newName || "").trim().slice(0, 80) || "Parts list", text: "", saved_total: null, saved_at: now() };
     data.lists.push(list);
   }
-  // a leading "#" or bullet would make the line a comment or be dropped
-  const line = name.replace(/\s+/g, " ").replace(/^[\s#*•·-]+/, "").trim() || "Part";
+  const line = nameLine(name);
   // the product's own name is the line; " xN" is added whenever the name alone would read
   // differently ("Resistor 10K 40pcs" is not 40 of them, "1 Screw driver" not 1 screwdriver)
   const plain = String(parseLine(line)) === String(parseLine(`${line} x1`));
