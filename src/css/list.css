@@ -192,6 +192,7 @@ table.l-opts { width: 100%; border-collapse: collapse; border: 0; border-radius:
 .l-strat .s { grid-column: 2 / 4; font-size: 12px; color: var(--muted); }
 .l-rec { font-size: 11px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: .05em; margin-left: 6px; }
 .l-total { font-size: 34px; font-weight: 750; letter-spacing: -0.02em; line-height: 1.1; margin-top: 14px; border-radius: 6px; }
+.l-strats + .l-total { border-top: 1px dashed var(--border); padding-top: 14px; border-radius: 0; }
 /* a total that can still change: parts still being priced, or a shop still to answer */
 .l-total-state { display: flex; align-items: center; gap: 6px; margin-top: 6px; font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
 .l-progress { height: 4px; margin-top: 12px; border-radius: 4px; background: var(--surface-2); overflow: hidden; }
