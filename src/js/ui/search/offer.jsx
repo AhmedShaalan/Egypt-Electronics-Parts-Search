@@ -3,10 +3,10 @@
 
 // A result: one shop's offer, or a card with the same product at several shops.
 
-import { money, safeUrl, key, buyRule, toast } from "../common.js";
+import { money, safeUrl, key, buyRule, toast, expand, collapse } from "../common.js";
 import { plural, num, choices } from "../format.js";
 import { COPY_FORMATS, copy, copyText } from "../copy.js";
-import { useState } from "preact/hooks";
+import { useLayoutEffect, useRef, useState } from "preact/hooks";
 import { cartLink, cartChoices, askChoices, cartChoice } from "../cart.js";
 import { isSaved, toggleSave } from "../saved.js";
 import { openAddToList, addToLastList, lastList } from "../add-to-list.js";
@@ -93,7 +93,9 @@ export function Offer({ p, mode, cheapest, reason, flash }) {
   );
 }
 
-function toggleGroup(g, open) {
+// a card's offers unfold as it opens and fold away as it closes
+async function toggleGroup(g, open, card) {
+  if (!open) await collapse(card.querySelector(".s-g-offers"));
   const openKeys = new Set(store.state.openKeys);
   for (const o of g.offers) open ? openKeys.add(key(o)) : openKeys.delete(key(o));
   set({ openKeys });
@@ -102,6 +104,12 @@ function toggleGroup(g, open) {
 function copyGroup(g) {
   const lines = g.offers.map(o => `${o.shop_name}: ${money(o.price)}${o.pack > 1 ? ` (pack of ${o.pack})` : ""}\n${o.url}`);
   copy(`${g.seed.name}\n\n${lines.join("\n\n")}`);
+}
+
+function Unfold({ class: cls, children }) {
+  const el = useRef(null);
+  useLayoutEffect(() => expand(el.current), []);
+  return <div class={cls} ref={el}>{children}</div>;
 }
 
 // `openKeys` are the offers in open cards, `flashShop` a shop whose results just came in
@@ -117,7 +125,7 @@ export function ProductCard({ g, sort, openKeys, flashShop }) {
   return (
     <article class={`s-card group${open ? " open" : ""}${flash ? " flash" : ""}`}>
       <div class="s-g-head">
-        <button class="s-g-toggle" type="button" aria-expanded={open} onClick={() => toggleGroup(g, !open)}>
+        <button class="s-g-toggle" type="button" aria-expanded={open} onClick={e => toggleGroup(g, !open, e.currentTarget.closest(".s-card"))}>
           <Thumb key={key(g.seed.image ? g.seed : best)} class="s-thumb" p={g.seed.image ? g.seed : best} big />
           <span class="s-g-text">
             <span class="s-g-name">{g.seed.name}</span>
@@ -141,7 +149,7 @@ export function ProductCard({ g, sort, openKeys, flashShop }) {
           </Menu>
         </div>
       </div>
-      {open && <div class="s-g-offers">{g.offers.map((o, i) => <Offer key={key(o)} p={o} mode="shop" cheapest={i === 0} flash={o.shop === flashShop} />)}</div>}
+      {open && <Unfold class="s-g-offers">{g.offers.map((o, i) => <Offer key={key(o)} p={o} mode="shop" cheapest={i === 0} flash={o.shop === flashShop} />)}</Unfold>}
     </article>
   );
 }

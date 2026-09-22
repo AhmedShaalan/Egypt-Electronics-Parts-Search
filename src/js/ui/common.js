@@ -11,6 +11,14 @@ export const money = n => Number(n).toLocaleString("en-US", { minimumFractionDig
 
 export const reducedMotion = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+// Unfolds something that has just come onto the page from nothing to its full height
+export function expand(el) {
+  if (!el || reducedMotion()) return;
+  el.style.overflow = "hidden";
+  const unfold = [{ height: "0px", opacity: 0, paddingBlock: "0px" }, { height: `${el.offsetHeight}px`, opacity: 1 }];
+  el.animate(unfold, { duration: 180, easing: "ease-out" }).finished.catch(() => {}).finally(() => { el.style.overflow = ""; });
+}
+
 // Folds a row or card away before it's taken off the page: resolves once it's closed, at once
 // when motion is reduced. It stays folded until whatever draws it drops it.
 export function collapse(els) {
