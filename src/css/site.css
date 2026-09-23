@@ -71,8 +71,11 @@
   --raised-border: #4a4940;
 }
 * { box-sizing: border-box; }
+/* index.html hides the page and shows a spinner until this stylesheet has arrived */
+html::after { content: none; }
 /* the page fills the window at least, so the footer stays at its bottom when a tab is short */
 body {
+  visibility: visible;
   margin: 0; background: var(--bg); color: var(--text);
   font: 15px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column;
