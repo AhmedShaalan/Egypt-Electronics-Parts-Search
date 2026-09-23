@@ -32,7 +32,7 @@ The site's [**AI** tab](https://parts.ahmedshaalan.com/#ai) walks through the sa
 
 It runs the site's own code from [`../src/js`](../src/js), so it matches and totals exactly like the site. Needs Node 20 or newer. Searches are cached for an hour while the server runs. Without the relay's shared cache, a shop may briefly rate-limit your connection if you search a lot, and it then shows as failed.
 
-Each version in [the changelog](../CHANGELOG.md) is a git tag, so a copy of this server can be kept on a known version (`git checkout v2.0.2`) or updated with `git pull`.
+Each version in [the changelog](../CHANGELOG.md) is a git tag, so a copy of this server can be kept on a known version (`git checkout v2.0.3`) or updated with `git pull`.
 
 Licensed AGPL-3.0-or-later, like the rest of the project.
 

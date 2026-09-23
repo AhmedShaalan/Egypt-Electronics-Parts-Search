@@ -1,6 +1,11 @@
 # Changelog
 
-What changed on [parts.ahmedshaalan.com](https://parts.ahmedshaalan.com/), newest first. The site is updated as changes land. Each entry is also a git tag (`v2.0.2`), which is the version to use if you run the [MCP server](mcp/) or your own copy.
+What changed on [parts.ahmedshaalan.com](https://parts.ahmedshaalan.com/), newest first. The site is updated as changes land. Each entry is also a git tag (`v2.0.3`), which is the version to use if you run the [MCP server](mcp/) or your own copy.
+
+## 2.0.3 · 2026-09-23
+
+### Changed
+- The site's description, shown under its name in Google and in link previews, gives Arduino Uno and ESP32 as examples instead of LM7805 and ESP32.
 
 ## 2.0.2 · 2026-09-23
 
