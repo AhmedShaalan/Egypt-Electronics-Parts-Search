@@ -160,9 +160,7 @@ Copyright © 2026 [Ahmed Shaalan](https://ahmedshaalan.com)
 Licensed under the [GNU Affero General Public License v3.0 or later](LICENSE) (AGPL-3.0-or-later). In short:
 
 - You can use, study, modify and share this project.
-- If you share a modified version, **or run one as a website or service that others use**, you must release your full source code under the same license and keep the copyright notices.
+- <ins>If you share a modified version, **or run one as a website or service that others use**, you must release your full source code under the same license and keep the copyright notices.</ins>
 - It comes with no warranty.
-
-Versions published before this license change were released under the MIT License.
 
 Shop names and product data belong to their respective shops. This project isn't affiliated with any of them.
