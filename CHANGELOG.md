@@ -1,6 +1,11 @@
 # Changelog
 
-What changed on [parts.ahmedshaalan.com](https://parts.ahmedshaalan.com/), newest first. The site is updated as changes land. Each entry is also a git tag (`v2.0.0`), which is the version to use if you run the [MCP server](mcp/) or your own copy.
+What changed on [parts.ahmedshaalan.com](https://parts.ahmedshaalan.com/), newest first. The site is updated as changes land. Each entry is also a git tag (`v2.0.1`), which is the version to use if you run the [MCP server](mcp/) or your own copy.
+
+## 2.0.1 · 2026-09-23
+
+### Fixed
+- Reloading the page no longer flashes a huge magnifying glass for a moment. The icons had no size of their own, so a browser that drew the page before its styles arrived stretched them to fill it.
 
 ## 2.0.0 · 2026-09-23
 
