@@ -16,7 +16,7 @@ What changed on [parts.ahmedshaalan.com](https://parts.ahmedshaalan.com/), newes
 - All of it is off when the device is set to reduce motion.
 - Search: the cart button of a product with colours or options lists them, and the one chosen goes in the shop's cart. Ones out of stock can't be chosen.
 - Parts list: "Copy all" on the order copies every shop's order as one message, with what the parts come to. "Copy the order" under My lists copies the same message from the top of the page.
-- Search one shop: pick it in the search box. The other shops are listed as not searched, and ticking one searches it too. The link it makes opens the same search.
+- Search one shop: pick it from the shop list in the search box, which has a box to find a shop by name. The other shops are listed as not searched, and ticking one searches it too. The link it makes opens the same search.
 - A shop: Mechatronx (17 in total). Products it sells in several values, like a resistor in 88 values, are searched one value at a time, so "10k resistor" finds the 10k one in stock.
 - Search results can be grouped by product: with "By product", the same part at different shops is one card, cheapest first, with every shop's offer inside. Only close matches are merged (the package, values like 5V or 1/4W, model codes like S3 or 30-pin, and the pack size must agree, and prices far apart stay apart); anything unsure stays on its own. "Every offer", the list of every shop's offers, is still the default.
 - Shops on the side: tick shops on or off with their match counts, or show only one. A shop that failed or was skipped says so there and can be asked again. Below them, show only what's on sale or what can go in the cart from here. On a phone, all of this opens from a Filters button.

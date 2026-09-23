@@ -11,6 +11,7 @@ import { $, toast, announce } from "../common.js";
 import { plural } from "../format.js";
 import { loadJSON, saveJSON } from "../storage.js";
 import { createStore } from "../store.js";
+import { setUpShopPick, pickShop, pickedShop } from "./shop-pick.js";
 
 const SITE_TITLE = "Egypt Electronics Parts Search";
 const PAGE_TITLE = document.title;
@@ -52,7 +53,7 @@ let stopWaiting = null;   // skips the shops the shown search is still waiting f
 let pendingQuery = "";    // ?q= from a shared link, waiting for the search tab
 
 // the shop picked in the search box, or "" for every shop
-const picked = () => $("#q-shop").value;
+const picked = () => pickedShop();
 
 // a search puts ?q= (and ?shop=, at one shop) in the address bar, so the results can be linked
 // to and shared
@@ -172,32 +173,25 @@ export async function askAgain(shopKey) {
 
 /* ---------- the search box, which is in the page rather than the tab ---------- */
 
-// sets the shop picker; picking one shop makes it stand out, and the box keeps room for it
-function pick(shopKey) {
-  const select = $("#q-shop");
-  select.value = SHOPS_BY_KEY[shopKey] ? shopKey : "";
-  select.classList.toggle("on", !!select.value);
-  select.title = select.value ? `Searching ${SHOPS_BY_KEY[select.value].name} only` : "Searching every shop";
-}
+const pick = pickShop;
 
-// the × shows while there is something to clear; the "/" hint while the box is idle and empty
+// the × shows while there is something to clear, and Search while there is something to search
+// for; the "/" hint shows while the box is idle and empty
 function updateBox() {
   const q = $("#q");
   $("#q-clear").hidden = !q.value;
+  $("#q-go").disabled = !q.value.trim();
   $("#slash").hidden = !!q.value || document.activeElement === q || matchMedia("(hover: none)").matches;
 }
 
 export function setUpSearchBox() {
-  const select = $("#q-shop");
-  for (const x of [...SHOPS].sort((a, b) => a.name.localeCompare(b.name))) select.add(new Option(x.name, x.key));
   // the box's text and its × stay clear of the picker, however wide the shop's name makes it
-  new ResizeObserver(() => $(".s-field").style.setProperty("--pill", `${select.offsetWidth + 8}px`)).observe(select);
+  new ResizeObserver(() => $(".s-field").style.setProperty("--pill", `${$("#q-shop").offsetWidth + 8}px`)).observe($("#q-shop"));
   // with results showing, picking a shop searches it; picking every shop asks the rest
-  select.addEventListener("change", () => {
-    pick(select.value);
+  setUpShopPick(shopKey => {
     const q = store.state.query;
     if (!q) return;
-    if (select.value) runSearch(q);
+    if (shopKey) runSearch(q);
     else searchEverywhere();
   });
   $("#search-form").addEventListener("submit", e => {

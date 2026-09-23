@@ -143,10 +143,16 @@
           <button class="s-clear" id="q-clear" type="button" title="Clear search" aria-label="Clear search" hidden>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
           </button>
-          <!-- which shops to search; its shops are filled in by js/ui/search/state.js -->
-          <select class="s-shop-pick" id="q-shop" aria-label="Shops to search" title="Shops to search"><option value="">All shops</option></select>
+          <!-- which shops to search; its shops are filled in by js/ui/search/shop-pick.js -->
+          <div class="s-shop-pick" id="q-shop">
+            <button class="s-shop-btn" id="q-shop-btn" type="button" aria-haspopup="listbox" aria-expanded="false" aria-label="Shops to search">All shops</button>
+            <div class="s-shop-menu" id="q-shop-menu" hidden>
+              <input type="search" id="q-shop-find" placeholder="Find a shop" aria-label="Find a shop by name" autocomplete="off" spellcheck="false" data-1p-ignore data-lpignore="true" data-bwignore data-form-type="other">
+              <ul class="s-shop-list" id="q-shop-list" role="listbox" aria-label="Shops to search"></ul>
+            </div>
+          </div>
         </div>
-        <button class="btn primary" type="submit">Search</button>
+        <button class="btn primary" id="q-go" type="submit" disabled>Search</button>
       </form>
     </div>
     <!-- the status line, recent searches, the shop filters and the results (js/ui/search/) -->

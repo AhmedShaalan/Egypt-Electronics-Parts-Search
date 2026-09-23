@@ -14,7 +14,7 @@
 .s-lens { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: var(--muted); pointer-events: none; }
 /* --pill is the room the shop picker takes at the end of the box (state.js sets it) */
 .s-field { --pill: 0px; }
-.s-field input[type=search] { width: 100%; height: 48px; padding: 0 calc(var(--pill) + 44px) 0 44px; font-size: 16px; }
+#q { width: 100%; height: 48px; padding: 0 calc(var(--pill) + 44px) 0 44px; font-size: 16px; }
 .s-field kbd {
   position: absolute; right: calc(var(--pill) + 14px); top: 50%; transform: translateY(-50%); pointer-events: none;
   font: 12px var(--mono); color: var(--muted); border: 1px solid var(--border); border-radius: 5px; padding: 1px 6px;
@@ -28,16 +28,34 @@
 .s-clear:hover { color: var(--text); background: var(--surface-2); }
 .s-clear svg { width: 18px; height: 18px; }
 /* the shops to search, a pill at the end of the box; it stands out once it's one shop */
-.s-shop-pick {
-  position: absolute; right: 8px; top: 50%; transform: translateY(-50%); height: 32px; width: 7.8em; /* fits "All shops"; a longer shop name is cut short */
-  padding: 0 26px 0 12px; border-radius: 999px; font-size: 13px; font-weight: 600; cursor: pointer;
-  text-overflow: ellipsis; white-space: nowrap; appearance: none; -webkit-appearance: none;
+/* which shops to search: a pill that opens a panel with a box to find a shop by name */
+.s-shop-pick { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); }
+.s-shop-btn {
+  height: 32px; max-width: 12em; padding: 0 26px 0 12px; border: 0; border-radius: 999px; font: inherit;
+  font-size: 13px; font-weight: 600; color: var(--text); cursor: pointer; display: block;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   background: var(--surface-2) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 9px center / 12px;
 }
-.s-shop-pick.on { background-color: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+.s-shop-btn.on { background-color: var(--accent-soft); color: var(--accent); }
+.s-shop-menu {
+  position: absolute; right: 0; top: calc(100% + 8px); z-index: 30; width: 260px; padding: 8px;
+  background: var(--raised); border: 1px solid var(--raised-border); border-radius: var(--radius);
+  box-shadow: 0 16px 40px rgb(0 0 0 / .28); animation: s-pop .12s ease-out; transform-origin: top right;
+}
+.s-shop-menu input { width: 100%; padding: 7px 10px; font-size: 14px; border: 1px solid var(--border); border-radius: 8px; background: var(--raised-2); }
+.s-shop-list { list-style: none; margin: 8px 0 0; padding: 0; max-height: 260px; overflow-y: auto; }
+.s-shop-list li {
+  padding: 7px 10px; border-radius: 7px; font-size: 14px; cursor: pointer;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.s-shop-list li:hover, .s-shop-list li:focus { background: var(--raised-2); outline: none; }
+.s-shop-list li:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.s-shop-list li[aria-selected="true"] { color: var(--accent); font-weight: 650; }
+.s-shop-list .s-shop-none { color: var(--muted); cursor: default; }
+@media (prefers-reduced-motion: reduce) { .s-shop-menu { animation: none; } }
 .s-bar .btn.primary { height: 48px; padding-inline: 20px; font-size: 15px; }
 /* the browser's own clear button is tiny, and Firefox has none, so the page draws its own */
-.s-field input::-webkit-search-cancel-button { -webkit-appearance: none; appearance: none; }
+.s-field input::-webkit-search-cancel-button, .s-shop-menu input::-webkit-search-cancel-button { -webkit-appearance: none; appearance: none; }
 
 /* ---------- the star that saves an item ---------- */
 .s-star svg { fill: none; }
