@@ -1,6 +1,11 @@
 # Changelog
 
-What changed on [parts.ahmedshaalan.com](https://parts.ahmedshaalan.com/), newest first. The site is updated as changes land. Each entry is also a git tag (`v2.0.1`), which is the version to use if you run the [MCP server](mcp/) or your own copy.
+What changed on [parts.ahmedshaalan.com](https://parts.ahmedshaalan.com/), newest first. The site is updated as changes land. Each entry is also a git tag (`v2.0.2`), which is the version to use if you run the [MCP server](mcp/) or your own copy.
+
+## 2.0.2 · 2026-09-23
+
+### Changed
+- While the page loads, it shows its background colour, and a spinner if loading takes a moment, instead of the page without its styles.
 
 ## 2.0.1 · 2026-09-23
 
