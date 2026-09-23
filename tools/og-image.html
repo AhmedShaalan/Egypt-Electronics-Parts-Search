@@ -1,0 +1,116 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: AGPL-3.0-or-later · Copyright (C) 2026 Ahmed Shaalan · Source: https://github.com/AhmedShaalan/Egypt-Electronics-Parts-Search -->
+<meta charset="utf-8">
+<title>Link preview image</title>
+<!-- The source for src/public/og-image.png, the picture shown when the site's address is shared.
+     It is 1200x630, which is what Facebook, X, WhatsApp and the rest expect.
+
+     To change it: edit this page, then take its picture at exactly that size. Any headless
+     browser will do; this one comes with Playwright, if it is installed:
+
+       chrome-headless-shell --headless --disable-gpu --hide-scrollbars \
+         --window-size=1200,630 --allow-file-access-from-files \
+         --screenshot=src/public/og-image.png tools/og-image.html
+
+     Then bump ?v= on the three og-image.png addresses in src/index.html, or the old picture
+     stays in the social networks' caches.
+
+     The shop count and the prices below come from a real search, so check them against the
+     site when a shop is added or removed. -->
+<style>
+  * { box-sizing: border-box; margin: 0; }
+  body { width: 1200px; height: 630px; background: #f6f5f1; color: #1c1b18; overflow: hidden;
+    font: 15px/1.45 -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif; }
+  .left { position: absolute; left: 80px; top: 64px; width: 600px; }
+  .brand { display: flex; align-items: center; gap: 18px; }
+  .brand img { width: 62px; height: 62px; }
+  .brand span { font-size: 27px; font-weight: 600; color: #55534d; letter-spacing: -.01em; }
+  h1 { margin: 42px 0 0; font-size: 76px; line-height: 1.06; font-weight: 800; letter-spacing: -.035em; }
+  p.sub { margin: 28px 0 0; font-size: 29px; line-height: 1.38; color: #55534d; max-width: 540px; }
+  .ar { position: absolute; left: 80px; top: 520px; font-size: 30px; font-weight: 700; color: #0f6e5c;
+    direction: rtl; font-family: "Geeza Pro", "Damascus", -apple-system, sans-serif; }
+  .foot { position: absolute; right: 80px; top: 549px; font-size: 21px; color: #6b6860; }
+  .foot b { color: #1c1b18; }
+
+  .card { position: absolute; left: 716px; top: 46px; width: 420px; background: #fff;
+    border-radius: 18px; box-shadow: 0 18px 50px rgba(28,27,24,.13); overflow: hidden; }
+  .top { padding: 18px; display: flex; gap: 10px; }
+  .box { flex: 1; display: flex; align-items: center; gap: 9px; height: 46px; padding: 0 13px;
+    border: 1px solid #e1ded5; border-radius: 11px; font-size: 19px; }
+  .box svg { width: 19px; height: 19px; color: #8d897f; flex: none; }
+  .go { height: 46px; padding: 0 20px; border-radius: 11px; background: #0f6e5c; color: #fff;
+    font-size: 18px; font-weight: 600; display: flex; align-items: center; }
+  .meta { padding: 0 18px 16px; font-size: 16px; color: #6b6860; }
+  .meta b { color: #1c1b18; }
+  .count { padding: 11px 18px; border-top: 1px solid #ece9e1; border-bottom: 1px solid #ece9e1;
+    font-size: 18px; color: #6b6860; }
+  .count b { color: #1c1b18; }
+  .row { display: flex; align-items: center; gap: 12px; padding: 11px 18px; border-bottom: 1px solid #f2efe8; }
+  .row:last-child { border-bottom: 0; }
+  .who { flex: 1; min-width: 0; }
+  .who b { display: block; font-size: 17px; font-weight: 600; letter-spacing: -.01em; white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis; }
+  .who span { font-size: 15px; color: #6b6860; }
+  .sale { display: inline-block; margin-left: 7px; padding: 1px 7px; border-radius: 99px;
+    background: #e0f3e7; color: #1a7f45; font-size: 13px; font-weight: 600; vertical-align: 1px; }
+  .price { font-size: 18px; font-weight: 700; white-space: nowrap; }
+  .price s { color: #8d897f; font-weight: 400; font-size: 16px; margin-right: 5px; }
+  .ico { display: flex; gap: 9px; color: #8d897f; }
+  .ico svg { width: 19px; height: 19px; }
+</style>
+
+<div class="left">
+  <div class="brand">
+    <img src="../src/public/icon-96.png" alt="">
+    <span>parts.ahmedshaalan.com</span>
+  </div>
+  <h1>Egypt Electronics<br>Parts Search</h1>
+  <p class="sub">Search 17 shops at once. Compare in-stock prices and price a whole parts list.</p>
+</div>
+<div class="ar">ابحث عن قطع الإلكترونيات في 17 محل مرة واحدة</div>
+<div class="foot"><b>17 shops</b> · live prices · free</div>
+
+<div class="card">
+  <div class="top">
+    <div class="box">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+        <circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      Arduino Uno
+    </div>
+    <div class="go">Search</div>
+  </div>
+  <div class="meta">Prices from <b>17 of 17 shops</b>, checked just now</div>
+  <div class="count"><b>135 matches</b> at 16 shops</div>
+
+  <div class="row">
+    <div class="who"><b>Arduino Uno Project Kit</b><span>Circuit Electronics</span></div>
+    <div class="price">225 EGP</div>
+    <div class="ico">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2 3h3l2.6 12h11.2L21 7H6"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="m12 3.5 2.7 5.6 6 .9-4.3 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1L3.3 10l6-.9z"/></svg>
+    </div>
+  </div>
+  <div class="row">
+    <div class="who"><b>Arduino Uno R3 SMD CH340G</b><span>Micro Ohm<span class="sale">Sale</span></span></div>
+    <div class="price"><s>350</s>280 EGP</div>
+    <div class="ico">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2 3h3l2.6 12h11.2L21 7H6"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="m12 3.5 2.7 5.6 6 .9-4.3 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1L3.3 10l6-.9z"/></svg>
+    </div>
+  </div>
+  <div class="row">
+    <div class="who"><b>Arduino UNO SMD</b><span>Ampere Electronics</span></div>
+    <div class="price">280 EGP</div>
+    <div class="ico">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2 3h3l2.6 12h11.2L21 7H6"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="m12 3.5 2.7 5.6 6 .9-4.3 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1L3.3 10l6-.9z"/></svg>
+    </div>
+  </div>
+  <div class="row">
+    <div class="who"><b>Arduino Uno R3 SMD</b><span>Mechatronx</span></div>
+    <div class="price">280 EGP</div>
+    <div class="ico">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="m12 3.5 2.7 5.6 6 .9-4.3 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1L3.3 10l6-.9z"/></svg>
+    </div>
+  </div>
+</div>

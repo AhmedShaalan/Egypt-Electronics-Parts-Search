@@ -43,6 +43,8 @@ Egypt-Electronics-Parts-Search/
 ├── worker/                 Cloudflare Worker relay
 │   ├── src/index.js
 │   └── wrangler.toml       Worker name and allowed origins
+├── tools/
+│   └── og-image.html       The link preview picture, as a page to take a picture of
 ├── package.json            The site's build: Vite + Preact
 ├── vite.config.js          The build; also writes the Shops, AI and About tabs into the page and dates the sitemap
 ├── .github/
