@@ -12,7 +12,7 @@ import { viewOf } from "./view.js";
 import { Status, Filters } from "./panels.jsx";
 import { Results } from "./results.jsx";
 
-const EXAMPLES = ["LM7805", "ESP32", "10k resistor"];
+const EXAMPLES = ["Arduino Uno", "LM7805", "ESP32", "10k resistor"];
 
 function Intro({ s }) {
   const chip = q => <button class="s-q-chip" type="button" key={q} onClick={() => runSearch(q)}>{q}</button>;
