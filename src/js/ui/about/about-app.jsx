@@ -42,24 +42,28 @@ function Hero() {
 
 // three shops' names for one part, merged into one result; the prices are made up, and say so
 function Names() {
-  return <>
-    <div class="ab-names" role="img" aria-label="Three shop names for the same part become one result">
-      <div class="ab-names-in">
-        <div class="ab-nm"><code>LM7805</code><span>Makers</span></div>
-        <div class="ab-nm"><code>L7805CV</code><span>RAM</span></div>
-        <div class="ab-nm"><code>7805 Regulator 5V</code><span>Future</span></div>
+  return (
+    <figure class="ab-figure">
+      <div class="ab-figure-box">
+        <div class="ab-names" role="img" aria-label="Three shop names for the same part become one result">
+          <div class="ab-names-in">
+            <div class="ab-nm"><code>LM7805</code><span>Makers</span></div>
+            <div class="ab-nm"><code>L7805CV</code><span>RAM</span></div>
+            <div class="ab-nm"><code>7805 Regulator 5V</code><span>Future</span></div>
+          </div>
+          <div class="ab-arrow" aria-hidden="true"><OpenIcon /></div>
+          <div class="ab-merged">
+            <b>LM7805 5V regulator</b>
+            <div class="ab-m-meta">TO-220 · in stock at 3 shops</div>
+            <div class="ab-m-row"><span>RAM Electronics</span><span class="num">7.50 EGP</span></div>
+            <div class="ab-m-row"><span>Makers Electronics</span><span class="num">8 EGP</span></div>
+            <div class="ab-m-row"><span>Future Electronics</span><span class="num">9.50 EGP</span></div>
+          </div>
+        </div>
       </div>
-      <div class="ab-arrow" aria-hidden="true"><OpenIcon /></div>
-      <div class="ab-merged">
-        <b>LM7805 5V regulator</b>
-        <div class="ab-m-meta">TO-220 · in stock at 3 shops</div>
-        <div class="ab-m-row"><span>RAM Electronics</span><span class="num">7.50 EGP</span></div>
-        <div class="ab-m-row"><span>Makers Electronics</span><span class="num">8 EGP</span></div>
-        <div class="ab-m-row"><span>Future Electronics</span><span class="num">9.50 EGP</span></div>
-      </div>
-    </div>
-    <p class="ab-cap">Sample prices.</p>
-  </>;
+      <figcaption class="ab-cap">* Sample prices.</figcaption>
+    </figure>
+  );
 }
 
 const FLOW = [

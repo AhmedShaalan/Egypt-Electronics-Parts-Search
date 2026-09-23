@@ -11,7 +11,7 @@ Find a part, see every in-stock price side by side, and price a whole parts list
 
 `17 shops` · `live prices` · `out-of-stock hidden` · `works on your phone` · `free, no sign-up` · [`MCP for AI assistants`](mcp/README.md) · [`AGPL-3.0 license`](LICENSE)
 
-<img src=".github/screenshots/search.png" alt="Search results for LM7805: 24 matches from all 16 shops, best match first, with the shops and their match counts on the side" width="760">
+<img src=".github/screenshots/search.png" alt="Search results for Arduino Uno: 66 matches at 16 shops, best match first, with every shop and its match count on the side" width="760">
 
 </div>
 
@@ -62,7 +62,7 @@ Egypt Electronics Parts Search asks every shop at once, recognizes those names a
 
 <table>
 <tr>
-<td width="62%"><img src=".github/screenshots/parts-list.png" alt="A seven-part list priced across shops: Best overall 983 EGP from 2 shops with delivery, against 1,037 EGP for the cheapest parts from 4 shops and 1,155 EGP from one shop, with the order in one basket per shop"></td>
+<td width="62%"><img src=".github/screenshots/parts-list.png" alt="A seven-part list priced across shops: Best overall 983 EGP from 2 shops with delivery, against 1,037 EGP for the cheapest parts from 4 shops and 1,109 EGP from one shop, with the order in one basket per shop"></td>
 <td width="38%"><img src=".github/screenshots/phone-dark.png" alt="ESP32 search results on a phone in dark mode"></td>
 </tr>
 <tr>
