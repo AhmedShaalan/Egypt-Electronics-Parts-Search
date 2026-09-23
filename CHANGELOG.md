@@ -2,7 +2,7 @@
 
 What changed on [parts.ahmedshaalan.com](https://parts.ahmedshaalan.com/), newest first. The site is updated as changes land. Each entry is also a git tag (`v2.0.0`), which is the version to use if you run the [MCP server](mcp/) or your own copy.
 
-## 2.0.0 · 2026-09-22
+## 2.0.0 · 2026-09-23
 
 ### Added
 - A product sold in several colours or options says so: "2 colours" or "3 options" beside it in Search and on a parts list row, with the choices on hover in Search. A shop's order copied as a message names them ("choose colour: Blue, Green") so the shop knows to ask.
