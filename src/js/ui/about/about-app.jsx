@@ -83,7 +83,7 @@ const PRIVACY = [
 const LIMITS = [
   ["Matching is a best guess", "Part numbers work well. Vague names like “LCD” or “sensor” need a glance, and an accessory can still pass as a match."],
   ["Delivery fees are your own estimates", "Shops don't publish them in a way the site can read, so the parts list counts the fees you enter."],
-  [`Add to cart works at ${CARTS} of the ${N} shops`, "And not for products with options to choose. The cart shows the shop's current price."],
+  [`Add to cart works at ${CARTS} of the ${N} shops`, "Filling a shop's whole cart at once leaves out products with options to choose; add those one at a time from a result or a list row. The cart shows the shop's current price."],
   ["Shops that sell only on Facebook or WhatsApp aren't covered", "They have no online store to search."],
   ["Saved items don't sync", "They're kept per browser. Back up and Restore on the Saved tab move them to another one."],
 ];
