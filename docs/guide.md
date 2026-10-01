@@ -8,7 +8,7 @@ Type a part number or a description: `LM7805`, `ESP32`, `10k resistor`, `HC-SR04
 
 | You'll see | What it means |
 |---|---|
-| **Searching 17 shops… 9 answered** | Results show once a few shops have answered with a match, and the rest join as they answer. **Stop waiting** skips the shops still running |
+| **Searching 21 shops… 9 answered** | Results show once a few shops have answered with a match, and the rest join as they answer. **Stop waiting** skips the shops still running |
 | **Every offer** or **By product** | Every offer, the default, lists each shop's offer on its own. By product puts the same product at different shops in one card, with the cheapest shop and price, then the next few; open it for every shop's offer. Only close matches are merged (the package, values like 5V, model codes like S3 or 30-pin and the pack size must agree); anything unsure has its own card |
 | The shop picker in the search box | **All shops**, or one shop to search only there. The others are listed as **Not searched**; tick one to search it too, or **Search them too** for all of them. The link it makes (`?shop=`) opens the same search |
 | The **Shops** panel | Each shop's number of matches. Untick a shop to hide it, or **Only** to see just that one. Shops still searching spin; a shop that **didn't answer** or was **skipped** has **Try again** or **Search now** |
@@ -44,7 +44,7 @@ Bullets and numbering are ignored, `#` lines are treated as comments, and names 
 | **How to buy** | **Best overall** is the lowest parts cost plus delivery; **Cheapest parts, any shop** takes the cheapest product for each part wherever it is, so its delivery to more shops can make it cost more in all; **Fewest shops** means the fewest deliveries. Choosing a product yourself makes it **Your picks**: the plan you were on, with your picks. The rows follow the choice, and when a change moves other parts to another shop, they light up and a message says so |
 | **Delivery fees** | One estimate for any shop, and your own figure for the shops you know. They're kept in this browser and apply to every list |
 | **Your order** | One basket per shop with what goes in it. **Fill cart at …** opens the shop with them in its cart, quantities set (counting packs); a Shopify shop takes them all at once, a WooCommerce shop one per link, so the tab adds them one after another and ends on the cart. Products with options to choose (a size, a colour) are added on the shop's page. For a shop whose cart can't be filled from here, open each part from the basket, or **Copy as message** for their WhatsApp or order form |
-| **Prices from 16 of 17 shops** | A shop didn't answer; **Try again** asks it again for every part |
+| **Prices from 20 of 21 shops** | A shop didn't answer; **Try again** asks it again for every part |
 
 The list's name is its title. **Save** keeps it in this browser, the header says when there are unsaved changes, and **My lists** switches to another saved list, starts a new one or copies this one as text. The list on the tab is kept when the page is reloaded.
 

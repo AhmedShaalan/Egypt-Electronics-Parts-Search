@@ -2,7 +2,7 @@
 // Copyright (C) 2026 Ahmed Shaalan
 
 // Which shops a search asks: the pill at the end of the search box. It opens a panel with a box
-// to find a shop by name, since 17 names are a lot to read through, then every shop that matches.
+// to find a shop by name, since 21 names are a lot to read through, then every shop that matches.
 // The search box is in the page rather than in a tab, so this is plain DOM like the rest of it.
 
 import { SHOPS, SHOPS_BY_KEY } from "../../shops.js";

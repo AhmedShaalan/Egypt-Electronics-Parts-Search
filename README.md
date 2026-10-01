@@ -9,7 +9,7 @@ Find a part, see every in-stock price side by side, and price a whole parts list
 
 ### [**→ Open the site**](https://parts.ahmedshaalan.com/)
 
-`17 shops` · `live prices` · `out-of-stock hidden` · `works on your phone` · `free, no sign-up` · [`MCP for AI assistants`](mcp/README.md) · [`AGPL-3.0 license`](LICENSE)
+`21 shops` · `live prices` · `out-of-stock hidden` · `works on your phone` · `free, no sign-up` · [`MCP for AI assistants`](mcp/README.md) · [`AGPL-3.0 license`](LICENSE)
 
 <img src=".github/screenshots/search.png" alt="Search results for Arduino Uno: 66 matches at 16 shops, best match first, with every shop and its match count on the side" width="760">
 
@@ -26,7 +26,7 @@ Egypt Electronics Parts Search asks every shop at once, recognizes those names a
 ## Features
 
 **🔍 Search every shop at once**
-- Queries all 17 shops at the same time; results fill in as the shops answer
+- Queries all 21 shops at the same time; results fill in as the shops answer
 - Or search one shop: pick it in the search box, then tick other shops to search them too
 - The same product at different shops is one card, cheapest first, with every shop's offer inside (or see every offer in one list)
 - Hides out-of-stock items automatically, and shows sale prices and the per-piece price for packs ("(10pcs)")
@@ -48,7 +48,7 @@ Egypt Electronics Parts Search asks every shop at once, recognizes those names a
 **🛒 Add to the shop's cart**
 - Put a search result straight into its shop's cart, in a new tab that opens on the cart
 - From a parts list, fill each shop's cart with what the order has there, quantities included; for shops whose cart can't be filled from here, copy the order as a message for their WhatsApp or order form
-- Works at the 10 Shopify and WooCommerce shops (Future, DevBoards, Makers, Micro Ohm, Most, UGE, Ampere, Free, HD and Circuit); checkout stays on the shop's own site
+- Works at the 13 Shopify and WooCommerce shops (Future, DevBoards, Makers, Micro Ohm, Most, UGE, Ampere, Free, HD, Circuit, Electrolik, Volttronics and Ekostra); checkout stays on the shop's own site
 
 **⭐ Save and track**
 - Star any product to save it. **Update prices** re-checks every starred item at its shop and shows what went ▲ up, ▼ down, or out of stock, with a link to find it elsewhere
@@ -98,6 +98,10 @@ Each tab, and what everything on it means, is in **[the guide](docs/guide.md)**.
 | [MTM Electronics](https://mtm-electronic.com) | Custom (Next.js + Laravel) | Full catalog from the shop's API, searched in the browser | — |
 | [VoltX Electronics](https://voltx-store.com) | Custom (Next.js) | The shop's own public search API | — |
 | [Mechatronx](https://mecha-tronx.com) | Custom (Laravel) | The shop's own product API, plus the options of products that have them | — |
+| [Electrolik](https://electrolik-eg.com) | WooCommerce | Store API, with the page size written so its firewall allows it | ✓ |
+| [Volttronics](https://volt-tronics.com) | WooCommerce | Store API | ✓ |
+| [Ekostra](https://ekostra.com) | WooCommerce | Store API | ✓ |
+| [Nabda](https://nabda-eg.com) | Odoo | Search results page, which carries price and stock | — |
 
 **Add to cart** needs a shop whose cart a link can fill. The others only add to their cart from their own page (behind a security token, or with the cart kept in the browser), so for them the product link opens the page and the shop's own button is one click away.
 
@@ -120,7 +124,7 @@ Each tab, and what everything on it means, is in **[the guide](docs/guide.md)**.
 
 - **Matching is heuristic.** It handles part numbers well. Vague names like "LCD" or "sensor" need a glance at the pick, and some accessories still slip through as a strong match (for example, an I2C adapter board for `16x2 LCD`). Every parts-list row opens its offers for exactly this.
 - **Delivery fees are your estimates.** The parts list counts the fees you set; shops don't publish them in a form the site can read, and a fee can depend on where you are and how much you order. Search results don't include delivery.
-- **Add to cart works at 10 of the 17 shops**, and not for products with options to choose. Some products are only sold in multiples ("order in tens"); the cart then gets the next amount the shop accepts. Prices in the cart are the shop's current ones, which may have changed since the search.
+- **Add to cart works at 13 of the 21 shops**, and not for products with options to choose. Some products are only sold in multiples ("order in tens"); the cart then gets the next amount the shop accepts. Prices in the cart are the shop's current ones, which may have changed since the search.
 - **Shops change.** A site redesign or platform switch can break its connector. The shop then shows as `failed` rather than returning wrong data.
 - **A shop may block the relay.** Shops can refuse requests coming from Cloudflare's servers; that shop then shows as `failed`.
 - **Only shops with a real online store are covered.** Shops that sell only through Facebook or WhatsApp can't be searched.

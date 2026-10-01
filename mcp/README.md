@@ -1,6 +1,6 @@
 # Egypt Parts Search MCP server
 
-Lets an AI assistant (Claude Code, Claude Desktop, or any MCP client) search the 17 Egyptian electronics shops that [parts.ahmedshaalan.com](https://parts.ahmedshaalan.com/) covers, and price whole parts lists. Ask things like *"find the cheapest LM7805"* or *"price this parts list"* and paste the list.
+Lets an AI assistant (Claude Code, Claude Desktop, or any MCP client) search the 21 Egyptian electronics shops that [parts.ahmedshaalan.com](https://parts.ahmedshaalan.com/) covers, and price whole parts lists. Ask things like *"find the cheapest LM7805"* or *"price this parts list"* and paste the list.
 
 It runs on your own computer over stdio and asks the shops directly: outside a browser there's no CORS, so the relay isn't needed. No account, no key, no fee.
 

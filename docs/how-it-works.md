@@ -2,7 +2,7 @@
 
 The whole app runs in your browser. It's a static site on GitHub Pages, with no server of its own.
 
-The catch: browsers only let a website read another site's data if that site allows it (CORS). The two Shopify shops, El Gammal, MTM, VoltX and Electra's catalog do; the other eleven don't. For those, requests go through a tiny **relay** on Cloudflare Workers that fetches the shop's page and hands it back.
+The catch: browsers only let a website read another site's data if that site allows it (CORS). The two Shopify shops, El Gammal, MTM, VoltX and Electra's catalog do; the other fifteen don't. For those, requests go through a tiny **relay** on Cloudflare Workers that fetches the shop's page and hands it back.
 
 ```
                                 ┌──────────── direct ────────────► Future, DevBoards, El Gammal,
@@ -10,7 +10,8 @@ The catch: browsers only let a website read another site's data if that site all
  (all search logic, in JS)      └─► Cloudflare Worker relay ─────► RAM, Makers, Micro Ohm, Most,
                                     (allow-listed shops only,      UGE, Ampere, Lampatronics,
                                      1-hour cache)                 Free, HD, Circuit, Mechatronx,
-                                                                   Electra's stock
+                                                                   Electrolik, Volttronics, Ekostra,
+                                                                   Nabda, Electra's stock
 ```
 
 1. **Fan out.** A search runs against all shops in parallel, and the results show as they come in: once three shops have answered with a match, then each shop as it answers. Each shop gets 25 seconds; a slow or broken shop is marked failed instead of holding up the rest. You can also stop waiting early: the shops still running are marked skipped, and each can be fetched on its own afterwards. A search at one shop works the same way, with every other shop skipped from the start.
@@ -50,9 +51,10 @@ In a parts list, the default pick for each line is the **cheapest product within
 
 ## Per-shop details
 
-- **WooCommerce:** `GET /wp-json/wc/store/v1/products?search=…&stock_status[]=instock`, up to 60 results per query. Prices arrive in piasters and are converted to EGP.
+- **WooCommerce:** `GET /wp-json/wc/store/v1/products?search=…&stock_status[]=instock`, up to 60 results per query. Prices arrive in piasters and are converted to EGP. Electrolik's firewall turns away any address with `per_page` in it, so for that shop the underscore is written `%5F`, which WordPress reads the same way.
 - **Shopify:** the suggest endpoint caps at 10 results, so the app loads the whole catalog from `products.json` (about 1,300 products, under 1 MB compressed), keeps it for an hour, and searches it locally. Loading starts as soon as you start typing a search or a list, so the first search is fast.
 - **Odoo (RAM):** parses up to 3 pages of `/shop?search=…`, then calls `get_combination_info` per product for the stock count. RAM slows down under load, so it gets at most 5 requests at a time, and stock lookups are cached for an hour.
+- **Odoo (Nabda):** the same 3 pages of `/shop?search=…`, but its own theme prints each product's price and a stock badge on the results page, so nothing more is asked of it: one request per page answers a search. The shop keeps no quantities — every product reports none free and is sold anyway — so what it lists is taken to be what it has.
 - **El Gammal (Supabase):** the storefront reads products straight from its Supabase database with a public, read-only "anon" key, and so does this app: the same product filters as the shop's own search page, then the shop's `get_online_stock` function per matching product (at most 6 at a time, cached for an hour). The internal code at the start of product names ("XX629-") is dropped. If the shop ever changes that key, it shows as `failed` until the key in `src/js/shops.js` is updated.
 - **Electra:** the store's own search only matches exact-case substrings, so the app downloads its catalog from `/api/v1/products` (about 5,300 products in 6 pages, allowed directly), keeps it for an hour and searches it locally. The API's stock count means nothing, so the product pages of the 20 best matches are read for their schema.org offer (price and availability), through the relay, which sends back only the page's first 24 KB. Offers are cached for an hour.
 - **MTM:** the backend hands out the whole catalog in one request (`/backend/public/api/products`, about 3 MB, allowed directly), so the app keeps it for an hour and searches it locally. Products without a price are left out.

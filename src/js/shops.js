@@ -74,10 +74,16 @@ class WooShop extends Shop {
   platform = "WooCommerce";
   api = "wc/store/v1"; // older installs only answer on the unversioned "wc/store"
 
+  // the finished query string of a search, for a shop whose server turns the usual one
+  // away (see Electrolik)
+  searchQuery(params) {
+    return String(params);
+  }
+
   // WooCommerce Store API. Prices come in minor units (piasters).
   async search(query, signal) {
     const params = new URLSearchParams({ search: query, per_page: "60", "stock_status[]": "instock" });
-    const r = await ok(await relay(`${this.base}/wp-json/${this.api}/products?${params}`, { signal }));
+    const r = await ok(await relay(`${this.base}/wp-json/${this.api}/products?${this.searchQuery(params)}`, { signal }));
     return this.parse(await r.text()).map((d) => this.product(d)).filter((p) => p.price > 0);
   }
 
@@ -246,6 +252,11 @@ class OdooShop extends Shop {
   // Odoo website shop: parse the search results page, then look up stock per product.
   static MAX_PAGES = 3;
 
+  // Whether the search page itself gives each product's price and whether it can be bought.
+  // Odoo's own theme doesn't, so every result is looked up one by one; a theme that does
+  // needs none of that (see Nabda).
+  priced = false;
+
   constructor(...args) {
     super(...args);
     // Odoo slows down under parallel load, so all searches share a small request budget
@@ -272,6 +283,7 @@ class OdooShop extends Shop {
     for (const page of pages) for (const p of this.parse(page)) cards.set(p.ref, p);
     // skip stock lookups for results that clearly don't match
     const candidates = [...cards.values()].filter((p) => score(query, p.name) >= WEAK);
+    if (this.priced) return candidates.filter((p) => p.in_stock && p.price > 0);
 
     const checked = await Promise.all(
       candidates.map(async (p) => {
@@ -347,6 +359,44 @@ class OdooShop extends Shop {
   async check(ref, signal) {
     const info = await this.combinationInfo(ref, signal, true);
     return info ? { price: Number(info.price || 0), in_stock: this.inStock(info) } : null;
+  }
+}
+
+// Nabda runs Odoo under a theme of its own, which prints each product's price and whether it
+// is sold on the search page itself, so nothing further is asked of the shop. It keeps no
+// quantities — every product reads none free and is sold all the same — so what it lists is
+// what it has.
+class NabdaShop extends OdooShop {
+  priced = true;
+
+  parse(page) {
+    const out = [];
+    for (const block of page.split('class="oe_product').slice(1)) {
+      const tmpl = block.match(/name="product_template_id"[^>]*value="(\d+)"/);
+      const prod = block.match(/name="product_id"[^>]*value="(\d+)"/);
+      // the product's page and its name, which the card's heading links to
+      const title = block.match(/class="volt-card__title"[^>]*>\s*<a[^>]*href="([^"?]+)"[^>]*>([^<]*)</);
+      const price = block.match(/class="oe_currency_value"[^>]*>([\d.,]+)</);
+      if (!(tmpl && prod && title && price)) continue;
+      const img = block.match(/class="volt-card__image[^"]*"[^>]*src="([^"]+)"/);
+      out.push({
+        shop: this.key,
+        ref: `${tmpl[1]}:${prod[1]}`,
+        name: cleanName(title[2]),
+        price: parseMoney(price[1]),
+        url: this.base + title[1],
+        image: img ? this.base + unescapeHtml(img[1]) : null,
+        in_stock: block.includes("volt-stock-badge--in"),
+        old_price: null,
+      });
+    }
+    return out;
+  }
+
+  // It sells what it lists however little is counted in, so a saved product stays there to
+  // buy; only its price is worth asking about again.
+  inStock() {
+    return true;
   }
 }
 
@@ -802,5 +852,13 @@ export const SHOPS = [
   new MtmShop("mtm", "MTM Electronics", "https://mtm-electronic.com"),
   new VoltxShop("voltx", "VoltX Electronics", "https://voltx-store.com"),
   new MechatronxShop("mechatronx", "Mechatronx", "https://mecha-tronx.com"),
+  Object.assign(new WooShop("electrolik", "Electrolik", "https://electrolik-eg.com"), {
+    // Its firewall turns away any address with "per_page" in it. WordPress reads the
+    // underscore written as %5F just the same, so the page size still gets through.
+    searchQuery: (params) => String(params).replace("per_page", "per%5Fpage"),
+  }),
+  new WooShop("volttronics", "Volttronics", "https://volt-tronics.com"),
+  new WooShop("ekostra", "Ekostra", "https://ekostra.com"),
+  new NabdaShop("nabda", "Nabda", "https://nabda-eg.com"),
 ];
 export const SHOPS_BY_KEY = Object.fromEntries(SHOPS.map((s) => [s.key, s]));
