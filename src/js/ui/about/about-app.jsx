@@ -6,7 +6,6 @@
 
 import { useRef } from "preact/hooks";
 import { SHOPS } from "../../shops.js";
-import { cartShop } from "../cart.js";
 import { Toc, useCurrentSection } from "../components.jsx";
 import { BugIcon, CartIcon, ChartIcon, DeviceIcon, GithubIcon, OpenIcon, PlusIcon, RelayIcon, UserIcon, WebIcon } from "../icons.jsx";
 
@@ -15,7 +14,6 @@ const NEW_ISSUE = `${REPO}/issues/new`;
 const SUGGEST_URL = `${NEW_ISSUE}?title=${encodeURIComponent("Add a shop: ")}`;
 const VERSION = import.meta.env.APP_VERSION;
 const N = SHOPS.length;
-const CARTS = SHOPS.filter(s => cartShop(s.key)).length;
 // the shops browsers may read directly: the two on Shopify, El Gammal, MTM and VoltX; Electra
 // only for its catalog, its prices and stock come through the relay (shops.js)
 const DIRECT = 5;
@@ -83,7 +81,6 @@ const PRIVACY = [
 const LIMITS = [
   ["Matching is a best guess", "Part numbers work well. Vague names like “LCD” or “sensor” need a glance, and an accessory can still pass as a match."],
   ["Delivery fees are your own estimates", "Shops don't publish them in a way the site can read, so the parts list counts the fees you enter."],
-  [`Add to cart works at ${CARTS} of the ${N} shops`, "Filling a shop's whole cart at once leaves out products with options to choose; add those one at a time from a result or a list row. The cart shows the shop's current price."],
   ["Shops that sell only on Facebook or WhatsApp aren't covered", "They have no online store to search."],
   ["Saved items don't sync", "They're kept per browser. Back up and Restore on the Saved tab move them to another one."],
 ];
