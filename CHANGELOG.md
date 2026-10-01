@@ -1,6 +1,15 @@
 # Changelog
 
-What changed on [parts.ahmedshaalan.com](https://parts.ahmedshaalan.com/), newest first. The site is updated as changes land. Each entry is also a git tag (`v2.0.3`), which is the version to use if you run the [MCP server](mcp/) or your own copy.
+What changed on [parts.ahmedshaalan.com](https://parts.ahmedshaalan.com/), newest first. The site is updated as changes land. Each entry is also a git tag (`v2.0.4`), which is the version to use if you run the [MCP server](mcp/) or your own copy.
+
+## 2.0.4 · 2026-10-01
+
+### Added
+- Four more shops, so a search now covers 21: **Electrolik**, which has the largest catalogue of the four and plenty of resistors and transistors; **Volttronics**; **Ekostra**, strong on development boards and sensors; and **Nabda**. All four were suggested by someone using the site. Add to cart works at Electrolik, Volttronics and Ekostra, bringing that to 13 shops; Nabda's cart is filled on its own site.
+- Nabda keeps no stock counts and sells what it lists, so its products are shown as available, the way the shop shows them.
+
+### Changed
+- Shops tab: the badge and the filter for shops whose cart can be filled from here read "Supports direct cart".
 
 ## 2.0.3 · 2026-09-23
 
