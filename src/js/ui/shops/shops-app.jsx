@@ -22,7 +22,7 @@ function Shop({ shop }) {
     <article class={`sh-shop${cart ? " cart" : ""}`}>
       <span class="sh-mark" style={{ "--h": hue(shop.key) }} aria-hidden="true">{shop.name[0]}</span>
       <a class="sh-name" href={shop.base} target="_blank" rel="noopener" title={new URL(shop.base).hostname.replace(/^www\./, "")}>{shop.name}</a>
-      {cart ? <span class="sh-badge" title="Add to this shop's cart from a search or a parts list"><CartIcon />Add to cart</span> : null}
+      {cart ? <span class="sh-badge" title="Add to this shop's cart from a search or a parts list"><CartIcon />Supports direct cart</span> : null}
     </article>
   );
 }
@@ -46,7 +46,7 @@ export function ShopsApp() {
           <input type="search" placeholder="Find a shop" aria-label="Find a shop" value={find} onInput={e => setFind(e.currentTarget.value)} {...NO_AUTOFILL} />
         </label>
         {chip(false, "All", SHOPS.length)}
-        {chip(true, "Add to cart", CARTS)}
+        {chip(true, "Supports direct cart", CARTS)}
       </div>
       <div class="sh-grid">
         {shown.length
