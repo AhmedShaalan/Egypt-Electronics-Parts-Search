@@ -26,7 +26,9 @@ globalThis.fetch = (url, init = {}) => {
 // imported after fetch is set up, and from the site itself so both always match the same way
 const { SHOPS, SHOPS_BY_KEY } = await import("../src/js/shops.js");
 const { searchAll, priceList, cheapestPicks, shopTotals, lineCost, packsNeeded } = await import("../src/js/search.js");
-const { STRONG } = await import("../src/js/matching.js");
+const { STRONG, score } = await import("../src/js/matching.js");
+const { linkIn, productAt, partQuery } = await import("../src/js/links.js");
+const { groupOffers } = await import("../src/js/grouping.js");
 
 const SITE = "https://parts.ahmedshaalan.com";
 const SHOP_KEYS = SHOPS.map((s) => s.key);
@@ -177,6 +179,48 @@ server.registerTool(
       })),
       failed_shops: data.failed_shops.map((s) => ({ shop: s.name, error: s.error })),
       ...(data.left_out ? { lines_left_out: data.left_out } : {}),
+    });
+  },
+);
+
+server.registerTool(
+  "compare_link",
+  {
+    title: "Compare a product link",
+    description:
+      "Given a link to a product page at one of the shops, find which product it is and the same product " +
+      "at the other shops, cheapest first. The other shops are searched for its part number (or what it is), " +
+      "so it takes as long as search_parts. Products that only match the search, not the product, are counted " +
+      "in other_matches; search_parts with searched_as lists them.",
+    inputSchema: {
+      url: z.string().min(1).max(2000).describe("The product page's address, at one of the shops in list_shops"),
+      limit: z.number().int().min(1).max(50).default(10).describe("Most offers of the same product to return"),
+    },
+    annotations: { readOnlyHint: true, openWorldHint: true },
+  },
+  async ({ url, limit }, extra) => {
+    const link = linkIn(url);
+    if (!link) return { isError: true, content: [{ type: "text", text: "That isn't a link" }] };
+    let p;
+    try {
+      p = await productAt(link.url, extra.signal);
+    } catch (e) {
+      return { isError: true, content: [{ type: "text", text: e.message }] };
+    }
+    const query = partQuery(p.name);
+    const linked = { ...p, score: score(query, p.name) };
+    const result = await searchAll(query, { onProgress: progress(extra), cancel: extra.signal });
+    const others = result.results.filter((r) => r.score >= STRONG && !(r.shop === p.shop && r.ref === p.ref));
+    const group = groupOffers(query, [linked, ...others]).find((g) => g.offers.includes(linked));
+    const same = group.offers.filter((o) => o !== linked).sort((a, b) => a.price - b.price);
+    return json({
+      product: { ...product(linked), in_stock: p.in_stock },
+      searched_as: query,
+      same_product: same.slice(0, limit).map(product),
+      ...(same[0] && same[0].price < p.price ? { cheapest_elsewhere: { shop: same[0].shop_name, saves: round(p.price - same[0].price) } } : {}),
+      other_matches: others.length - same.length,
+      failed_shops: failures(result.shops),
+      link: `${SITE}/?q=${encodeURIComponent(query)}`,
     });
   },
 );

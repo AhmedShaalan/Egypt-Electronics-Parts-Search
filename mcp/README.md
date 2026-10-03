@@ -25,6 +25,7 @@ The site's [**AI** tab](https://parts.ahmedshaalan.com/#ai) walks through the sa
 |---|---|
 | `search_parts` | Searches every shop for one part: in-stock products, best match first, then cheapest. Can search only some shops (quicker), and include weak matches. |
 | `price_parts_list` | Prices a parts list: the pick per line, the cheapest mix, the cheapest single shop, and what each shop is missing. |
+| `compare_link` | Takes a link to a product at one of the shops: which product it is, and the same product at the other shops, cheapest first. |
 | `check_price` | Re-checks one product's price and stock at its shop. |
 | `list_shops` | The shops and the keys the other tools take. |
 
