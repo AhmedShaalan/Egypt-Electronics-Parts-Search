@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (C) 2026 Ahmed Shaalan
 
-// One connector per store platform. Each shop can search, and re-check a saved product's price.
+// One connector per store platform. Each shop can search, re-check a saved product's price, and
+// tell which product a link to its site is to.
 //
 // Shopify, El Gammal, MTM, VoltX and Electra's catalog allow browsers to read their data
 // directly. The others don't (no CORS), so their requests go through the Cloudflare Worker
@@ -60,6 +61,18 @@ function limiter(max) {
   return (fn) => new Promise((resolve, reject) => { queue.push({ fn, resolve, reject }); next(); });
 }
 
+// what a link's path says, by part: "/product/lm7805/" -> ["product", "lm7805"]. A slug written
+// in Arabic stays as the address has it, %-encoded, in lower case as WordPress keeps it.
+const pathParts = (url) => url.pathname.split("/").filter(Boolean).map((p) => p.toLowerCase());
+// the words a slug is made of, to search for: "lm7805-regulator" -> "lm7805 regulator"
+const decoded = (s) => { try { return decodeURIComponent(s); } catch { return s; } };
+const slugWords = (slug) => decoded(slug).replace(/[-_]+/g, " ").trim();
+const samePage = (a, b) => { try { return new URL(a).pathname.replace(/\/+$/, "") === new URL(b).pathname.replace(/\/+$/, ""); } catch { return false; } };
+
+// A product link the shop can't make a product of for a reason worth telling: a product sold in
+// several options with none chosen.
+export class LinkError extends Error {}
+
 class Shop {
   constructor(key, name, base) {
     Object.assign(this, { key, name, base });
@@ -68,6 +81,22 @@ class Shop {
   // A shop whose cart can be filled from a link also has cartSteps(items): the links that put
   // products into its cart, visited in order in one tab, the last one showing the cart.
   // `items` are products marked `cart`, each with the `qty` wanted.
+
+  // whether a link (a URL) is to this shop's site, with or without "www."
+  owns(url) {
+    const host = (h) => h.replace(/^www\./, "");
+    return host(url.hostname) === host(new URL(this.base).hostname);
+  }
+
+  // The product a link to the shop's site shows (a URL), as its search gives products, though
+  // it may be out of stock; null when the link isn't to a product it has. This one searches the
+  // shop for the words of the link's last part and looks for the page among what it finds, so it
+  // finds only what's in stock; the platforms that can be asked about one product do that instead.
+  async fromUrl(url, signal) {
+    const slug = pathParts(url).at(-1);
+    if (!slug) return null;
+    return (await this.search(slugWords(slug), signal)).find((p) => samePage(p.url, url.href)) ?? null;
+  }
 }
 
 class WooShop extends Shop {
@@ -166,6 +195,33 @@ class WooShop extends Shop {
     const p = this.product(this.parse(await (await ok(r)).text()));
     return { price: p.price, in_stock: p.in_stock };
   }
+
+  // A product's page is at its slug, the address's last part, under whatever the shop puts before
+  // it (/product/, a category, nothing); a short link has its id (?p=123). A link to one colour or
+  // size of it (?attribute_pa_color=blue) gives that one.
+  async fromUrl(url, signal) {
+    const id = url.searchParams.get("p") || url.searchParams.get("add-to-cart");
+    const slug = pathParts(url).at(-1);
+    let d;
+    if (/^\d+$/.test(id || "")) {
+      const r = await relay(`${this.base}/wp-json/${this.api}/products/${id}`, { signal });
+      if (r.status === 404) return null;
+      d = this.parse(await (await ok(r)).text());
+    } else {
+      if (!slug) return null;
+      const params = new URLSearchParams({ slug });
+      const r = await ok(await relay(`${this.base}/wp-json/${this.api}/products?${this.searchQuery(params)}`, { signal }));
+      // an older Store API ignores the slug and lists every product: the page is then searched for
+      d = this.parse(await r.text()).find((x) => x.slug?.toLowerCase() === slug || samePage(x.permalink, url.href));
+      if (!d) return super.fromUrl(url, signal);
+    }
+    if (!d?.id) return null;
+    const p = this.product(d);
+    const wanted = [...url.searchParams].filter(([k]) => k.startsWith("attribute_")).map(([, v]) => v.toLowerCase());
+    if (!p.options || !wanted.length) return p;
+    const choice = (d.variations || []).find((v) => v.attributes.every((a) => wanted.includes(String(a.value).toLowerCase())));
+    return choice ? (await this.option(p, String(choice.id), signal)) ?? p : p;
+  }
 }
 
 // A shop whose own search is too limited to use, so the whole catalog is downloaded
@@ -243,6 +299,23 @@ class ShopifyShop extends CatalogShop {
     if (r.status === 404) return null;
     const v = (await (await ok(r)).json()).variants.find((x) => String(x.id) === variantId);
     return v ? { price: v.price / 100, in_stock: Boolean(v.available) } : null;
+  }
+
+  // /products/<handle>, also under a collection, and ?variant= for one of its options. A link
+  // to a product with options and none chosen gives the first one in stock, as its page does.
+  async fromUrl(url, signal) {
+    const parts = pathParts(url);
+    const handle = parts[parts.indexOf("products") + 1];
+    if (!parts.includes("products") || !handle) return null;
+    const r = await fetch(`${this.base}/products/${handle}.js`, { signal });
+    if (r.status === 404) return null;
+    const p = await (await ok(r)).json();
+    // the same shape as the catalog's products.json, where prices are written out
+    const variants = (p.variants || []).map((v) => ({ ...v, price: String(v.price / 100), compare_at_price: v.compare_at_price ? String(v.compare_at_price / 100) : null }));
+    const image = p.featured_image ? new URL(p.featured_image, this.base).href : null;
+    const all = this.variants({ handle: p.handle, title: p.title, variants, images: image ? [{ src: image }] : [] });
+    const id = url.searchParams.get("variant");
+    return all.find((x) => x.ref.endsWith(`:${id}`)) ?? all.find((x) => x.in_stock) ?? all[0] ?? null;
   }
 }
 
@@ -329,6 +402,7 @@ class OdooShop extends Shop {
     return out;
   }
 
+  // `ref` is "template:product"; "template:" asks about the product its page opens on
   async combinationInfo(ref, signal, fresh = false) {
     const hit = this.info.get(ref);
     if (hit && !fresh && Date.now() < hit.expires) return hit.info;
@@ -336,7 +410,7 @@ class OdooShop extends Shop {
     const body = JSON.stringify({
       jsonrpc: "2.0",
       method: "call",
-      params: { product_template_id: Number(tmpl), product_id: Number(prod), combination: [], add_qty: 1 },
+      params: { product_template_id: Number(tmpl), product_id: Number(prod) || false, combination: [], add_qty: 1 },
     });
     const r = await this.limit(async () =>
       ok(await relay(`${this.base}/website_sale/get_combination_info`, {
@@ -359,6 +433,27 @@ class OdooShop extends Shop {
   async check(ref, signal) {
     const info = await this.combinationInfo(ref, signal, true);
     return info ? { price: Number(info.price || 0), in_stock: this.inStock(info) } : null;
+  }
+
+  // A product's page ends in its template's number: /shop/esp32-board-9279. Its name comes with
+  // the shop's own code in front ("[KIT.ESP32] ESP32 board"), which the search page leaves out.
+  async fromUrl(url, signal) {
+    const tmpl = url.pathname.match(/\/shop\/(?:product\/)?[^/]*?(\d+)\/?$/)?.[1];
+    if (!tmpl) return null;
+    const info = await this.combinationInfo(`${tmpl}:`, signal, true);
+    if (!info?.product_id) return null;
+    const price = Number(info.price || 0);
+    const listPrice = Number(info.list_price || 0);
+    return {
+      shop: this.key,
+      ref: `${tmpl}:${info.product_id}`,
+      name: cleanName(info.display_name || "").replace(/^\[[^\]]*\]\s*/, ""),
+      price,
+      url: this.base + url.pathname,
+      image: `${this.base}/web/image/product.template/${tmpl}/image_256`,
+      in_stock: this.inStock(info),
+      old_price: info.has_discounted_price && listPrice > price ? listPrice : null,
+    };
   }
 }
 
@@ -469,6 +564,17 @@ class LampatronicsShop extends Shop {
     const p = this.product(data);
     return { price: p.price, in_stock: p.in_stock };
   }
+
+  // /product/<slug>, the slug being what it's asked about by
+  async fromUrl(url, signal) {
+    const [kind, slug] = pathParts(url);
+    if (kind !== "product" || !slug) return null;
+    const { status, text } = await this.api(`frontend/product/show/${slug}`, signal);
+    if (status === 404) return null;
+    if (status !== 200) throw new Error(`HTTP ${status}`);
+    const data = JSON.parse(text).data;
+    return data ? this.product(data) : null;
+  }
 }
 
 class ElGammalShop extends Shop {
@@ -559,6 +665,23 @@ class ElGammalShop extends Shop {
     if (!rows.length) return null;
     const p = this.product(rows[0]);
     return { price: p.price, in_stock: (await this.onlineStock(ref, signal, true)) > 0 };
+  }
+
+  // /p/<slug>
+  async fromUrl(url, signal) {
+    const [kind, slug] = pathParts(url);
+    if (kind !== "p" || !slug) return null;
+    const params = new URLSearchParams({
+      select: "id,name,slug,user_price,image_url",
+      slug: `eq.${decoded(slug)}`,
+      is_active: "eq.true",
+      is_visible: "eq.true",
+      is_online: "eq.true",
+    });
+    const rows = await (await ok(await this.api(`products?${params}`, { signal }))).json();
+    if (!rows.length) return null;
+    const p = this.product(rows[0]);
+    return { ...p, in_stock: (await this.onlineStock(p.ref, signal, true)) > 0 };
   }
 }
 
@@ -660,6 +783,17 @@ class ElectraShop extends CatalogShop {
     if (!offer) return null;
     return { price: offer.price, in_stock: offer.in_stock };
   }
+
+  // /products/<slug>: the product in the catalog, at the price and stock its page gives
+  async fromUrl(url, signal) {
+    const [kind, slug] = pathParts(url);
+    if (kind !== "products" || !slug) return null;
+    const p = (await this.catalog()).find((x) => x.ref === decoded(slug));
+    const offer = p && (await this.offer(p.ref, signal, true));
+    if (!offer) return null;
+    const price = offer.price || p.price;
+    return { ...p, price, in_stock: offer.in_stock, old_price: p.old_price > price ? p.old_price : null };
+  }
 }
 
 class MtmShop extends CatalogShop {
@@ -701,6 +835,14 @@ class MtmShop extends CatalogShop {
     if (!Array.isArray(rows) || !rows.length) return null;
     const p = this.product(rows[0]);
     return { price: p.price, in_stock: p.in_stock };
+  }
+
+  // /products/<id>
+  async fromUrl(url, signal) {
+    const [kind, id] = pathParts(url);
+    if (kind !== "products" || !/^\d+$/.test(id || "")) return null;
+    const rows = await (await ok(await fetch(`${this.api}/${id}`, { signal }))).json();
+    return Array.isArray(rows) && rows.length ? this.product(rows[0]) : null;
   }
 }
 
@@ -827,6 +969,21 @@ class MechatronxShop extends Shop {
     if (!data?.id) return null;
     const p = this.product(data);
     return { price: p.price, in_stock: p.in_stock };
+  }
+
+  // /product/<slug>, and ?variant=<id> for one of its options. A product with options has no
+  // price or stock of its own, so without one chosen there's nothing to compare.
+  async fromUrl(url, signal) {
+    const [kind, slug] = pathParts(url);
+    if (kind !== "product" || !slug) return null;
+    const r = await relay(`${this.api}/${slug}`, { signal });
+    if (r.status === 404) return null;
+    const { data } = await (await ok(r)).json();
+    if (!data?.id) return null;
+    if (!data.isVariantParent) return this.product(data);
+    const v = (data.variations || []).find((x) => String(x.id) === url.searchParams.get("variant"));
+    if (!v) throw new LinkError(`That product comes in several options. Choose one at ${this.name}, then paste its link`);
+    return this.product(v, data);
   }
 }
 
