@@ -6,6 +6,8 @@ Open **[parts.ahmedshaalan.com](https://parts.ahmedshaalan.com/)**. On a phone, 
 
 Type a part number or a description: `LM7805`, `ESP32`, `10k resistor`, `HC-SR04`. Exact part numbers give the sharpest results. Press `/` from anywhere on the tab to jump to the box; your recent searches wait under it.
 
+Or paste a link to a product at one of the shops. Its shop is asked which product it is, and every shop is searched for its part number, or for what it is when it has none: a link to "L7805CV Linear Voltage Regulator 5V/1A out, TO-220" searches `L7805CV`. **From your link** shows that product, then the same product at the other shops, cheapest first, and what you'd save at the cheapest. The other matches for the search follow as usual. A product sold in options needs the option chosen on the shop's page before its link is copied, at shops where the link says which.
+
 | You'll see | What it means |
 |---|---|
 | **Searching 21 shops… 9 answered** | Results show once a few shops have answered with a match, and the rest join as they answer. **Stop waiting** skips the shops still running |
@@ -33,6 +35,8 @@ LM7805 x2
 HC-SR04
 16x2 LCD
 ```
+
+A line can also be a link to a product at one of the shops, with a quantity around it as above (`https://… x3`). The row is the product's part number, or what it is, with that product as your pick, so the list buys it there unless you choose another, and switches to **Your picks**. A link that can't be read stays in the box, and a message says why.
 
 Bullets and numbering are ignored, `#` lines are treated as comments, and names like `16x2 LCD`, `16 x 2 LCD`, `12 V relay`, `4 channel relay` or `555 timer` aren't mistaken for a quantity. Lists written as a spec sheet work too: notes after a comma or in brackets are left out of the search, so the line above is searched as `relay DPDT`. A single word or value after a comma stays: `Resistor, 10k, 1/4W` is searched as `Resistor 10k 1/4W`. A part already on the list gets the quantity added. Up to 40 parts per list.
 
