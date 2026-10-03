@@ -34,7 +34,7 @@ const SITE = "https://parts.ahmedshaalan.com";
 const SHOP_KEYS = SHOPS.map((s) => s.key);
 
 const server = new McpServer(
-  { name: "egypt-parts", version: "2.0.4" },
+  { name: "egypt-parts", version: "2.0.5" },
   {
     instructions: [
       `Searches ${SHOPS.length} Egyptian electronics shops at once (the same search as ${SITE}).`,

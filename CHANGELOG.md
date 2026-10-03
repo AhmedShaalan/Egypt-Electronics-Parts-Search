@@ -1,6 +1,16 @@
 # Changelog
 
-What changed on [parts.ahmedshaalan.com](https://parts.ahmedshaalan.com/), newest first. The site is updated as changes land. Each entry is also a git tag (`v2.0.4`), which is the version to use if you run the [MCP server](mcp/) or your own copy.
+What changed on [parts.ahmedshaalan.com](https://parts.ahmedshaalan.com/), newest first. The site is updated as changes land. Each entry is also a git tag (`v2.0.5`), which is the version to use if you run the [MCP server](mcp/) or your own copy.
+
+## 2.0.5 · 2026-10-03
+
+### Added
+- Paste a link to a product at any of the 21 shops into the search box to compare it. The site asks that shop which product it is, then searches every shop for its part number, or for what it is when it has none: a link to "L7805CV Linear Voltage Regulator 5V/1A out, TO-220" searches L7805CV. **From your link** shows the product, then the same product at the other shops, cheapest first, with what you'd save at the cheapest. The other matches for the search follow as usual.
+- On the Parts list, a line can be a product link too, with a quantity around it like any part (`https://… x3`). The row is the product's part number, with that product as your pick, so the list buys it there unless you choose another. A link that can't be read stays in the box, with a message saying why.
+- MCP server: a `compare_link` tool takes a product link and gives the product, the same product at the other shops, cheapest first, and what the cheapest saves.
+
+### Changed
+- The search box's hint and the Parts list's Add parts box mention product links.
 
 ## 2.0.4 · 2026-10-01
 
