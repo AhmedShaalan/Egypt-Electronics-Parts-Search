@@ -122,6 +122,15 @@
 .s-f-none summary { cursor: pointer; }
 .s-f-none p { margin: 4px 0 0; }
 
+/* a search for a pasted link: its product, and the same product at the other shops */
+.s-linked { display: grid; gap: 8px; margin-bottom: 22px; }
+.s-linked-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; font-size: 14px; }
+.s-linked-head .s-lbl { font-weight: 600; text-transform: uppercase; letter-spacing: .06em; font-size: 12px; }
+.s-linked-says { color: var(--muted); }
+.s-linked-says b { color: var(--good); }
+.s-linked-sub { font-size: 13px; color: var(--muted); margin-top: 4px; }
+.s-linked-more { justify-self: start; font-size: 13px; }
+
 .s-res-head { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 12px; }
 .s-res-count { margin-right: auto; font-size: 14px; color: var(--muted); }
 .s-res-count b { color: var(--text); font-size: 16px; }

@@ -11,6 +11,7 @@ import { store, runSearch, setRecent } from "./state.js";
 import { viewOf } from "./view.js";
 import { Status, Filters } from "./panels.jsx";
 import { Results } from "./results.jsx";
+import { Linking } from "./linked.jsx";
 
 const EXAMPLES = ["Arduino Uno", "LM7805", "ESP32", "10k resistor"];
 
@@ -32,8 +33,9 @@ function Intro({ s }) {
 
 export function SearchApp() {
   const s = store.use();
-  useEffect(() => { $("#tab-search").classList.toggle("has-query", !!s.query); }, [s.query]);
+  useEffect(() => { $("#tab-search").classList.toggle("has-query", !!(s.query || s.linking)); }, [s.query, s.linking]);
   const v = useMemo(() => viewOf(s), [s.result, s.hidden, s.saleOnly, s.cartOnly]);
+  if (s.linking) return <Linking s={s} />;
   if (!s.query) return <Intro s={s} />;
   return <>
     <Status s={s} v={v} />

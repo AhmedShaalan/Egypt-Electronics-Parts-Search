@@ -11,6 +11,7 @@ import { Chevron } from "../icons.jsx";
 import { set, searchEverywhere } from "./state.js";
 import { sortedGroups, sortedFlat } from "./view.js";
 import { Offer, ProductCard } from "./offer.jsx";
+import { Linked } from "./linked.jsx";
 
 const Skeleton = () => <div class="s-skel"><i class="box" /><span class="s-lines"><i style="width:60%" /><i style="width:35%" /></span><i /></div>;
 
@@ -58,6 +59,8 @@ export function Results({ s, v }) {
 
   return (
     <div class="s-results" role="region" aria-label="Results">
+      {/* afresh for each link, folded again */}
+      <Linked key={s.linked ? key(s.linked) : ""} s={s} v={v} />
       <div class="s-res-head">
         <div class="s-res-count">
           {early ? "Looking…" : <><b>{plural(v.strong.length, "match", "matches")}</b>{shopsN ? ` at ${plural(shopsN, "shop")}` : ""}</>}

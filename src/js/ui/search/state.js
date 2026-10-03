@@ -6,7 +6,9 @@
 
 import { searchAll, searchKey, fetchShop, mergeShop } from "../../search.js";
 import { SHOPS, SHOPS_BY_KEY } from "../../shops.js";
-import { STRONG } from "../../matching.js";
+import { STRONG, score } from "../../matching.js";
+import { isLink, linkIn, productAt, partQuery } from "../../links.js";
+import { SHOP_TIMEOUT_MS } from "../../config.js";
 import { $, toast, announce } from "../common.js";
 import { plural } from "../format.js";
 import { loadJSON, saveJSON } from "../storage.js";
@@ -21,6 +23,8 @@ export const store = createStore({
   query: "",          // what the tab is showing, mirrored into ?q=
   only: "",           // the one shop it was searched at, mirrored into ?shop=; "" for every shop
   result: null,       // the search as it is now, growing as shops answer
+  linked: null,       // the product a pasted link is to, when the search is for it
+  linking: "",        // the link being looked up
   shown: false,       // enough shops answered to show results
   error: "",
   fetching: new Set(), // shops being asked again, after failing or being skipped
@@ -91,12 +95,16 @@ export function searchFor(q) {
   else location.hash = "#search";
 }
 
-export async function runSearch(q) {
+// `linked` is the product a pasted link is to, which the search is for
+export async function runSearch(q, linked = null) {
   q = q.trim();
+  if (isLink(q)) return searchLink(q);
   if (q.length < 2) return;
   const only = picked();
   // searching again for what's on screen asks the shops again, rather than showing the same answer
   const fresh = !!store.state.result && searchKey(q) === searchKey(store.state.query) && only === store.state.only;
+  // and keeps the product from the link it was for
+  if (fresh && !linked) linked = store.state.linked;
   $("#q").value = q;
   updateBox();
   setSearchUrl(q, only);
@@ -107,7 +115,7 @@ export async function runSearch(q) {
   stopWaiting = () => skip.abort();
   const run = ++searchRun;
   set({
-    query: q, only, result: null, shown: false, error: "", fetching: new Set(), flash: "",
+    query: q, only, linked, linking: "", result: null, shown: false, error: "", fetching: new Set(), flash: "",
     hidden: new Set(), saleOnly: false, cartOnly: false, openKeys: new Set(), showFilters: false,
   });
   // the results show once a few shops have answered with a match, then each shop joins them as it answers
@@ -125,6 +133,32 @@ export async function runSearch(q) {
   } catch (e) {
     if (run === searchRun) set({ error: e.message });
   }
+}
+
+// A product link: its shop is asked which product it is, and the search is for its part number or
+// what it is ("L7805CV Linear Voltage Regulator 5V/1A" is searched as L7805CV), at every shop, so
+// the same product shows at the others. A link that can't be read stays in the box, and says why.
+async function searchLink(text) {
+  const run = ++searchRun;
+  cancelSearch?.abort();
+  const cancel = cancelSearch = new AbortController();
+  set({ linking: text, error: "" });
+  const timer = setTimeout(() => cancel.abort(), SHOP_TIMEOUT_MS);
+  let p;
+  try {
+    p = await productAt(linkIn(text).url, cancel.signal);
+  } catch (e) {
+    if (run !== searchRun) return;
+    set({ linking: "" });
+    toast(e.message);
+    return;
+  } finally {
+    clearTimeout(timer);
+  }
+  if (run !== searchRun) return;
+  pick("");
+  const q = partQuery(p.name);
+  runSearch(q, { ...p, score: score(q, p.name) });
 }
 
 // skips the shops the search is still waiting for
@@ -147,7 +181,7 @@ function clearSearch() {
   $("#q").value = "";
   updateBox();
   setSearchUrl("");
-  set({ query: "", only: "", result: null, shown: false, error: "" });
+  set({ query: "", only: "", linked: null, linking: "", result: null, shown: false, error: "" });
 }
 
 // asks one shop again: one that failed, or one skipped by "Stop waiting"
