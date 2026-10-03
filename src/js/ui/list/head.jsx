@@ -63,21 +63,25 @@ export function ShopsStatus({ s }) {
   );
 }
 
-export function Intake() {
+export function Intake({ s }) {
   const box = useRef(null);
-  const add = () => {
-    if (addText(box.current.value)) box.current.value = "";
+  const add = async () => {
+    if (s.linking) return;
+    const text = box.current.value;
+    const left = await addText(text);
+    // what was typed meanwhile, while links were looked up, stays
+    if (left != null && box.current.value === text) box.current.value = left;
     box.current.focus();
   };
   return (
     <div class="l-intake">
       <label for="list-text">Add parts</label>
       <textarea id="list-text" ref={box} rows="3" spellcheck={false} autocomplete="off"
-        placeholder={"One part per line, or paste a whole list:\nLM7805 x2\n10k resistor, 20"}
+        placeholder={"One part or product link per line, or paste a whole list:\nLM7805 x2\n10k resistor, 20"}
         onKeyDown={e => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); add(); } }} />
       <div class="l-intake-foot">
         <span class="l-hint">Quantity: <code>x2</code>, <code>2x</code>, <code>2pcs</code>, or a count in front or after a comma. <kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>Enter</kbd> adds.</span>
-        <button class="btn primary" type="button" onClick={add}>Add to list</button>
+        <button class="btn primary" type="button" disabled={s.linking > 0} onClick={add}>{s.linking ? `Looking up ${plural(s.linking, "link")}…` : "Add to list"}</button>
       </div>
     </div>
   );

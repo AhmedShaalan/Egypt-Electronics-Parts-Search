@@ -32,6 +32,7 @@ export const store = createStore({
   editing: null,      // the row in the Change part dialog
   flash: new Set(),   // rows that just changed, lit up for a moment
   retrying: false,    // asking the shops that failed again
+  linking: 0,         // product links being looked up, from what was added
   filling: null,      // { shop, done, total } while a shop's cart fills
   leaving: null,      // what runs once the list may be left, while Unsaved changes asks (leave-dialog.jsx)
   discarding: false,  // whether Discard changes is asking (discard-dialog.jsx)

@@ -53,7 +53,7 @@ export function ListApp() {
     <div class="l-layout">
       <div class="l-list-wrap" role="region" aria-label="Parts">
         <div class="l-list">
-          <Intake />
+          <Intake s={s} />
           {s.rows.length
             ? <div class="l-cols" aria-hidden="true"><span>Qty</span><span>Part · what you'd buy</span><span>Cost</span><span /></div>
             : null}

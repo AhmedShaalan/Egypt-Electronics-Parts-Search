@@ -8,6 +8,7 @@ import { parseLine, nameLine, lineCost, packsNeeded, saveList, updateList, renam
 import { MAX_LIST_LINES, SHOP_TIMEOUT_MS } from "../../config.js";
 import { goodFor } from "../../plans.js";
 import { SHOPS_BY_KEY } from "../../shops.js";
+import { linkIn, productAt, partQuery } from "../../links.js";
 import { newRow, priced, withQty, withResult, listText, listPicks, listPickItems, productKey, pickOf, priceSavedList as priceWithFees } from "../../list-model.js";
 import { $, money, toast, collapse } from "../common.js";
 import { plural } from "../format.js";
@@ -18,30 +19,78 @@ import { price, stopRow, stopAll, currentRun } from "./pricing.js";
 
 /* ---------- changing the list ---------- */
 
-// adds the parts typed or pasted in, one per line, at the top of the list in the order they're
-// written; false when there was nothing to add
-export function addText(text) {
-  const parsed = text.split(/\r?\n/).map(parseLine).filter(Boolean);
-  if (!parsed.length) { toast("Type a part name or number"); return false; }
+// A line with a product link in it: the link, and how many, written around it as around a part's
+// name ("https://… x3", "3 https://…"); null for a line without one.
+function linkLine(line) {
+  const link = linkIn(line);
+  if (!link) return null;
+  const parsed = parseLine(line.replace(/(?:https?:\/\/|www\.)\S+/i, " link "));
+  return { url: link.url, qty: parsed?.[1] ?? 1 };
+}
+
+// Adds the parts typed or pasted in, one per line, at the top of the list in the order they're
+// written. A line with a shop's product link is that product: its shop is asked which it is, and
+// the row is its part number or what it is (links.js partQuery), with the product as its pick.
+// Gives the text left to fix: the lines whose link couldn't be read; null when nothing was added.
+export async function addText(text) {
+  const lines = text.split(/\r?\n/).filter(l => parseLine(l));
+  if (!lines.length) { toast("Type a part name or number, or paste a product link"); return null; }
+  const links = lines.map(linkLine);
+  const asking = links.filter(Boolean).length;
+  if (asking) set({ linking: asking });
+  const run = currentRun();
+  const products = await Promise.all(links.map(l => l && productAt(l.url, AbortSignal.timeout(SHOP_TIMEOUT_MS)).catch(e => e)));
+  if (asking) set({ linking: 0 });
+  // another list was opened meanwhile
+  if (run !== currentRun()) return text;
+  const failed = lines.filter((_, i) => products[i] instanceof Error);
+
   const rows = store.state.rows.slice();
   const added = [];
   let more = 0;
   let left = 0;
-  for (const [q, n] of parsed) {
+  const same = q => r => r.query.toLowerCase() === q.toLowerCase();
+  lines.forEach((line, i) => {
+    const p = products[i];
+    if (p instanceof Error) return;
+    let q, n, pinKey = null;
+    if (p) {
+      n = links[i].qty;
+      pinKey = productKey(p);
+      // the same product already on the list, or twice in what was pasted, gets the quantity added
+      const had = rows.findIndex(r => r.pinKey === pinKey);
+      if (had >= 0) { rows[had] = withQty(rows[had], rows[had].qty + n); more++; return; }
+      const twice = added.findIndex(r => r.pinKey === pinKey);
+      if (twice >= 0) { added[twice] = withQty(added[twice], added[twice].qty + n); return; }
+      // a list keeps one product per part, so another product of a part already on it goes by its
+      // full name, as one added from Search does
+      q = partQuery(p.name);
+      if (rows.some(same(q)) || added.some(same(q))) [q] = parseLine(`${nameLine(p.name)} x1`);
+    } else {
+      [q, n] = parseLine(line);
+    }
     // a part already on the list gets the quantity added
-    const same = rows.findIndex(r => r.query.toLowerCase() === q.toLowerCase());
-    if (same >= 0) { rows[same] = withQty(rows[same], rows[same].qty + n); more++; continue; }
+    const had = rows.findIndex(same(q));
+    if (had >= 0) { rows[had] = withQty(rows[had], rows[had].qty + n); more++; return; }
     // or twice in what was pasted
-    const twice = added.findIndex(r => r.query.toLowerCase() === q.toLowerCase());
-    if (twice >= 0) { added[twice] = withQty(added[twice], added[twice].qty + n); continue; }
-    if (rows.length + added.length >= MAX_LIST_LINES) { left++; continue; }
-    added.push(newRow(q, n));
-  }
-  change({ rows: [...added, ...rows] });
+    const twice = added.findIndex(same(q));
+    if (twice >= 0) { added[twice] = withQty(added[twice], added[twice].qty + n); return; }
+    if (rows.length + added.length >= MAX_LIST_LINES) { left++; return; }
+    added.push(newRow(q, n, pinKey, p ? pickOf(p) : null));
+  });
+  // a product from a link is a pick, which only Your picks buys: on top of the plan on screen
+  const { strategy } = store.state;
+  const picked = added.some(r => r.pinKey) && strategy !== "custom";
+  change({ rows: [...added, ...rows], ...(picked ? { strategy: "custom", customBase: strategy } : {}) });
   price(added.map(r => r.id));
   const said = [added.length && `Added ${plural(added.length, "part")}`, more && `${plural(more, "part")} already on the list got more`].filter(Boolean).join(", ");
-  toast(left ? `${said || "Nothing added"}. A list can have ${MAX_LIST_LINES} parts, so ${left} ${left === 1 ? "was" : "were"} left out` : said);
-  return true;
+  const notes = [
+    left && `A list can have ${MAX_LIST_LINES} parts, so ${left} ${left === 1 ? "was" : "were"} left out`,
+    failed.length && (failed.length === 1 ? products[lines.indexOf(failed[0])].message : `${failed.length} links couldn't be read, so they're still in the box`),
+    picked && `Switched to ${PLAN_NAMES.custom}, on top of ${PLAN_NAMES[strategy]}`,
+  ].filter(Boolean);
+  toast([said || (failed.length ? "" : "Nothing added"), ...notes].filter(Boolean).join(". "));
+  return failed.join("\n");
 }
 
 // products added to a saved list from Search or Saved (add-to-list.js): when that list is open
