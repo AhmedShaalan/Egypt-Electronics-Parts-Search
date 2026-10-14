@@ -64,6 +64,18 @@ const CASES = {
     ["18650 battery", "18650 Battery Holder 1 Cell", "weak"],
     ["18650 holder", "18650 Battery Holder 1 Cell", "match"],
     ["ESP32", "ESP32 Display with Acrylic Case", "match"],
+    ["5mm LED", "5mm LED Spacer Column -Hight 2mm", "weak"],
+    ["18650 battery", "18650 Battery Insulation Paper Hollow Pack 1S (Solid)", "weak"],
+    ["18650 battery", "PVC Heat Shrink 18650 battery", "weak"],
+    ["servo", "Metal Servo Horn (Round)", "weak"],
+    ["servo", "Servo Extension Cable 30cm", "weak"],
+    ["ESP32", "ESP32 Expansion Connection Shield", "weak"],
+    ["breadboard", "65pcs Flexible Breadboard Jumper Wires", "weak"],
+    ["ATmega328P", "Heat Shrink Tubing Set 328Pcs", "weak"],
+    ["servo horn", "Metal Servo Horn (Round)", "match"],
+    ["servo extension cable", "Servo Extension Cable 30cm", "match"],
+    ["heat shrink 5mm", "Heat Shrink 5mm 1M Black", "match"],
+    ["LED spacer", "5mm LED Spacer Column -Hight 2mm", "match"],
   ],
   "a number before a word describes the part": [
     ["fan", "3-wire Cooling Fan 12V", "match"],
@@ -121,8 +133,6 @@ const KNOWN_WRONG = [
   ["servo", "LA7116 VCR Servo Interface IC DIP 24", "weak"],
   ["16x2 LCD", "LCD16x2 Serial interface I2C Board Module", "weak"],
   ["4 channel relay module", "IR Tracking Sensor Module 4 Channel", "weak"],
-  ["18650 battery", "18650 Battery Insulation Paper Hollow Pack 1S (Solid)", "weak"],
-  ["5mm LED", "5mm LED Spacer Column -Hight 2mm", "weak"],
   ["10k potentiometer", "Variable Resistor - POT (10 K-Ohm) - 3296W", "match"],
 ];
 
