@@ -29,14 +29,14 @@ const ACCESSORY_NAMES = new Set([
   "adapter", "breakout", "base", "baseboard", "shield", "pcb", "cable", "case", "enclosure", "shell",
   "holder", "socket", "programmer", "expansion", "cover", "bracket", "mount", "connector", "download",
   "protective", "acrylic", "sticker", "stand", "jumper", "wire", "wires", "clip", "snap", "spacer",
-  "spacers", "insulation", "insulating", "gasket", "shrink", "horn", "horns", "extension",
+  "spacers", "insulation", "insulating", "gasket", "shrink", "horn", "horns", "extension", "damper",
 ]);
 // the ones that are never the part itself: these take it below a real match. The others (cable,
 // shield, connector…) also describe parts: "DS18B20 waterproof cable" is the sensor.
 const ONLY_ACCESSORY = new Set([
   "holder", "clip", "snap", "case", "enclosure", "shell", "bracket", "mount", "cover", "stand", "sticker", "protective",
   "acrylic", "spacer", "spacers", "insulation", "insulating", "gasket", "shrink", "horn", "horns", "extension", "jumper",
-  "expansion",
+  "expansion", "damper",
 ]);
 // accessory words that also appear glued to the next word ("Casefor Arduino")
 const ACCESSORY_PREFIXES = ["case", "cable", "shield", "adapter", "holder", "enclosure", "programmer"];

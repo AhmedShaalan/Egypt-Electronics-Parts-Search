@@ -5,7 +5,7 @@ What changed on [parts.ahmedshaalan.com](https://parts.ahmedshaalan.com/), newes
 ## Unreleased
 
 ### Fixed
-- A part's add-ons are no longer counted as the part: spacers, insulation paper, heat shrink, servo horns, extension cables, jumper wires and expansion boards. A parts list line `5mm LED` bought a 0.20 EGP LED spacer, and `18650 battery` a 1 EGP sheet of insulation paper; both now buy the part. They're still found by searching for them ("LED spacer", "servo horn").
+- A part's add-ons are no longer counted as the part: spacers, insulation paper, heat shrink, servo horns, extension cables, jumper wires, expansion boards and motor dampers. A parts list line `5mm LED` bought a 0.20 EGP LED spacer, and `18650 battery` a 1 EGP sheet of insulation paper; both now buy the part. They're still found by searching for them ("LED spacer", "servo horn").
 - Without a part number, a name has to have the word that says what the part is. `4 channel relay module` no longer matches an "IR Tracking Sensor Module 4 Channel", which has every word but "relay", and a parts list now buys a relay module for it.
 - A search for a potentiometer finds the ones named "POT", like "Variable Resistor - POT (10 K-Ohm)", and a search for a trimmer finds the ones named "Trimpot".
 - A product that only names the part is no longer taken for it; it's shown among the weaker matches, saying why. A parts list line `servo` bought a 20 EGP VCR servo chip, `16x2 LCD` the I2C adapter board for one, and `Arduino Uno` a board sold "Excluding the ATMEGA328 Chip"; they now buy a servo, an LCD and a whole board. What changed:

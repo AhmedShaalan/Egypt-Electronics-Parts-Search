@@ -114,6 +114,7 @@ const CASES = {
     ["lcd", "OB2263MP LCD Power Management PMIC SOT23-6", "weak"],
     ["lcd", "Digital Adjustable Soldering Iron 936H 60W with LCD Display", "weak"],
     ["Arduino Uno", "ATMEGA328P-U Microcontroller Programmed with Arduino UNO Bootloader", "weak"],
+    ["stepper motor", "Nema17 Stepper Motor Vibration Damper", "weak"],
     // unless the search asks for it, a part number matched, or the name is the part
     ["servo driver", "PCA9685 Servo Driver Module 16 Channel", "match"],
     ["motor driver", "L298N Motor Driver Module", "match"],
