@@ -39,6 +39,12 @@ const ONLY_ACCESSORY = new Set([
 // accessory words that also appear glued to the next word ("Casefor Arduino")
 const ACCESSORY_PREFIXES = ["case", "cable", "shield", "adapter", "holder", "enclosure", "programmer"];
 
+// words that describe a part without saying what it is: "4 channel relay module" is a relay
+const DESCRIBING = new Set([
+  "module", "modules", "board", "boards", "channel", "channels", "ch", "pin", "pins", "way", "mini", "micro", "smd",
+  "dip", "type", "kit", "set", "pack", "dc", "ac", "high", "low", "level", "original", "new",
+]);
+
 const SPLIT = /[^0-9a-z\u0600-\u06ff.]+/;
 const isDigit = (c) => /^\p{Nd}+$/u.test(c);
 const hasDigit = (s) => /\p{Nd}/u.test(s);
@@ -100,6 +106,8 @@ function compact(s) {
 }
 
 const letterOnly = (t) => !hasDigit(t);
+// a model, not a value: lm7805, 16x2, 18650, but not 10k or 5mm
+const isPartNumber = (t) => (hasLetter(t) && hasDigit(t) && !VALUE.test(t)) || /^\d{3,}$/.test(t);
 
 // Substring match that won't let 10k match 910k, 7805 match 17805, 7k match 4.7k,
 // or (for words without digits) male match female.
@@ -170,6 +178,12 @@ export function score(query, name) {
   let s = (100 * weights.reduce((a, b) => a + b, 0)) / counted;
   // part numbers and values (7805, 10k, 100nf) must match; the words around them may not
   if (qTokens.some((t, i) => weights[i] === 0 && hasDigit(t))) s = Math.min(s, WEAK - 5);
+  // and without a part number, so must the words that say what it is: an "IR Tracking Sensor Module
+  // 4 Channel" has three of "4 channel relay module", but it isn't a relay
+  const naming = qTokens.map((t, i) => (letterOnly(t) && !DESCRIBING.has(t) && !BRANDS.has(t) ? i : -1)).filter((i) => i >= 0);
+  if (naming.length && naming.every((i) => weights[i] === 0) && !qTokens.some((t, i) => weights[i] > 0 && isPartNumber(t))) {
+    s = Math.min(s, STRONG - 5);
+  }
   // the query written as one word is in the name: "mini 360" ~ "Mini360"
   const cq = compactText(query);
   const bonusStarts = letterOnly(qTokens[0]) ? nameCompact.starts : null;

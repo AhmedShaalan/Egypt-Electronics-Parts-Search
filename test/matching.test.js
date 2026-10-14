@@ -91,6 +91,12 @@ const CASES = {
     ["IRF530N", "LED 530nm Green 5mm", "no"],
     ["TIP120", "Resistor 120 ohm 1/4W", "no"],
   ],
+  "the words that say what a part is must be there": [
+    ["4 channel relay module", "IR Tracking Sensor Module 4 Channel", "weak"],
+    ["4 channel relay module", "4 Channels IIC I2C Logic Level Converter Bi-Directional Module 3.3V to 5V Shifter", "weak"],
+    ["2 channel relay", "Relay Module 2 Channel 5V", "match"],
+    ["Omron relay 12V", "Relay 12V 1 Channel Module", "match"],
+  ],
   "a potentiometer is not a fixed resistor": [
     ["10k resistor", "Variable Resistor - POT (10 K-Ohm) - 3296W", "weak"],
     ["10k trimmer", "Trimmer Potentiometer 10K 3296W", "match"],
@@ -132,7 +138,6 @@ const CASES = {
 const KNOWN_WRONG = [
   ["servo", "LA7116 VCR Servo Interface IC DIP 24", "weak"],
   ["16x2 LCD", "LCD16x2 Serial interface I2C Board Module", "weak"],
-  ["4 channel relay module", "IR Tracking Sensor Module 4 Channel", "weak"],
   ["10k potentiometer", "Variable Resistor - POT (10 K-Ohm) - 3296W", "match"],
 ];
 
