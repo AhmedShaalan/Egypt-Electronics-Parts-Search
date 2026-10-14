@@ -97,6 +97,39 @@ const CASES = {
     ["2 channel relay", "Relay Module 2 Channel 5V", "match"],
     ["Omron relay 12V", "Relay 12V 1 Channel Module", "match"],
   ],
+  "another part that only names it": [
+    ["servo", "LA7116 VCR Servo Interface IC DIP 24", "weak"],
+    ["servo", "PCA9685 Servo Driver Module 16 Channel", "weak"],
+    ["servo", "Servo Tester 3 Channels", "weak"],
+    ["stepper motor", "ULN2003 Stepper Motor Driver Module", "weak"],
+    ["lipo battery", "TP4056 1A Lipo Battery Charging Board Type-C", "weak"],
+    ["lcd", "HD44780 LCD Controller", "weak"],
+    ["16x2 LCD", "LCD16x2 Serial interface I2C Board Module", "weak"],
+    ["Arduino Uno", "UGE Alpha Rev3 Board Arduino Uno Compatible Excluding the ATMEGA328 Chip", "weak"],
+    ["servo", "Aluminum Robotic Arm 6 DOF Kit without Servo", "weak"],
+    ["ATmega328P", "Arduino GRBL CNC 3 axis Control board without ATMEGA328", "weak"],
+    ["1N4007", "CD 4007 IC Dual Complementary Pair and Inverter", "weak"],
+    ["servo", "AN6344 VTR Cylinder Servo Control Circuit DIP-28", "weak"],
+    ["lcd", "Serial I2C LCD Daughter Board Module", "weak"],
+    ["lcd", "OB2263MP LCD Power Management PMIC SOT23-6", "weak"],
+    ["lcd", "Digital Adjustable Soldering Iron 936H 60W with LCD Display", "weak"],
+    ["Arduino Uno", "ATMEGA328P-U Microcontroller Programmed with Arduino UNO Bootloader", "weak"],
+    // unless the search asks for it, a part number matched, or the name is the part
+    ["servo driver", "PCA9685 Servo Driver Module 16 Channel", "match"],
+    ["motor driver", "L298N Motor Driver Module", "match"],
+    ["op amp", "LM358 Op Amp IC", "match"],
+    ["NE555", "NE555 Timer IC DIP-8", "match"],
+    ["lcd i2c", "I2C LCD Serial Interface PCF8574 Module V2", "match"],
+    ["tft display", "3.2 inch SPI Interface TFT LCD Display Module, ILI9341 Driver, 240×320 Resolution, NO Touch", "match"],
+    ["16x2 LCD", "LCD 1602 (16x2) with Blue Backlight & Pre-Soldered I2C Interface", "match"],
+    ["dc motor", "Without Encoder 25GA370 DC Geared Motor 12Vdc 27 rpm", "match"],
+    ["Arduino Uno", "Arduino UNO R3 Board Without Cable CH340", "match"],
+    ["5mm LED", "LED 5mm Red Color DIP", "match"],
+    ["jumper wires", "Breadboard Jumper Wires Kit (140 Pcs)", "match"],
+    ["16x2 LCD", "1602 LCD Display Blue Backlight with I2C", "match"],
+    // never hidden for it: a driver that was already a weaker match stays one
+    ["dc motor", "L9110 Dual Channel Motor Driver Module", "weak"],
+  ],
   "a potentiometer is not a fixed resistor": [
     ["10k resistor", "Variable Resistor - POT (10 K-Ohm) - 3296W", "weak"],
     ["10k trimmer", "Trimmer Potentiometer 10K 3296W", "match"],
@@ -116,6 +149,9 @@ const CASES = {
     ["trimmer", "Top Adjust 10K ohm Carbon Trimmer Potentiometer (RM065)", "match"],
     ["ESP32", "ESP32 Development Board WIFI and Bluetooth 30-Pin with CP2102", "match"],
     ["Arduino Uno", "Arduino UNO R3 Board Without Cable CH340", "match"],
+    ["5mm LED", "LED 5mm Red Color DIP", "match"],
+    ["jumper wires", "Breadboard Jumper Wires Kit (140 Pcs)", "match"],
+    ["16x2 LCD", "1602 LCD Display Blue Backlight with I2C", "match"],
     ["Arduino Nano", "Arduino Nano V3.0 CH340 Chip Without Cable", "match"],
     ["DS18B20", "DS18B20 Waterproof Temperature Sensor 3 Wire 100cm", "match"],
     ["HC-SR04", "Ultrasonic Sensor Module HC-SR04", "match"],
@@ -137,11 +173,10 @@ const CASES = {
   ],
 };
 
-// Still wrong. The first ones are what a parts list buys: a different part at full marks, and
-// cheaper than the real one.
+// Cases still wrong, as [query, name, what it should be]. They run as to-dos until they're fixed.
 const KNOWN_WRONG = [
-  ["servo", "LA7116 VCR Servo Interface IC DIP 24", "weak"],
-  ["16x2 LCD", "LCD16x2 Serial interface I2C Board Module", "weak"],
+  ["Arduino Uno", "MCP2515 CAN Module TJA1050 Receiver SPI 51 Single Chip Program Routine Arduino Uno", "weak"],
+  ["Arduino Uno", "Arduino Uno Project Kit", "weak"],
 ];
 
 for (const [rule, cases] of Object.entries(CASES)) {
@@ -163,6 +198,10 @@ test("a weak match says why", () => {
   assert.equal(weakReason("10k resistor", "Variable Resistor - POT (10 K-Ohm) - 3296W"), "A potentiometer, not a fixed resistor");
   assert.equal(weakReason("Arduino UNO", "Acrylic case for Arduino UNO"), "Made for it, not the part itself");
   assert.equal(weakReason("LM7805", "LM7812 Voltage Regulator"), "No “lm7805” in its name");
+  assert.equal(weakReason("servo", "LA7116 VCR Servo Interface IC DIP 24"), "A chip for it, not the part itself");
+  assert.equal(weakReason("servo", "Servo Tester 3 Channels"), "A tester for it, not the part itself");
+  assert.equal(weakReason("Arduino Uno", "UGE Alpha Rev3 Board Arduino Uno Compatible Excluding the ATMEGA328 Chip"), "Sold without its chip");
+  assert.equal(weakReason("16x2 LCD", "LCD16x2 Serial interface I2C Board Module"), "An adapter board for it, not the display");
 });
 
 test("pack sizes", () => {

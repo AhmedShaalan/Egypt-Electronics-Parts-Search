@@ -47,6 +47,7 @@ Matching is what makes the results trustworthy, so it gets its own module ([`src
 | Accessories rank lower | "Acrylic case **for** Arduino UNO" is a weaker match for `Arduino UNO`, and "ESP32 **breakout** board" scores below the ESP32 itself, unless the search is for the accessory: `fuse holder T5x20` matches "Fuse Holder on PCB **for** T5x20" |
 | Add-ons aren't the part | A spacer, insulation paper, heat shrink, servo horn, extension cable, jumper wire or expansion board is a weaker match for the part it's made for: `5mm LED` doesn't match "5mm LED Spacer", `18650 battery` doesn't match "18650 Battery Insulation Paper" |
 | The part's name must be there | Without a part number, a name needs the word that says what the part is, not only the ones that describe it: `4 channel relay module` doesn't match "IR Tracking Sensor Module 4 Channel" |
+| Another part that names it isn't the part | Without a part number, the chip, driver, controller, charger or tester for a servo, motor, relay, LED, display or battery is a weaker match: `servo` doesn't match "PCA9685 Servo Driver", but `servo driver` does. So is what's sold without the part or only comes with it (`lcd` doesn't match "Soldering Iron with LCD Display"), and a display's adapter board (`16x2 LCD` doesn't match "LCD16x2 Serial interface I2C Board Module") |
 | Short names count | `potentiometer` matches "POT", and `trimmer` matches "Trimpot" |
 | Pack sizes are detected | "(10pcs)", "Pack of 5", "20 Pieces"; a kit ("Resistor Kit 600pcs") counts as one |
 

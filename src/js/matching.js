@@ -197,6 +197,8 @@ export function score(query, name) {
   // searching for an accessory, the other accessory words describe it: "holder" ~ "Holder Bracket"
   if (acc?.madeFor || (ONLY_ACCESSORY.has(acc?.word) && !acc.extra && !qTokens.some(isAccessory))) s -= 35;
   else if (acc) s -= 30;
+  // another part is at best a weaker match, never hidden for it: it may still be wanted
+  else if (otherPart(qTokens, name)) s = Math.min(s, STRONG - 5);
   if (potFor(qTokens, nameTokens)) s -= 35;
   return Math.max(0, Math.trunc(s));
 }
@@ -210,14 +212,70 @@ const potFor = (qTokens, nameTokens) =>
 
 const isAccessory = (t) => ACCESSORY_NAMES.has(t) || ACCESSORY_PREFIXES.some((p) => t.startsWith(p));
 
+// where in the name's words the query's words are
+function matchesIn(qTokens, name) {
+  const { raw, rawCompact } = prepare(name);
+  return raw.map((w, i) => (qTokens.some((t) => tokenWeight(t, [w], rawCompact[i]) >= 0.8) ? i : -1)).filter((i) => i >= 0);
+}
+
+// Another part that only names this one, in a few words, or null:
+// - what drives, charges or tests it: "PCA9685 Servo Driver", "LA7116 VCR Servo Interface IC"
+// - a chip with a diode's number: "CD 4007 IC" isn't a 1N4007
+// - sold without it: "Robotic Arm Kit without Servo", or without its chip: "Arduino Uno Compatible
+//   Excluding the ATMEGA328 Chip"
+// - only with it: "Soldering Iron with LCD Display"
+// - a display's adapter board: "LCD16x2 Serial interface I2C Board Module"
+const DRIVEN = new Set([
+  "servo", "servos", "motor", "motors", "stepper", "relay", "relays", "led", "leds", "lcd", "oled", "display", "screen",
+  "fan", "buzzer", "solenoid", "pump", "battery", "batteries", "lipo",
+]);
+const DRIVER = new Set(["ic", "driver", "drivers", "controller", "tester", "charger", "charging"]);
+const CHIP = new Set(["chip", "ic", "microcontroller", "mcu", "processor"]);
+// a chip's package with its pin count: DIP-28, SOP-8, SOT23-6 (an LED's "DIP" has none)
+const PACKAGE = /^(?:dip|pdip|sop|soic|ssop|tssop|qfn|tqfp|lqfp|sot\d*)$/;
+const isChip = (raw) => raw.some((w, i) => w === "ic" || (PACKAGE.test(w) && Number(raw[i + 1]) >= 3));
+const LEFT_OUT = ["without", "excluding", "excl", "exclude"];
+const DISPLAYS = new Set(["lcd", "oled", "tft", "display", "screen"]);
+const ADAPTER = new Set(["interface", "adapter", "backpack", "daughter"]);
+const SHOWS = new Set(["display", "character", "backlight", "screen"]);
+
+function otherPart(qTokens, name) {
+  const { nameTokens, nameCompact, raw } = prepare(name);
+  const cut = (words) => Math.min(raw.length, ...words.map((w) => raw.indexOf(w)).filter((i) => i >= 0));
+  const leftOut = cut(LEFT_OUT);
+  const extras = cut(["with", "including"]);
+  // what's left out is the next word or two ("the" aside): "Without Encoder 25GA370 DC Geared Motor" is a motor
+  const missing = raw.slice(leftOut + 1).filter((w) => w !== "the").slice(0, 2);
+  const matched = matchesIn(qTokens, name);
+  if (matched.length && matched.every((i) => i > leftOut) && matched.some((i) => missing.includes(raw[i]))) return "Sold without it";
+  if (missing.some((w) => CHIP.has(w)) && !qTokens.some((t) => CHIP.has(t))) return "Sold without its chip";
+  // only what comes with it: "ATMEGA328P-U Microcontroller Programmed with Arduino UNO Bootloader"
+  if (matched.length && matched.every((i) => i > extras)) return "Comes with it, not the part itself";
+  const before = raw.slice(0, Math.min(extras, leftOut));
+  const has = (t) => tokenWeight(t, nameTokens, nameCompact) > 0;
+  const display = qTokens.some((t) => DISPLAYS.has(t));
+  // only when the name says what it drives (a charger that doesn't say "relay" isn't one for a
+  // relay), and a display that names its driver chip is still the display: "TFT LCD Display
+  // Module, ILI9341 Driver"
+  if (!qTokens.some((t) => isPartNumber(t) && has(t)) && qTokens.some((t) => DRIVEN.has(t) && has(t))
+    && !qTokens.some((t) => DRIVER.has(t) || CHIP.has(t))
+    && !(display && (nameTokens.includes("display") || nameTokens.includes("screen")))) {
+    const word = before.find((w) => DRIVER.has(w));
+    if (word === "ic" || (!word && isChip(raw))) return "A chip for it, not the part itself";
+    if (word) return `A ${word === "charging" ? "charger" : word} for it, not the part itself`;
+  }
+  if (display && !qTokens.some((t) => ADAPTER.has(t) || t === "i2c" || t === "iic")
+    && before.some((w) => ADAPTER.has(w)) && !nameTokens.some((t) => SHOWS.has(t))) return "An adapter board for it, not the display";
+  if (qTokens.some((t) => /^1n\d/.test(t)) && isChip(raw)) return "A chip, not a diode";
+  return null;
+}
+
 // "PCB for ESP32" is an accessory, not the ESP32 itself, unless the search is for an accessory:
 // "fuse holder" wants "Fuse Holder for T5x20". Returns { madeFor: "for" } or { madeFor: "compatible" }
 // when the name is made for the part, { word: "case" } when it only carries the part's name, or null.
 function accessoryOf(qTokens, name) {
-  const { nameTokens, raw, rawCompact } = prepare(name);
-  const matchedAt = raw
-    .map((w, i) => (qTokens.some((t) => tokenWeight(t, [w], rawCompact[i]) >= 0.8) ? i : -1))
-    .filter((i) => i >= 0);
+  const { nameTokens, raw } = prepare(name);
+  const matchedAt = matchesIn(qTokens, name);
   const lastMatch = matchedAt.length ? Math.max(...matchedAt) : 0;
   const madeFor = qTokens.some(isAccessory) ? null
     : raw.slice(0, lastMatch).find((w) => ACCESSORY_WORDS.has(w) || (w.endsWith("for") && w.length > 3));
@@ -247,6 +305,8 @@ export function weakReason(query, name) {
   if (acc?.madeFor) return "Made for it, not the part itself";
   if (acc) return `An accessory: ${acc.word}`;
   if (potFor(qTokens, nameTokens)) return "A potentiometer, not a fixed resistor";
+  const other = otherPart(qTokens, name);
+  if (other) return other;
   if (missing.length) return `No “${missing.join(" ")}” in its name`;
   return "Only part of the name matches";
 }
