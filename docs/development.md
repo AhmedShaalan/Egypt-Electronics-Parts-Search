@@ -43,6 +43,8 @@ Egypt-Electronics-Parts-Search/
 ├── worker/                 Cloudflare Worker relay
 │   ├── src/index.js
 │   └── wrangler.toml       Worker name and allowed origins
+├── test/
+│   └── matching.test.js    Searches and real shop names they must, or must not, match
 ├── tools/
 │   └── og-image.html       The link preview picture, as a page to take a picture of
 ├── package.json            The site's build: Vite + Preact
@@ -94,6 +96,8 @@ npm run dev
 ```
 
 Open <http://localhost:8766>. To check what GitHub Pages will get, `npm run build` puts it in `dist/` and `npm run preview` serves that. On `localhost`, the site automatically uses the local relay.
+
+`npm test` checks the matching against real product names from the shops, without asking them anything. Run it after changing `src/js/matching.js`, and when a search matches the wrong thing, add the search and the name to `test/matching.test.js` first. Cases still wrong are listed there as to-dos.
 
 ## Adding a shop
 
