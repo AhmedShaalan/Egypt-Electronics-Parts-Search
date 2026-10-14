@@ -100,6 +100,10 @@ const CASES = {
   "a potentiometer is not a fixed resistor": [
     ["10k resistor", "Variable Resistor - POT (10 K-Ohm) - 3296W", "weak"],
     ["10k trimmer", "Trimmer Potentiometer 10K 3296W", "match"],
+    ["10k potentiometer", "Variable Resistor - POT (10 K-Ohm) - 3296W", "match"],
+    ["10k potentiometer", "Trimmer Pot (10K ohm , 1/2W)", "match"],
+    ["trimmer 10k", "Trimpot 10K 3296W", "match"],
+    ["10k resistor", "Trimmer Pot (10K ohm , 1/2W)", "no"],
   ],
   "common parts find themselves": [
     ["SG90 servo", "Mini Micro Servo Motor SG90 180 Degree (Plastic Gear)", "match"],
@@ -138,7 +142,6 @@ const CASES = {
 const KNOWN_WRONG = [
   ["servo", "LA7116 VCR Servo Interface IC DIP 24", "weak"],
   ["16x2 LCD", "LCD16x2 Serial interface I2C Board Module", "weak"],
-  ["10k potentiometer", "Variable Resistor - POT (10 K-Ohm) - 3296W", "match"],
 ];
 
 for (const [rule, cases] of Object.entries(CASES)) {

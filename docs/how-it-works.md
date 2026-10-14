@@ -47,6 +47,7 @@ Matching is what makes the results trustworthy, so it gets its own module ([`src
 | Accessories rank lower | "Acrylic case **for** Arduino UNO" is a weaker match for `Arduino UNO`, and "ESP32 **breakout** board" scores below the ESP32 itself, unless the search is for the accessory: `fuse holder T5x20` matches "Fuse Holder on PCB **for** T5x20" |
 | Add-ons aren't the part | A spacer, insulation paper, heat shrink, servo horn, extension cable, jumper wire or expansion board is a weaker match for the part it's made for: `5mm LED` doesn't match "5mm LED Spacer", `18650 battery` doesn't match "18650 Battery Insulation Paper" |
 | The part's name must be there | Without a part number, a name needs the word that says what the part is, not only the ones that describe it: `4 channel relay module` doesn't match "IR Tracking Sensor Module 4 Channel" |
+| Short names count | `potentiometer` matches "POT", and `trimmer` matches "Trimpot" |
 | Pack sizes are detected | "(10pcs)", "Pack of 5", "20 Pieces"; a kit ("Resistor Kit 600pcs") counts as one |
 
 In a parts list, the default pick for each line is the **cheapest product within 25 points of that line's best match**. That keeps `L7805CV` as an option for `LM7805`, but stops a cheap accessory from winning on price. Shop totals use the same rule, so the "cheapest mix" and "one shop" figures are always comparable.

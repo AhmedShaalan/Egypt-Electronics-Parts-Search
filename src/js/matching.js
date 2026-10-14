@@ -13,6 +13,8 @@ const STOPWORDS = new Set(["the", "for", "with", "and", "of", "pcs", "pc", "piec
 const UNIT_FIXES = [["Ω", "ohm"], ["ω", "ohm"], ["µ", "u"], ["μ", "u"], ["×", "x"]];
 // common names shops use interchangeably
 const ALIASES = { "16x2": "1602", "1602": "16x2", "20x4": "2004", "2004": "20x4", "12864": "128x64" };
+// short names that only count when matching, so searches don't grow: a "10k potentiometer" is a "POT (10 K-Ohm)"
+const SAME_WORD = { pot: "potentiometer", potentiometer: "pot", trimpot: "trimmer", trimmer: "trimpot" };
 
 // makers' names: many shops leave them out, so a name without one isn't a worse match
 // (words that also mean something else, like "analog" or "finder", aren't listed)
@@ -126,7 +128,7 @@ function foundIn(t, text, starts) {
 }
 
 function tokenWeight(t, nameTokens, nameCompact) {
-  if (nameTokens.includes(t) || (ALIASES[t] && nameTokens.includes(ALIASES[t]))) return 1.0;
+  if (nameTokens.includes(t) || [ALIASES[t], SAME_WORD[t]].some((a) => a && nameTokens.includes(a))) return 1.0;
   for (const nt of nameTokens) {
     // plurals and suffixes: resistor/resistors, esp32/esp32s3, 10k/10kohm
     if (t.length >= 2 && (nt.startsWith(t) || (t.startsWith(nt) && t.length - nt.length <= 2 && nt.length >= 3))) {
